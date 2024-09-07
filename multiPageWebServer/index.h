@@ -15,7 +15,7 @@ const char *HTML_CONTENT_HOME = R""""(<!DOCTYPE html>
     <title>Home Page</title>
 </head>
 <body>
-    <h1>Welcome to the Home Page</h1>
+    <h1>Domotica</h1>
         <font size="+5">
     <ul>
         <li><a href="/led">Lampen</a></li>

@@ -117,7 +117,7 @@ function update_view(temp, humid) {
   ctx.textAlign="center";
   ctx.fillText(temp.toString() + "°C", 0, 100);
   ctx.fillText("Vochtigheid:", 0, -420);
-  ctx.fillText(humid.toString(), 0, -390);
+  ctx.fillText(humid.toString() + "%", 0, -390);
 }
 
 window.onload = init;

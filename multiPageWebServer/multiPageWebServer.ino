@@ -48,8 +48,8 @@ String getTemperature_humidity() {
   float humid  = dht22.readHumidity();
   // read temperature as Celsius
   float tempC = dht22.readTemperature();
-  if ( isnan(tempC) ){
-    return String(-5.0, 2);
+  if (isnan(humid) || isnan(tempC) ){
+    return String(-5.0, 1) + "," + String(0.0, 1);
   }
   // // read temperature as Fahrenheit
   // float tempF = dht22.readTemperature(true);
