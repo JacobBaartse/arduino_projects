@@ -15,6 +15,12 @@
 #include "error_404.h"
 #include "error_405.h"
 
+#include "DHT.h"
+#define DHT22_PIN 2
+
+DHT dht22(DHT22_PIN, DHT22);
+
+
 #define PAGE_HOME 0
 #define PAGE_TEMPERATURE 1
 #define PAGE_DOOR 2
@@ -37,16 +43,39 @@ int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 
 float getTemperature() {
-  // YOUR SENSOR IMPLEMENTATION HERE
-  // simulate the temperature value
-  float temp_x100 = random(0, 10000);  // a ramdom value from 0 to 10000
-  return temp_x100 / 100;              // return the simulated temperature value from 0 to 100 in float
+
+    // read humidity
+  // float humi  = dht22.readHumidity();
+  // read temperature as Celsius
+  float tempC = dht22.readTemperature();
+  if ( isnan(tempC) ){
+    return -20.0;
+  }
+  // // read temperature as Fahrenheit
+  // float tempF = dht22.readTemperature(true);
+
+  // // check if any reads failed
+  // if (isnan(humi) || isnan(tempC) || isnan(tempF)) {
+  //   Serial.println("Failed to read from DHT22 sensor!");
+  // } else {
+  //   Serial.print("DHT22# Humidity: ");
+  //   Serial.print(humi);
+  //   Serial.print("%");
+
+  //   Serial.print("  |  "); 
+
+  //   Serial.print("Temperature: ");
+  //   Serial.print(tempC + 0);  // my sensor has some deviation so correct it.
+  //   Serial.println("°C");
+  // }
+  return tempC;              // return the simulated temperature value from 0 to 100 in float
 }
 
 
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
+  dht22.begin(); 
 
   pinMode(wifi_ready_led, OUTPUT);
   digitalWrite(wifi_ready_led, LOW);  
