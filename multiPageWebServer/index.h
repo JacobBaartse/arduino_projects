@@ -18,9 +18,8 @@ const char *HTML_CONTENT_HOME = R""""(<!DOCTYPE html>
     <h1>Welcome to the Home Page</h1>
         <font size="+5">
     <ul>
-        <li><a href="/led">LED Page</a></li>
-        <li><a href="/temperature">Temperature Page</a></li>
-        <li><a href="/door">Door Page</a></li>
+        <li><a href="/led">Lampen</a></li>
+        <li><a href="/temperature">Temperatuur, vochtigheid woonkamer</a></li>
     </ul>
     </font>
 </body>

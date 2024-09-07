@@ -17,10 +17,11 @@ const char *HTML_CONTENT_LED = R""""(<!DOCTYPE html>
 <body>
     <h1>LED Page</h1>
     <font size="+5">
-    <p>LED State: <span style="color: red;">LED_STATE_MARKER</span></p>
+    <p>Licht is <span style="color: red;">LED_STATE_MARKER</span></p>
     <ul>
-    <li><a href="/led?0">LED off</a></li>
-    <li><a href="/led?1">LED on</a></li>
+    <li><a href="/led?0">Licht uit</a></li>
+    <li><a href="/led?1">Licht aan</a></li>
+    <li><a href="/temperature">Temperatuur, vochtigheid woonkamer</a></li>
     </ul>
     </font>
 </body>

@@ -20,7 +20,6 @@
 
 DHT dht22(DHT22_PIN, DHT22);
 
-
 #define PAGE_HOME 0
 #define PAGE_TEMPERATURE 1
 #define PAGE_DOOR 2
@@ -42,14 +41,15 @@ int status = WL_IDLE_STATUS;
 
 WiFiServer server(80);
 
-float getTemperature() {
+
+String getTemperature_humidity() {
 
     // read humidity
-  // float humi  = dht22.readHumidity();
+  float humid  = dht22.readHumidity();
   // read temperature as Celsius
   float tempC = dht22.readTemperature();
   if ( isnan(tempC) ){
-    return -20.0;
+    return String(-5.0, 2);
   }
   // // read temperature as Fahrenheit
   // float tempF = dht22.readTemperature(true);
@@ -68,9 +68,8 @@ float getTemperature() {
   //   Serial.print(tempC + 0);  // my sensor has some deviation so correct it.
   //   Serial.println("°C");
   // }
-  return tempC;              // return the simulated temperature value from 0 to 100 in float
+  return String(tempC, 1) + "," + String(humid, 1);              // return the simulated temperature value from 0 to 100 in float
 }
-
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -168,13 +167,13 @@ void loop() {
       } else if (HTTP_req.indexOf("GET /led?1 ") > -1 || HTTP_req.indexOf("GET /led.html ") > -1) {
         // Serial.println("led on page");
         digitalWrite(relay, HIGH);
-        led_state = "ON";
+        led_state = "aan";
         page_id = PAGE_LED;
       } else if (HTTP_req.indexOf("GET /led?0 ") > -1 || HTTP_req.indexOf("GET /led.html ") > -1) {
         // Serial.println("led off page");
         digitalWrite(relay, LOW);
         page_id = PAGE_LED;
-        led_state = "OFF";
+        led_state = "uit";
       } else {  // 404 Not Found
         // Serial.println("404 Not Found");
         page_id = PAGE_ERROR_404;
@@ -182,7 +181,7 @@ void loop() {
     } else {  // 405 Method Not Allowed
       // Serial.println("405 Method Not Allowed");
       page_id = PAGE_ERROR_405;
-    }
+    }    
 
     // send the HTTP response
     // send the HTTP response header
@@ -205,7 +204,7 @@ void loop() {
         break;
       case PAGE_TEMPERATURE:
         html = String(HTML_CONTENT_TEMPERATURE);
-        html.replace("TEMPERATURE_MARKER", String(getTemperature(), 2));  // replace the marker by a real value
+        html.replace("TEMPERATURE_HUMID_MARKER", getTemperature_humidity());  // replace the marker by a real value
         break;
       case PAGE_DOOR:
         html = String(HTML_CONTENT_DOOR);
