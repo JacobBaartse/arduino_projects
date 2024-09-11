@@ -7,10 +7,13 @@
  This example is written for a network using WPA encryption. For
  WEP or WPA, change the Wifi.begin() call accordingly.
  */
-
+ #include "RTC.h"
+#include "Arduino_LED_Matrix.h"
+#include "clock.h"
 #include <SPI.h>
 #include <WiFi.h>
 #include "arduino_secrets.h"
+
 
 const char ssid[] = SECRET_SSID;  // change your network SSID (name)
 const char pass[] = SECRET_PASS;   // change your network password (use for WPA, or use as key for WEP)
@@ -20,7 +23,7 @@ int status = WL_IDLE_STATUS;
 
 WiFiClient client;
 
-void get_time_form_worldtimeapi_org(){
+String get_time_form_worldtimeapi_org(){
   String readString; 
   char server[] = "worldtimeapi.org"; 
 
@@ -53,6 +56,14 @@ void get_time_form_worldtimeapi_org(){
 
   Serial.println("disconnecting from worldtimeapi.org.");
   client.stop();
+
+  int day_of_week_start =  readString.indexOf("\"day_of_week\":") + 14;
+  String date_time = readString.substring(day_of_week_start, day_of_week_start+2);
+
+  int date_time_start = readString.indexOf("\"datetime\":\"") + 12;
+  date_time += readString.substring(date_time_start, date_time_start+26);
+
+  return date_time;
 }
 
 void setup() {
@@ -79,17 +90,14 @@ void setup() {
   printWifiStatus();
   Serial.println("\nStarting connection to server...");
 
-  get_time_form_worldtimeapi_org();
-
-  pinMode(LED_BUILTIN, OUTPUT);
-
+  String world_time;
+  world_time = get_time_form_worldtimeapi_org();
+  clock_setup(world_time);
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  delay(1000);                      // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
-  delay(1000);                      // wait for a second
+  clock_loop_once();
+  delay(500);                      // wait for a second
 }
 
 void printWifiStatus() {
