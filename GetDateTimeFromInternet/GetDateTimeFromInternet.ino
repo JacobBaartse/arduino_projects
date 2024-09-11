@@ -7,11 +7,11 @@
  This example is written for a network using WPA encryption. For
  WEP or WPA, change the Wifi.begin() call accordingly.
  */
- #include "RTC.h"
-#include "Arduino_LED_Matrix.h"
-#include "clock.h"
 #include <SPI.h>
 #include <WiFi.h>
+#include "RTC.h"
+#include "Arduino_LED_Matrix.h"
+#include "clock.h"
 #include "arduino_secrets.h"
 
 
@@ -66,6 +66,14 @@ String get_time_form_worldtimeapi_org(){
   return date_time;
 }
 
+void update_clock_time(){
+  String world_time;
+  world_time = get_time_form_worldtimeapi_org();
+  clock_update(world_time);
+}
+
+
+
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
@@ -90,14 +98,23 @@ void setup() {
   printWifiStatus();
   Serial.println("\nStarting connection to server...");
 
-  String world_time;
-  world_time = get_time_form_worldtimeapi_org();
-  clock_setup(world_time);
+  clock_setup();
+  update_clock_time();
 }
 
+unsigned long previousMillis = 0; 
+
 void loop() {
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= 30*60*1000)  // eens per half uur
+  {
+    previousMillis = currentMillis;
+    update_clock_time();
+  }
   clock_loop_once();
-  delay(500);                      // wait for a second
+  delay(1000);
+  
 }
 
 void printWifiStatus() {

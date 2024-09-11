@@ -81,9 +81,12 @@ void getCurTime(String timeSTR,String* d_w,int* d_mn, String* mn,int* h,int* m,i
 }
 
 
-void clock_setup(String timeStamp) {  
+void clock_setup() {  
   matrix.begin();
   RTC.begin();    
+}
+
+void clock_update(String timeStamp) {  
   getCurTime(timeStamp,&dayofWeek,&dayofMon,&month,&hours,&minutes,&seconds,&year);
   RTCTime startTime(dayofMon, convertMonth(month) , year, hours, minutes, seconds, 
                     convertDOW(dayofWeek), SaveLight::SAVING_TIME_ACTIVE); 
