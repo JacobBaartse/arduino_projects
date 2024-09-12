@@ -152,28 +152,27 @@ void loop() {
     int page_id = 0;
 
     if (HTTP_req.indexOf("GET") == 0) {  // check if request method is GET
-      if (HTTP_req.indexOf("GET / ") > -1 || HTTP_req.indexOf("GET /index ") > -1 || HTTP_req.indexOf("GET /index.html ") > -1) {
+      if (HTTP_req.indexOf("GET / ") > -1 || HTTP_req.indexOf("GET /index") > -1) {
         // Serial.println("home page");
         page_id = PAGE_HOME;
-      } else if (HTTP_req.indexOf("GET /temperature ") > -1 || HTTP_req.indexOf("GET /temperature.html ") > -1) {
+      } else if (HTTP_req.indexOf("GET /temperature") > -1) {
         // Serial.println("temperature page");
         page_id = PAGE_TEMPERATURE;
-      } else if (HTTP_req.indexOf("GET /door ") > -1 || HTTP_req.indexOf("GET /door.html ") > -1) {
+      } else if (HTTP_req.indexOf("GET /door") > -1) {
         // Serial.println("door page");
         page_id = PAGE_DOOR;
-      } else if (HTTP_req.indexOf("GET /led ") > -1 || HTTP_req.indexOf("GET /led.html ") > -1) {
+      } else if (HTTP_req.indexOf("GET /led") > -1 ) {
         // Serial.println("led page");
         page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led?1 ") > -1 || HTTP_req.indexOf("GET /led.html ") > -1) {
-        // Serial.println("led on page");
-        digitalWrite(relay, HIGH);
-        led_state = "aan";
-        page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led?0 ") > -1 || HTTP_req.indexOf("GET /led.html ") > -1) {
-        // Serial.println("led off page");
-        digitalWrite(relay, LOW);
-        page_id = PAGE_LED;
-        led_state = "uit";
+        if (HTTP_req.indexOf("GET /led?1") > -1) {
+          // Serial.println("led on page");
+          digitalWrite(relay, HIGH);
+          led_state = "aan";
+        else if (HTTP_req.indexOf("GET /led?0") > -1) {
+          // Serial.println("led off page");
+          digitalWrite(relay, LOW);
+          led_state = "uit";
+        }
       } else {  // 404 Not Found
         // Serial.println("404 Not Found");
         page_id = PAGE_ERROR_404;
@@ -187,7 +186,7 @@ void loop() {
     // send the HTTP response header
     if (page_id == PAGE_ERROR_404)
       client.println("HTTP/1.1 404 Not Found");
-    if (page_id == PAGE_ERROR_405)
+    else if (page_id == PAGE_ERROR_405)
       client.println("HTTP/1.1 405 Method Not Allowed");
     else
       client.println("HTTP/1.1 200 OK");
@@ -241,7 +240,7 @@ void printWifiStatus() {
   Serial.println(WiFi.localIP());
 
   // print the received signal strength:
-  Serial.print("signal strength (RSSI):");
+  Serial.print("signal strength (RSSI): ");
   Serial.print(WiFi.RSSI());
   Serial.println(" dBm");
   digitalWrite(wifi_ready_led, HIGH);
