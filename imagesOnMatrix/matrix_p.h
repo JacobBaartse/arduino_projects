@@ -13,6 +13,8 @@ ArduinoLEDMatrix matrix;
 #define PICT_LIKE 4
 
 void loadstaticpicture(int item_id){
+  Serial.print("loadstaticpicture: ");
+  Serial.println(item_id);  
   switch (item_id) {
   case PICT_HAPPY:
     matrix.loadFrame(LEDMATRIX_EMOJI_HAPPY);
@@ -43,27 +45,51 @@ const uint32_t seqheart[][2] = {
 #define SEC_NONE 0
 #define SEC_HEART 1
 
-bool sequenceBusy = false;
-bool runsequence(int sequence_id, int timelength=1000){
-  static long runtim = 0;
-  if(millis()<runtim) {
+int definedSequences[] = { SEC_NONE, SEC_HEART };
 
+bool sequenceBusy = false;
+bool runsequence(int sequence_id, int timelength=3000){
+  static long runtim = 0;
+  static int pointer = 0;
+  static int loopcount = 0;
+  int next_time = 0;
+  if(millis()<runtim) {
+    return true;
   }
   else {
-    runtim = millis() + timelength;
+    Serial.print("- ");
+    Serial.print(pointer);
+    Serial.print(" p, l: ");
+    Serial.println(loopcount);
+    if (pointer == 0){
+      loopcount++;
+    }
+    Serial.print("sequence_id: ");
+    Serial.println(sequence_id);
+    switch (sequence_id) {
+    case SEC_HEART:
+      loadstaticpicture(seqheart[pointer][0]);
+      next_time = seqheart[pointer][1];
+      pointer++;
+      pointer = pointer % 2; // sizeof(seqheart);  // length of the array
+      break;
+    case SEC_NONE:
+    default:
+      next_time = timelength;
+      //sequenceBusy = false;
+    }
+    runtim = millis() + next_time;
   }
 
-  if (sequenceBusy){
-    delay(10);
+  if (loopcount > 10){
+    loopcount = 0;
+    sequenceBusy = false;
   }
-  return ;
-}
 
-/*  example timing:
-bool BoardLED(int interval){
-  static long next_time = 0; // remember the next_time for next action (note static)
-  if(millis()<next_time) return false; // if time has not arrived, return
-  next_time += interval; // else update next_time by period
-  toggleLED(LED_BUILTIN); // and do the action
-  return true;
+  // dit moet later weg
+  delay(200);
+
+  Serial.print("sequenceBusy: ");
+  Serial.println(sequenceBusy);
+  return sequenceBusy;
 }

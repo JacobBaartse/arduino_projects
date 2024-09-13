@@ -6,13 +6,19 @@
 
 void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
+
+  matrix.begin();
   loadstaticpicture(PICT_LIKE);
-  delay(2000);
+  Serial.begin(115200);
+
   digitalWrite(LED_BUILTIN, LOW);
 }
 
 int sequencetorun = SEC_NONE;
 bool running = false;
 void loop() {
-  running = runsequence(SEC_NONE, 1000);
+  running = runsequence(sequencetorun);
+  if (!running){
+    sequencetorun = SEC_HEART; // random(0, 2); //sizeof(definedSequences));
+  }
 }

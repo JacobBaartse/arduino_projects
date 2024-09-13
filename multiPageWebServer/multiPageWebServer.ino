@@ -15,8 +15,8 @@
 #include "error_404.h"
 #include "error_405.h"
 
-#include "DHT.h"
-#define DHT22_PIN 2
+//#include "DHT.h"
+define DHT22_PIN 2
 
 DHT dht22(DHT22_PIN, DHT22);
 
