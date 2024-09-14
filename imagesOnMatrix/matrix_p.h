@@ -13,8 +13,8 @@ ArduinoLEDMatrix matrix;
 #define PICT_LIKE 4
 
 void loadstaticpicture(int item_id){
-  Serial.print("loadstaticpicture: ");
-  Serial.println(item_id);  
+  //Serial.print("loadstaticpicture: ");
+  //Serial.println(item_id);  
   switch (item_id) {
   case PICT_HAPPY:
     matrix.loadFrame(LEDMATRIX_EMOJI_HAPPY);
@@ -31,7 +31,7 @@ void loadstaticpicture(int item_id){
   }
 }
 
-const uint32_t seqheart[][2] = {
+const int seqheart[][2] = {
   {
     PICT_HEART_S,
     600
@@ -57,15 +57,15 @@ bool runsequence(int sequence_id, int timelength=3000){
     return true;
   }
   else {
-    Serial.print("- ");
-    Serial.print(pointer);
-    Serial.print(" p, l: ");
-    Serial.println(loopcount);
+    //Serial.print("- ");
+    //Serial.print(pointer);
+    //Serial.print(" p, l: ");
+    //Serial.println(loopcount);
     if (pointer == 0){
       loopcount++;
     }
-    Serial.print("sequence_id: ");
-    Serial.println(sequence_id);
+    //Serial.print("sequence_id: ");
+    //Serial.println(sequence_id);
     switch (sequence_id) {
     case SEC_HEART:
       loadstaticpicture(seqheart[pointer][0]);
@@ -89,7 +89,7 @@ bool runsequence(int sequence_id, int timelength=3000){
   // dit moet later weg
   delay(200);
 
-  Serial.print("sequenceBusy: ");
-  Serial.println(sequenceBusy);
+  //Serial.print("sequenceBusy: ");
+  //Serial.println(sequenceBusy);
   return sequenceBusy;
 }
