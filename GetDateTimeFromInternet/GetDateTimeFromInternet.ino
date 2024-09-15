@@ -80,6 +80,7 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+  
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
@@ -94,7 +95,7 @@ void setup() {
     status = WiFi.begin(ssid, pass);
     delay(2000);
   }
-  Serial.println("Connected to wifi");
+  Serial.println(String("Connected to wifi ") + ssid);
   printWifiStatus();
   Serial.println("\nStarting connection to server...");
 
@@ -127,7 +128,7 @@ void printWifiStatus() {
   Serial.println(ip);
   // print the received signal strength:
   long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
+  Serial.print("signal strength (RSSI): ");
   Serial.print(rssi);
   Serial.println(" dBm");
 }

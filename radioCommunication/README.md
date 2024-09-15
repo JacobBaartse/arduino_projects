@@ -1,5 +1,9 @@
 # radio communications
-arduino project for home automation
+Some background information available in 
+https://howtomechatronics.com/tutorials/arduino/arduino-wireless-communication-nrf24l01-tutorial/
+
+ 
+# goal
 
 Central server/controller with multiple remote clients that can contain multiple sensors and multiple activators
 
