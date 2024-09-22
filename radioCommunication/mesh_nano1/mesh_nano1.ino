@@ -5,9 +5,16 @@
 #include <SPI.h>
 //#include <printf.h>
  
- 
 /**** Configure the nrf24l01 CE and CS pins ****/
-RF24 radio(7, 8);
+/*
+https://www.youtube.com/watch?v=_8KZoNWa-nw
+9 CSN
+10 CE
+11 MOSI
+12 MISO
+13 SCK
+*/
+RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
@@ -18,8 +25,7 @@ RF24Mesh mesh(radio, network);
  * In this example, configuration takes place below, prior to uploading the sketch to the device
  * A unique value from 1-255 must be configured for each node.
  */
-#define nodeID 1
- 
+#define nodeID 4
  
 uint32_t displayTimer = 0;
  
@@ -29,7 +35,6 @@ struct payload_t {
 };
  
 void setup() {
- 
   Serial.begin(115200);
   while (!Serial) {
     // some boards need this because of native USB capability
