@@ -5,14 +5,13 @@
 #include <SPI.h>
 //#include <printf.h>
  
+ 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 /*
-https://www.youtube.com/watch?v=_8KZoNWa-nw
-9 CSN
-10 CE
-11 MOSI
-12 MISO
-13 SCK
+https://www.youtube.com/watch?v=8p_hN53TxY8
+
+https://www.electronicwings.com/arduino/nrf24l01-interfacing-with-arduino-uno
+
 */
 RF24 radio(10, 9);
 RF24Network network(radio);
@@ -25,7 +24,8 @@ RF24Mesh mesh(radio, network);
  * In this example, configuration takes place below, prior to uploading the sketch to the device
  * A unique value from 1-255 must be configured for each node.
  */
-#define nodeID 4
+#define nodeID 1
+ 
  
 uint32_t displayTimer = 0;
  
@@ -35,6 +35,7 @@ struct payload_t {
 };
  
 void setup() {
+ 
   Serial.begin(115200);
   while (!Serial) {
     // some boards need this because of native USB capability
