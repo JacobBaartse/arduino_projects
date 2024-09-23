@@ -6,8 +6,14 @@
 //#include <printf.h>
  
  
-/**** Configure the nrf24l01 CE and CS pins ****/
-RF24 radio(7, 8);
+/**** Configure the nrf24l01 CE and CSN pins ****/
+/*
+https://www.youtube.com/watch?v=8p_hN53TxY8
+
+https://www.electronicwings.com/arduino/nrf24l01-interfacing-with-arduino-uno
+
+*/
+RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
