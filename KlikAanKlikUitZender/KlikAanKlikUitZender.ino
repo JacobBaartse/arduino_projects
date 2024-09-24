@@ -1,4 +1,4 @@
-int OUTPUTPIN = LED_BUILTIN;
+int OUTPUTPIN = 3;
 
 
 int stop, start, counter1, counter2;
@@ -10,39 +10,36 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+  pinMode(OUTPUTPIN, OUTPUT);
 }
 
-void delay_370u(int repeats){
+void send_times_t(int repeats, int state){
   for (int j=0; j<repeats; j++){
-    for  (int i = 1; i<178; i++){  // loop to get 370useconds
-      counter2 = micros();
+    digitalWrite(OUTPUTPIN, state); // this takes also time so do it for every loop
+    for  (int i = 1; i<157; i++){  // loop to get 338 useconds
+      counter2 = micros();  // takes about 1.8us
     }
   }
 }
 
-void set_output(int duration, int state){
-  digitalWrite(OUTPUTPIN, state);
-  delay_370u(duration);
-}
 
 void send_bit(int bitval){
-  set_output(1, LOW);
   if (bitval == 0){
-    set_output(1, HIGH);
-    set_output(1, LOW);
-    set_output(3, HIGH);
-    set_output(1, LOW);
+    send_times_t(1, HIGH);
+    send_times_t(1, LOW);
+    send_times_t(3, HIGH);
+    send_times_t(1, LOW);
   }
   else{
-    set_output(3, HIGH);
-    set_output(1, LOW);
-    set_output(1, HIGH);
-    set_output(1, LOW);
+    send_times_t(3, HIGH);
+    send_times_t(1, LOW);
+    send_times_t(1, HIGH);
+    send_times_t(1, LOW);
   }
 }
 
 
-long code = 0x50505050;
+long code = 0x09002309;
 
 
 void loop(){
@@ -50,21 +47,24 @@ void loop(){
   // while (true){
   //   start = micros();
   //   delay_370u(100);
-  //   stop = micros();  //shoul result in 37000 us
+  //   stop = micros();  //shoul result in 33800 us
   //   Serial.println(stop-start);
   // }
 
-  for (int k = 0; k<3; k++){
-    set_output(25, HIGH); // delay betwen codes. 9ms
+  for (int k = 0; k<10; k++){
+    //start = millis();
+    send_times_t(27, HIGH); // delay betwen codes. 9ms
 
-    set_output(1, LOW);// start sequence
-    set_output(7, HIGH);
-    set_output(1, LOW);
+    send_times_t(1, LOW);// start sequence
+    send_times_t(7, HIGH);
+    send_times_t(1, LOW);
 
     for (int p=0; p<32; p++){  //lsb first
       int bitval = (code >> p) % 2;
       send_bit(bitval);
     }
+    //stop = millis();
+    //Serial.println(stop-start);
   }
-  delay(1000);
+  delay(20000);
 }
