@@ -25,7 +25,7 @@ RF24Mesh mesh(radio, network);
  * A unique value from 1-255 must be configured for each node.
  */
 #define nodeID 1
- 
+// https://forum.arduino.cc/t/nrf24-network-master-crossing-readings/575830 suggests value 0
  
 uint32_t displayTimer = 0;
  
@@ -70,6 +70,7 @@ void loop() {
   mesh.update();
  
   // Send to the master node every second
+  /* this UNO is the master
   if (millis() - displayTimer >= 1000) {
     displayTimer = millis();
  
@@ -93,6 +94,7 @@ void loop() {
       Serial.println(displayTimer);
     }
   }
+  /* */
  
   while (network.available()) {
     RF24NetworkHeader header;

@@ -1,4 +1,10 @@
- 
+/*
+ * example that is what is the goal of this trial:
+ * https://forum.arduino.cc/t/nrf24-network-master-crossing-readings/575830
+ * ToBeDone 
+ */
+
+
 #include "RF24.h"
 #include "RF24Network.h"
 #include "RF24Mesh.h"
@@ -27,7 +33,34 @@ struct payload_t {
   unsigned long ms;
   unsigned long counter;
 };
- 
+
+//==============
+/*
+ void loop() {
+    getData();
+    showData();
+}
+https://forum.arduino.cc/t/simple-nrf24l01-2-4ghz-transceiver-demo/405123/2
+/* */
+bool newData = false;
+
+void getData() {
+    if ( radio.available() ) {
+        radio.read( &dataReceived, sizeof(dataReceived) );
+        newData = true;
+    }
+}
+
+void showData() {
+    if (newData) {
+        Serial.print("Data received: ");
+        Serial.println(dataReceived);
+        newData = false;
+    }
+}
+//==============
+
+
 void setup() {
  
   Serial.begin(115200);
