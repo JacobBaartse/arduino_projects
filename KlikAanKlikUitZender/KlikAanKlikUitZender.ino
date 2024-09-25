@@ -25,16 +25,16 @@ void send_times_t(int repeats, int state){
 
 void send_bit(int bitval){
   if (bitval == 0){
+    send_times_t(1, LOW);
     send_times_t(1, HIGH);
-    send_times_t(1, LOW);
-    send_times_t(3, HIGH);
-    send_times_t(1, LOW);
+    send_times_t(3, LOW);
+    send_times_t(1, HIGH);
   }
   else{
-    send_times_t(3, HIGH);
-    send_times_t(1, LOW);
+    send_times_t(3, LOW);
     send_times_t(1, HIGH);
     send_times_t(1, LOW);
+    send_times_t(1, HIGH);
   }
 }
 
@@ -53,16 +53,17 @@ void loop(){
 
   for (int k = 0; k<10; k++){
     //start = millis();
-    send_times_t(27, HIGH); // delay betwen codes. 9ms
+    send_times_t(27, LOW); // delay betwen codes. 9ms
 
-    send_times_t(1, LOW);// start sequence
-    send_times_t(7, HIGH);
-    send_times_t(1, LOW);
+    send_times_t(1, HIGH);// start sequence
+    send_times_t(7, LOW);
+    send_times_t(1, HIGH);
 
     for (int p=0; p<32; p++){  //lsb first
       int bitval = (code >> p) % 2;
       send_bit(bitval);
     }
+    digitalWrite(OUTPUTPIN, LOW);
     //stop = millis();
     //Serial.println(stop-start);
   }
