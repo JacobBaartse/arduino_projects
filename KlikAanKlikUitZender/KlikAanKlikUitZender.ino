@@ -39,7 +39,24 @@ void send_bit(int bitval){
 }
 
 
-long code = 0x09002309;
+
+void send_code(long code){
+    for (int k = 0; k<10; k++){
+    //start = millis();
+    send_times_t(27, LOW); // delay betwen codes. 9ms
+
+    send_times_t(1, HIGH);// start sequence
+    send_times_t(7, LOW);
+    send_times_t(1, HIGH);
+
+    for (int p=31; p>=0; p--){  //msb first
+      int bitval = (code >> p) % 2;
+      send_bit(bitval);
+    }
+    digitalWrite(OUTPUTPIN, LOW);
+  }
+}
+
 
 
 void loop(){
@@ -51,21 +68,24 @@ void loop(){
   //   Serial.println(stop-start);
   // }
 
-  for (int k = 0; k<10; k++){
-    //start = millis();
-    send_times_t(27, LOW); // delay betwen codes. 9ms
+  //send_code(0x09002309);
+  send_code(0x90c40090);   // aan 1
+  delay(1000);
+  send_code(0x90c40080);   // uit 1
+  delay(1000);
+  send_code(0x90c40091);   // aan 2
+  delay(1000);
+  send_code(0x90c40081);   // uit 2
+  delay(1000);
+  send_code(0x90c40092);   // aan 3
+  delay(1000);
+  send_code(0x90c40082);   // uit 3
+  delay(1000);
 
-    send_times_t(1, HIGH);// start sequence
-    send_times_t(7, LOW);
-    send_times_t(1, HIGH);
+  send_code(0x90c40090);   // aan 1
+  send_code(0x90c40091);   // aan 2
+  send_code(0x90c40092);   // aan 3
 
-    for (int p=0; p<32; p++){  //lsb first
-      int bitval = (code >> p) % 2;
-      send_bit(bitval);
-    }
-    digitalWrite(OUTPUTPIN, LOW);
-    //stop = millis();
-    //Serial.println(stop-start);
-  }
-  delay(20000);
+  delay(2000);
+  send_code(0x90c400A0);  // alles uit
 }
