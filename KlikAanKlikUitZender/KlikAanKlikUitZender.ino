@@ -13,12 +13,25 @@ void setup() {
   pinMode(OUTPUTPIN, OUTPUT);
 }
 
+unsigned long prev_micros = 0;
+//const int millies_per_t = 200;  // fails
+//const int millies_per_t = 250;  //works
+//const int millies_per_t = 300;  //works
+const int millies_per_t = 338;  //works same as remote
+// const int millies_per_t = 350; //works
+// const int millies_per_t = 400;  //works
+// const int millies_per_t = 500;  // fails
+
 void send_times_t(int repeats, int state){
-  for (int j=0; j<repeats; j++){
-    digitalWrite(OUTPUTPIN, state); // this takes also time so do it for every loop
-    for  (int i = 1; i<157; i++){  // loop to get 338 useconds
-      counter2 = micros();  // takes about 1.8us
-    }
+  digitalWrite(OUTPUTPIN, state);
+  unsigned long end_micros = prev_micros + (millies_per_t*repeats);  // to prevent looping of micros every 71 minutes
+  if (end_micros < prev_micros){
+    //todo handle wrapping of micros
+  }
+
+  //wait until time is elapsed.
+  while ( prev_micros <= end_micros){
+    prev_micros = micros();
   }
 }
 
@@ -41,8 +54,9 @@ void send_bit(int bitval){
 
 
 void send_code(long code){
-    for (int k = 0; k<10; k++){
+    for (int k = 0; k<5; k++){
     //start = millis();
+    prev_micros = micros();
     send_times_t(27, LOW); // delay betwen codes. 9ms
 
     send_times_t(1, HIGH);// start sequence
@@ -70,17 +84,17 @@ void loop(){
 
   //send_code(0x09002309);
   send_code(0x90c40090);   // aan 1
-  delay(1000);
+  delay(2000);
   send_code(0x90c40080);   // uit 1
-  delay(1000);
+  delay(2000);
   send_code(0x90c40091);   // aan 2
-  delay(1000);
+  delay(2000);
   send_code(0x90c40081);   // uit 2
-  delay(1000);
+  delay(2000);
   send_code(0x90c40092);   // aan 3
-  delay(1000);
+  delay(2000);
   send_code(0x90c40082);   // uit 3
-  delay(1000);
+  delay(2000);
 
   send_code(0x90c40090);   // aan 1
   send_code(0x90c40091);   // aan 2
@@ -88,4 +102,5 @@ void loop(){
 
   delay(2000);
   send_code(0x90c400A0);  // alles uit
+  delay(2000);
 }
