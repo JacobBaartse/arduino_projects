@@ -14,8 +14,6 @@ int status = WL_IDLE_STATUS;
 WiFiClient client;
 
 unsigned long startup_unix_time_internet;
-int one_hour = 60*60;
-int timezone = +2;
 
 
 String get_time_form_worldtimeapi_org(bool debug, bool first_time){
@@ -61,10 +59,21 @@ String get_time_form_worldtimeapi_org(bool debug, bool first_time){
   int date_time_start = readString.indexOf("\"datetime\":\"") + 13;
   date_time += readString.substring(date_time_start, date_time_start+26);
   int unix_time_len = date_time.indexOf(",");
+
+  int utc_offset_start = readString.indexOf("\"utc_offset\":\"") + 14;
+  String utc_offset_string = readString.substring(utc_offset_start, utc_offset_start + 6);
+  Serial.print("offset ");
+  Serial.println(utc_offset_string);
+  int timezone_minutes = utc_offset_string.substring(1,3).toInt()*60 + utc_offset_string.substring(4,6).toInt();
+
+
+  if (utc_offset_string.substring(0,1) == "-") timezone_minutes = 0-timezone_minutes;
+
+
   if (first_time){
     startup_unix_time_internet = date_time.substring(0, unix_time_len).toInt();
 
-    startup_unix_time_internet += timezone * one_hour;
+    startup_unix_time_internet += timezone_minutes * 60;
 
     // correct startup value for clock for internet lag..
     startup_unix_time_internet += 1;
@@ -95,6 +104,7 @@ void setup() {
   clock_setup();
 }
 
+
 String world_time;
 
 void loop() {
@@ -102,12 +112,12 @@ void loop() {
   while (true)
   {
 
-      world_time = get_time_form_worldtimeapi_org(false, false);
-      Serial.println(world_time);    
+      //world_time = get_time_form_worldtimeapi_org(false, false);
+      //Serial.println(world_time);    
       clock_loop_once();
-      Serial.println(get_clock());
-      Serial.println("----------------------");
-      delay(10000);
+      //Serial.println(get_clock());
+      //Serial.println("----------------------");
+      delay(1000);
   }
 }
 
