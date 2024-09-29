@@ -1,6 +1,6 @@
 
 #include "Arduino_LED_Matrix.h"
-#include "display_4xdigit.h"
+#include "display_3xdigit.h"
 
 bool debug=false;
 
@@ -10,15 +10,12 @@ const int minus_sign = 15;
 const int exponent_offset = 10;
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-  
   Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
   analogReadResolution(14);
   display_digit_setup();
-
 }
 
 float voltage_gemeten=0;
@@ -44,30 +41,9 @@ void loop() {
   
    if (debug) Serial.println(i_ref_resistor, 6);
    if (i_ref_resistor < 0.000001) i_ref_resistor=0.000001;
-  unkonwn_resistor = voltage_gemeten/i_ref_resistor - 1.3;   // correction for low resisteor values
+  unkonwn_resistor = voltage_gemeten/i_ref_resistor - 0.7;   // correction for low resisteor values
 
    if (debug) Serial.println(unkonwn_resistor, 6);
    if (debug) Serial.println("------");
-
-
-  if (unkonwn_resistor > 4900000){
-      show_digits( minus_sign, minus_sign, minus_sign, minus_sign);
-  } 
-  else{
-    int exponent = 0;
-    while (unkonwn_resistor > 999.9999){
-      exponent ++;
-      unkonwn_resistor = unkonwn_resistor / 10;
-    }
-
-    show_digits(
-        (((int)unkonwn_resistor) /100 ) % 10,
-        (((int)unkonwn_resistor) /10) % 10,      
-        ((int)unkonwn_resistor) % 10,
-        exponent + exponent_offset);
-      
-  }
-
-
-  delay(1000);
+   show_value(unkonwn_resistor);
 }
