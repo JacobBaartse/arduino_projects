@@ -24,7 +24,8 @@ RF24Mesh mesh(radio, network);
  * In this example, configuration takes place below, prior to uploading the sketch to the device
  * A unique value from 1-255 must be configured for each node.
  */
-#define nodeID 1
+ 
+#define nodeID 0
 // https://forum.arduino.cc/t/nrf24-network-master-crossing-readings/575830 suggests value 0
  
 uint32_t displayTimer = 0;
