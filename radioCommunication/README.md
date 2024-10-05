@@ -9,10 +9,25 @@ Central server/controller with multiple remote clients that can contain multiple
 
 Board1: Arduino UNO R4 Wifi + NRF24L01+ module
 
-Board2 ... : Arduino NANO with NRF24 included
+Board2 ... Board7 : Arduino NANO with NRF24 included
 
 
 
 # Similar demo code 
 Some example found that seems to achieve the goal:
 https://forum.arduino.cc/t/nrf24-network-master-crossing-readings/575830 
+
+
+mesh info
+
+https://forum.arduino.cc/t/create-selfhealing-mesh-network-with-arduino-uno-nrf24l01-and-tmrh20s-rf24mesh/479396
+
+https://www.arduino.cc/reference/en/libraries/rf24mesh/
+
+master slave example
+https://sandervandevelde.wordpress.com/2016/05/30/cheap-arduino-mesh-using-rf24-radio-modules/
+
+
+
+#  interrupts om arduino
+https://www.best-microcontroller-projects.com/arduino-interrupt.html
