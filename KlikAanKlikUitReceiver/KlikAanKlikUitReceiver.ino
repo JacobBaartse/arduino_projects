@@ -1,17 +1,15 @@
-int rfReceiverPin = 2;
+int rfReceiverPin = 2;  // should be a pin that supports interrupts.
 const int buffer_size = 1024;
 const int start_indicator_val = 6;
 const int one_bit_val = 3;
 
-//variables used in interrupt routine
+//variables used in and outside the interrupt routine
 volatile byte trace_array[buffer_size] ;  // circulair buffer
 volatile int trace_index = 0;
 volatile long prev_micros = 0;
 
 
-
 int prev_trace_index = 0;
-
 
 void getRfCode(){
   bool decoding = true;
@@ -45,6 +43,13 @@ void getRfCode(){
         for (int index = prev_trace_index; index < prev_trace_index + 64; index += 2){
           bit_num --;
           int bitval = trace_array[index % buffer_size] / one_bit_val;
+          int next_val = trace_array[(index + 1) % buffer_size] / one_bit_val;
+          if (bitval == next_val){  // a wrong bit sequence has been detected so move forward
+              // Serial.println("wrong sequence detected move forward");
+            prev_trace_index = (index + 1) % buffer_size;  
+            all_decoded = false;
+            break; 
+          }
 
           if (bitval == start_indicator_val) {  // a new start indicator found so move forward
               // Serial.println("start indicator found go to next");
@@ -98,9 +103,9 @@ void logRfTime(){
   /*
     spacing between codes: 21   will not be stored.
                                           measured         configured
-    Start indicator        6          : 2788 .. 2859  >> 2700 -- 2940
-    een                    3, 1     3 : 1482 .. 1572  >> 1400 -- 1650
-    nul                    1, 3     1 :  460 .. 530   >>  380 -- 610
+    Start indicator        6          : 2788 .. 2859  >> 2600 -- 3000
+    een                    3, 1     3 : 1482 .. 1572  >> 1350 -- 1700
+    nul                    1, 3     1 :  460 .. 530   >>  350 -- 650
  */
   byte cur_duration = 0;
   long cur_micros = micros();
