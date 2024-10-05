@@ -14,17 +14,18 @@ void setup() {
 }
 
 unsigned long prev_micros = 0;
-//const int millies_per_t = 200;  // fails
-//const int millies_per_t = 250;  //works
-//const int millies_per_t = 300;  //works
-const int millies_per_t = 338;  //works same as remote
-// const int millies_per_t = 350; //works
-// const int millies_per_t = 400;  //works
-// const int millies_per_t = 500;  // fails
+//const int micros_per_t = 100;  // tested with receiver, receiver could barely follow the sort pulses.
+//const int micros_per_t = 200;  // fails
+//const int micros_per_t = 250;  //works
+//const int micros_per_t = 300;  //works
+const int micros_per_t = 338;  //works same as remote
+// const int micros_per_t = 350; //works
+// const int micros_per_t = 400;  //works
+// const int micros_per_t = 500;  // fails
 
 void send_times_t(int repeats, int state){
   digitalWrite(OUTPUTPIN, state);
-  unsigned long end_micros = prev_micros + (millies_per_t*repeats);  // to prevent looping of micros every 71 minutes
+  unsigned long end_micros = prev_micros + (micros_per_t*repeats);  // to prevent looping of micros every 71 minutes
   if (end_micros < prev_micros){
     //todo handle wrapping of micros
   }
