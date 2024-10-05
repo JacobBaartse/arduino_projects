@@ -1,6 +1,7 @@
 int rfReceiverPin = 2;
 const int buffer_size = 1024;
-const int start_indicator_val = 5;
+const int start_indicator_val = 6;
+const int one_bit_val = 3;
 
 //variables used in interrupt routine
 volatile byte trace_array[buffer_size] ;  // circulair buffer
@@ -19,13 +20,13 @@ void getRfCode(){
   while (decoding){
 
     //find start indicator
-    Serial.println("find start indicator");
     tmp_trace_index = trace_index;
     start_indicator_found = false;
     if (tmp_trace_index<prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped.
     for (int index=prev_trace_index; index<tmp_trace_index ; index++){
       if (trace_array[index%buffer_size] ==start_indicator_val){
         start_indicator_found = true; 
+        // Serial.println("start indecator found");
         prev_trace_index = (index + 1) % buffer_size;  // skip to after the start indicator
         break;       
       }
@@ -34,32 +35,27 @@ void getRfCode(){
     // decode the data
     bool all_decoded = true;
     if (start_indicator_found){
-      Serial.println("decode the data");
+      // Serial.println("decode the data");
       tmp_trace_index = trace_index;
       if (tmp_trace_index<prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped.
       if (tmp_trace_index > prev_trace_index + 66){ // is there enough data to decode?
-        Serial.println("enough data to decode");
-        int decoded_value = 0;
+        // Serial.println("enough data to decode");
+        unsigned int decoded_value = 0;
         int bit_num = 32;
         for (int index = prev_trace_index; index < prev_trace_index + 64; index += 2){
-          int bitval = trace_array[index % buffer_size] / 2;
-          Serial.print("index ");
-          Serial.println(index);
-          Serial.print("bitval ");
-          Serial.println(bitval);
+          bit_num --;
+          int bitval = trace_array[index % buffer_size] / one_bit_val;
 
-          if (bitval>1) {  // a new start indicator found so move forward
-              Serial.println("too high value found go to next");
+          if (bitval == start_indicator_val) {  // a new start indicator found so move forward
+              // Serial.println("start indicator found go to next");
             prev_trace_index = (index + 1) % buffer_size;  
             all_decoded = false;
             break; 
           }
-          Serial.print("increase value ");
-          Serial.println(bitval << bit_num);
-          decoded_value += bitval << bit_num;
+          decoded_value += (bitval << bit_num);
         }
         if (all_decoded){
-          Serial.print("decoded_val: ");
+          Serial.print("0x");
           Serial.println(decoded_value, HEX);
         }
       }
@@ -74,7 +70,7 @@ void getRfCode(){
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   for (int i=0; i< buffer_size; i++){
     trace_array[i] = 0;
   }
@@ -88,11 +84,11 @@ void loop() {
   // int state = digitalRead(rfReceiverPin);              
   // digitalWrite(LED_BUILTIN, state);
   // delay(10);
-  for (int index =0; index<400; index++){
-    Serial.print(trace_array[index]);
-    Serial.print(" ");
-  }
-  Serial.println();
+  // for (int index =0; index<400; index++){
+  //   Serial.print(trace_array[index]);
+  //   Serial.print(" ");
+  // }
+  // Serial.println();
   getRfCode();
   delay(1000);
 }
