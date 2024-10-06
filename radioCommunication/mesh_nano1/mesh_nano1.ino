@@ -1,9 +1,10 @@
  
-#include "RF24.h"
 #include "RF24Network.h"
+#include "RF24.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
-#include <EEPROM.h>
+#include "radio_const.h"
+//#include <EEPROM.h>
 //#include <printf.h>
  
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -108,7 +109,7 @@ void loop() {
 /* */
 
 /** User Configuration per node: nodeID **/
-#define nodeID 1
+#define nodeID 5
  
 // Payload to MASTER
 struct payload_from_master {
@@ -147,7 +148,7 @@ void setup() {
   Serial.print(nodeID);
   Serial.println(F(", connecting to the mesh..."));
   // Connect to the mesh
-  mesh.begin();
+  mesh.begin(radioChannel);
 }
  
 void loop() {
@@ -155,7 +156,7 @@ void loop() {
  
   /* */
   //// Send to the master node every two seconds - BEGIN
-  if (millis() - sleepTimer >= 2000) {
+  if (millis() - sleepTimer > 2000) {
     sleepTimer = millis();
     payload_from_slave payload = {nodeID, sleepTimer, showLed};
  

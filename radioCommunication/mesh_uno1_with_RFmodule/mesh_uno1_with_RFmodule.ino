@@ -1,9 +1,10 @@
  
-#include "RF24.h"
 #include "RF24Network.h"
+#include "RF24.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
-#include <EEPROM.h>
+#include "radio_const.h"
+//#include <EEPROM.h>
 //#include <printf.h>
  
  
@@ -146,7 +147,7 @@ void setup() {
   Serial.print(F("Starting Master of the mesh, nodeID: "));
   Serial.println(mesh.getNodeID());
   // Connect to the mesh
-  mesh.begin();
+  mesh.begin(radioChannel);
 }
  
 void loop() {
@@ -182,9 +183,8 @@ void loop() {
   
   // Meanwhile, every 5 seconds...
   if(millis() - displayTimer > 5000){
-
-    //// SHOW DHCP TABLE - BEGIN
     displayTimer = millis();
+
     //// SHOW DHCP TABLE - BEGIN
     if (mesh.addrListTop > 0){
       Serial.println(F(" "));
@@ -202,17 +202,21 @@ void loop() {
     }
     //// SHOW DHCP TABLE - END
 
-    /*
     //// Send same master message to all slaves - BEGIN
-    showLed = !showLed;
+    if (mesh.addrListTop > 0){
+      showLed = !showLed;
 
-    for(int i=0; i<mesh.addrListTop; i++){
-      counter++;
-      payload_from_master payload = {counter, showLed};
-      RF24NetworkHeader header(mesh.addrList[i].address, OCT);
-      int x = network.write(header, &payload, sizeof(payload));
+      for(int i=0; i<mesh.addrListTop; i++){
+        counter++;
+        payload_from_master payload = {counter, showLed};
+        RF24NetworkHeader header(mesh.addrList[i].address, OCT);
+        // int x = network.write(header, &payload, sizeof(payload));
+        network.write(header, &payload, sizeof(payload));
+      }
+    }
+    else{
+      Serial.println(F("No network node to write to"));
     }
     //// Send same master message to all slaves - END
-    /* */
   }
 }
