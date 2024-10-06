@@ -3,6 +3,7 @@
 #include "RF24Network.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
+#include <EEPROM.h>
 //#include <printf.h>
  
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -25,7 +26,8 @@ RF24Mesh mesh(radio, network);
  * In this example, configuration takes place below, prior to uploading the sketch to the device
  * A unique value from 1-255 must be configured for each node.
  */
-#define nodeID 4
+ /*
+#define nodeID 5
  
 uint32_t displayTimer = 0;
  
@@ -34,11 +36,9 @@ struct payload_t {
   unsigned long counter;
 };
  
+/*
 void setup() {
   Serial.begin(115200);
-  while (!Serial) {
-    // some boards need this because of native USB capability
-  }
  
   // Set the nodeID manually
   mesh.setNodeID(nodeID);
@@ -48,15 +48,15 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0);
  
   // Connect to the mesh
-  Serial.println(F("Connecting to the mesh..."));
+  Serial.println("Connecting to the mesh...");
   if (!mesh.begin()) {
     if (radio.isChipConnected()) {
       do {
         // mesh.renewAddress() will return MESH_DEFAULT_ADDRESS on failure to connect
-        Serial.println(F("Could not connect to network.\nConnecting to the mesh..."));
+        Serial.println("Could not connect to network.\nConnecting to the mesh...");
       } while (mesh.renewAddress() == MESH_DEFAULT_ADDRESS);
     } else {
-      Serial.println(F("Radio hardware not responding."));
+      Serial.println("Radio hardware not responding.");
       while (1) {
         // hold in an infinite loop
       }
@@ -93,6 +93,7 @@ void loop() {
     }
   }
  
+  /*
   while (network.available()) {
     RF24NetworkHeader header;
     payload_t payload;
@@ -101,5 +102,101 @@ void loop() {
     Serial.print(payload.counter);
     Serial.print(" at ");
     Serial.println(payload.ms);
+  } 
+  
+}
+/* */
+
+/** User Configuration per node: nodeID **/
+#define nodeID 1
+ 
+// Payload to MASTER
+struct payload_from_master {
+  unsigned long counter;
+  bool showLed;
+};
+ 
+// Payload from SLAVE
+struct payload_from_slave {
+  uint8_t nodeId;
+  uint32_t timer;
+  bool ledShown;
+};
+ 
+bool showLed;
+uint32_t sleepTimer;
+
+void setup() {
+  Serial.begin(115200);
+  while (!Serial) {
+    // some boards need this because of native USB capability
   }
+  
+  if (!radio.begin()){
+    Serial.println(F("Radio hardware error."));
+    while (1) {
+      // hold in an infinite loop
+    }
+  }
+  radio.setPALevel(RF24_PA_MIN, 0);
+
+  // Set the nodeID manually
+  mesh.setNodeID(nodeID);
+  // Connect to the mesh
+  Serial.print(F("Setup node: "));
+  Serial.print(nodeID);
+  Serial.println(F(", connecting to the mesh..."));
+  // Connect to the mesh
+  mesh.begin();
+}
+ 
+void loop() {
+  mesh.update();
+ 
+  /* */
+  //// Send to the master node every two seconds - BEGIN
+  if (millis() - sleepTimer >= 2000) {
+    sleepTimer = millis();
+    payload_from_slave payload = {nodeID, sleepTimer, showLed};
+ 
+    // Send an 'M' type message containing the current millis()
+    if (!mesh.write(&payload, 'M', sizeof(payload))) {
+      // If a write fails, check connectivity to the mesh network
+      if (!mesh.checkConnection()) {
+        //refresh the network address
+        Serial.println(F("Renewing Address"));
+        mesh.renewAddress();
+      } else {
+        Serial.println(F("Send fail, Test OK"));
+      }
+    } else {
+      Serial.print(F("Send OK: "));
+      Serial.println(payload.timer);
+    }
+  }
+  /* */
+  //// Send to the master node every two seconds - END
+ 
+  //// Receive a message from master if available - START
+  while (network.available()) {
+    RF24NetworkHeader header;
+    payload_from_master payload;
+    network.read(header, &payload, sizeof(payload));
+    Serial.print(F("Received packet #"));
+    Serial.print(payload.counter);
+    Serial.print(F(", show led="));
+    Serial.println(payload.showLed);
+ 
+    /*
+    showLed = payload.showLed;
+ 
+    if (payload.showLed) {
+      digitalWrite(5, HIGH);
+    }
+    else {
+      digitalWrite(5, LOW);
+    }
+    /* */
+  }
+  //// Receive a message from master if available - END
 }
