@@ -30,7 +30,7 @@ DHT dht22(DHT22_PIN, DHT22);
 
 int wifi_ready_led = 8;
 int wifi_client_active = 9;
-int relay = 10;
+int relay = 13;
 
 
 const char ssid[] = SECRET_SSID;  // change your network SSID (name)
@@ -161,17 +161,19 @@ void loop() {
       } else if (HTTP_req.indexOf("GET /door") > -1) {
         // Serial.println("door page");
         page_id = PAGE_DOOR;
+      }else if (HTTP_req.indexOf("GET /led?1") > -1) {
+          //Serial.println("led on page");
+          digitalWrite(relay, HIGH);
+          led_state = "aan";
+          page_id = PAGE_LED;
+      } else if (HTTP_req.indexOf("GET /led?0") > -1) {
+          //Serial.println("led off page");
+          digitalWrite(relay, LOW);
+          led_state = "uit";
+          page_id = PAGE_LED;
       } else if (HTTP_req.indexOf("GET /led") > -1 ) {
         // Serial.println("led page");
         page_id = PAGE_LED;
-      }else if (HTTP_req.indexOf("GET /led?1") > -1) {
-          // Serial.println("led on page");
-          digitalWrite(relay, HIGH);
-          led_state = "aan";
-      } else if (HTTP_req.indexOf("GET /led?0") > -1) {
-          // Serial.println("led off page");
-          digitalWrite(relay, LOW);
-          led_state = "uit";
       } else {  // 404 Not Found
         // Serial.println("404 Not Found");
         page_id = PAGE_ERROR_404;
