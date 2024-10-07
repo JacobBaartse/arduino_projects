@@ -1,1 +1,0 @@
-#define radioChannel 45

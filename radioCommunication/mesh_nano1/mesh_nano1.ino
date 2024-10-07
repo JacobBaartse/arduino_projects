@@ -3,10 +3,15 @@
 #include "RF24.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
-#include "radio_const.h"
-//#include <EEPROM.h>
+#include <EEPROM.h>
 //#include <printf.h>
  
+#define radioChannel 78
+/** User Configuration per 'slave' node: nodeID **/
+#define slavenodeID 5
+#define masterNodeID 0
+
+
 /**** Configure the nrf24l01 CE and CSN pins ****/
 /*
 https://www.youtube.com/watch?v=_8KZoNWa-nw
@@ -107,9 +112,6 @@ void loop() {
   
 }
 /* */
-
-/** User Configuration per node: nodeID **/
-#define nodeID 5
  
 // Payload to MASTER
 struct payload_from_master {
@@ -142,7 +144,7 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0);
 
   // Set the nodeID manually
-  mesh.setNodeID(nodeID);
+  mesh.setNodeID(slavenodeID);
   // Connect to the mesh
   Serial.print(F("Setup node: "));
   Serial.print(nodeID);

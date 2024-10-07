@@ -3,19 +3,27 @@
 #include "RF24.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
-#include "radio_const.h"
-//#include <EEPROM.h>
+#include <EEPROM.h>
 //#include <printf.h>
  
- 
+#define radioChannel 78
+/** User Configuration per 'slave' node: nodeID **/
+#define slavenodeID 5
+#define masterNodeID 0
+
+
 /**** Configure the nrf24l01 CE and CSN pins ****/
 /*
 https://www.youtube.com/watch?v=8p_hN53TxY8
 
 https://www.electronicwings.com/arduino/nrf24l01-interfacing-with-arduino-uno
 
+
+this one:
+https://forum.arduino.cc/t/simple-nrf24l01-2-4ghz-transceiver-demo/405123/3
+
 */
-RF24 radio(10, 9);
+RF24 radio(9, 10);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
@@ -109,7 +117,7 @@ void loop() {
 }
 /* */
 
-#define masterNodeID 0
+
 
 // Payload from MASTER
 struct payload_from_master {
@@ -168,11 +176,11 @@ void loop() {
     switch(header.type){
       // Display the incoming millis() values from sensor nodes
       case 'M': network.read(header, &payload, sizeof(payload));
-        Serial.print(F(" On slave:"));
+        Serial.print(F(" On slave: "));
         Serial.print(payload.nodeId);
-        Serial.print(F(" millis:"));
+        Serial.print(F(", millis: "));
         Serial.print(payload.timer);
-        Serial.print(F(" Led shown:"));
+        Serial.print(F(", Led shown: "));
         Serial.println(payload.ledShown);
         break;
       default: network.read(header,0,0);
