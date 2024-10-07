@@ -15,8 +15,8 @@
 #include "error_404.h"
 #include "error_405.h"
 
-//#include "DHT.h"
-define DHT22_PIN 2
+#include "DHT.h"
+#define DHT22_PIN 12
 
 DHT dht22(DHT22_PIN, DHT22);
 
@@ -164,15 +164,14 @@ void loop() {
       } else if (HTTP_req.indexOf("GET /led") > -1 ) {
         // Serial.println("led page");
         page_id = PAGE_LED;
-        if (HTTP_req.indexOf("GET /led?1") > -1) {
+      }else if (HTTP_req.indexOf("GET /led?1") > -1) {
           // Serial.println("led on page");
           digitalWrite(relay, HIGH);
           led_state = "aan";
-        else if (HTTP_req.indexOf("GET /led?0") > -1) {
+      } else if (HTTP_req.indexOf("GET /led?0") > -1) {
           // Serial.println("led off page");
           digitalWrite(relay, LOW);
           led_state = "uit";
-        }
       } else {  // 404 Not Found
         // Serial.println("404 Not Found");
         page_id = PAGE_ERROR_404;
