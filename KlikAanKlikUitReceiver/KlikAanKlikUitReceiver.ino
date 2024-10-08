@@ -1,13 +1,13 @@
+
 int rfReceiverPin = 2;  // should be a pin that supports interrupts.
 const int buffer_size = 1024;
 const int start_indicator_val = 6;
 const int one_bit_val = 3;
 
 //variables used in and outside the interrupt routine
-volatile byte trace_array[buffer_size] ;  // circulair buffer
+volatile byte trace_array[buffer_size]; // circulair buffer
 volatile int trace_index = 0;
 volatile long prev_micros = 0;
-
 
 int prev_trace_index = 0;
 
@@ -15,14 +15,15 @@ void getRfCode(){
   bool decoding = true;
   int tmp_trace_index;
   bool start_indicator_found;
+
   while (decoding){
 
-    //find start indicator
+    // find start indicator
     tmp_trace_index = trace_index;
     start_indicator_found = false;
     if (tmp_trace_index<prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped.
     for (int index=prev_trace_index; index<tmp_trace_index ; index++){
-      if (trace_array[index%buffer_size] ==start_indicator_val){
+      if (trace_array[index%buffer_size] == start_indicator_val){
         start_indicator_found = true; 
         // Serial.println("start indecator found");
         prev_trace_index = (index + 1) % buffer_size;  // skip to after the start indicator
@@ -38,11 +39,11 @@ void getRfCode(){
       if (tmp_trace_index<prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped.
       if (tmp_trace_index > prev_trace_index + 66){ // is there enough data to decode?
         // Serial.println("enough data to decode");
-        unsigned int decoded_value = 0;
+        unsigned long decoded_value = 0;
         int bit_num = 32;
         for (int index = prev_trace_index; index < prev_trace_index + 64; index += 2){
           bit_num --;
-          int bitval = trace_array[index % buffer_size] / one_bit_val;
+          unsigned long bitval = trace_array[index % buffer_size] / one_bit_val;
           int next_val = trace_array[(index + 1) % buffer_size] / one_bit_val;
           if (bitval == next_val){  // a wrong bit sequence has been detected so move forward
               // Serial.println("wrong sequence detected move forward");
@@ -79,9 +80,10 @@ void setup() {
   for (int i=0; i< buffer_size; i++){
     trace_array[i] = 0;
   }
-  pinMode(LED_BUILTIN, OUTPUT);
+  //pinMode(LED_BUILTIN, OUTPUT);
   pinMode(rfReceiverPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(rfReceiverPin), logRfTime, RISING);
+  Serial.println("Started");
 }
 
 
