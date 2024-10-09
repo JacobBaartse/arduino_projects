@@ -130,11 +130,11 @@ void setup() {
 void loop() {
   unsigned long rfcommand = getRfCode();
   if (rfcommand > 0){
-    if (prv_rfcommand != rfcommand){ // store rf code only once
+    if (prv_rfcommand != rfcommand){ // store rf code only once (TBD per 4 seconds)
       // digitalWrite(LED_BUILTIN, HIGH);
       String ButtonCode = buttonfromrfcode(rfcommand);
       sequence_index++;
-      sequence_index = sequence_index%256;
+      sequence_index = sequence_index % 256; // keep it in 1 byte
       Serial.print("Sequence: ");
       Serial.print(sequence_index);
       Serial.print(", control button: ");
