@@ -1,4 +1,7 @@
-#include "display_3xdigit.h"
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+#define SCREEN_ADDRESS 0x3C
+#define OLED_RESET     -1 
 
 ArduinoLEDMatrix matrix;
 int upLeftDigit, upRightDigit, downLeftDigit, downRightDigit;
@@ -61,9 +64,39 @@ void displayLetter(int d, int s_x, int s_y){
     }
 }
 
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+bool display_found = false;
 
 void display_digit_setup() {  
+
+  display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
+  display_found = false;
+  Wire.beginTransmission(SCREEN_ADDRESS);
+  byte result = Wire.endTransmission(1);
+  if (result == 0) display_found = true;
+
+
+  if (display_found){
+      display.clearDisplay();
+      display.setTextSize(2);
+      display.setTextColor(WHITE);
+      // display.print("Test");
+      // display.display();
+      // delay(1000);
+  }
   matrix.begin();
+}
+
+const char multiplier [] = "KM ";
+void oled_display(String text, int letter){ 
+    if (display_found) {
+      display.clearDisplay();
+      display.setCursor(0,0);
+      display.print(text + " " + multiplier[letter]);
+      display.setCursor(0,16);
+      display.print("       ohm");
+      display.display();
+    }
 }
 
 void show_value(float value){
@@ -83,10 +116,14 @@ void show_value(float value){
     displayDigit(minus,4,0);
     displayDigit(minus,8,0);
     displayLetter(space_letter, 5, 5);
-    matrix.renderBitmap(theMatrix, 8, 12);
+    if (!display_found) matrix.renderBitmap(theMatrix, 8, 12);
+    oled_display("Max", space_letter);
+
+
     delay(800);
     }
     else{
+      oled_display(String(value), letter);
       if (value < 100){
         value *= 10;
         dot_pos -=1;
@@ -100,12 +137,13 @@ void show_value(float value){
       displayDigit((int)value % 10,8,0 );
       displayLetter(letter, 7, 5);
 
+
       for (int i=0; i<4; i++){
         theMatrix[4][dot_pos*4 -1]=1;
-        matrix.renderBitmap(theMatrix, 8, 12);
+        if (!display_found) matrix.renderBitmap(theMatrix, 8, 12);
         delay(250);
         theMatrix[4][dot_pos*4 -1]=0;
-        matrix.renderBitmap(theMatrix, 8, 12);
+        if (!display_found) matrix.renderBitmap(theMatrix, 8, 12);
         delay(250);
       }
     }

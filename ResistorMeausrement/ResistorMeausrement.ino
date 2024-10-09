@@ -2,6 +2,10 @@
 #include "Arduino_LED_Matrix.h"
 #include "display_3xdigit.h"
 
+#include "display_3xdigit.h"
+#include <Adafruit_SSD1306.h>
+
+
 bool debug=false;
 
 int sensorPin = A0;   // select the input pin to be measured
@@ -22,13 +26,14 @@ float voltage_gemeten=0;
 float i_ref_resistor=0;
 float unkonwn_resistor=0;
 
+const int num_measurements = 1000;
 void loop() {
   // read the value from the sensor:
   sensorValue = 0;
-  for  (int i=0; i< 400; i++){
+  for  (int i=0; i< num_measurements; i++){
       sensorValue += analogRead(sensorPin);
   }
-  sensorValue /= 400;
+  sensorValue /= num_measurements;
   if (debug) Serial.println(sensorValue, 6);
 
   //voltage_gemeten = ((float)5)*sensorValue/16313.5;  // 230k ipv 220k
@@ -41,7 +46,7 @@ void loop() {
   
    if (debug) Serial.println(i_ref_resistor, 6);
    if (i_ref_resistor < 0.000001) i_ref_resistor=0.000001;
-  unkonwn_resistor = voltage_gemeten/i_ref_resistor - 0.7;   // correction for low resisteor values
+  unkonwn_resistor = voltage_gemeten/i_ref_resistor - 0.65;   // correction for low resisteor values
 
    if (debug) Serial.println(unkonwn_resistor, 6);
    if (debug) Serial.println("------");
