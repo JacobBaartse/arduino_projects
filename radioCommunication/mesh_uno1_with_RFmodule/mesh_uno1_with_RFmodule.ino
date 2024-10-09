@@ -93,7 +93,6 @@ void loop() {
         break;
       default: network.read(header,0,0);
         Serial.println(header.type);
-        break;
     }
   }
   
