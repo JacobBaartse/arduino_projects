@@ -1,10 +1,4 @@
-/*
- * Created by ArduinoGetStarted.com
- *
- * This example code is in the public domain
- *
- * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-web-server-multiple-pages
- */
+
 
 const char *HTML_CONTENT_404 = R""""(<!DOCTYPE html>
 <html lang="en">

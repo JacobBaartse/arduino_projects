@@ -1,10 +1,3 @@
-/*
- * Created by ArduinoGetStarted.com
- *
- * This example code is in the public domain
- *
- * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-web-server-multiple-pages
- */
 
 const char *HTML_CONTENT_HOME = R""""(<!DOCTYPE html>
 <html lang="en">
@@ -18,7 +11,7 @@ const char *HTML_CONTENT_HOME = R""""(<!DOCTYPE html>
     <h1>Domotica</h1>
         <font size="+5">
     <ul>
-        <li><a href="/led">Lampen</a></li>
+        <li><a href="/lamp">Lampen</a></li>
         <li><a href="/light">Licht meting</a></li>
         <li><a href="/temperature">Temperatuur, vochtigheid woonkamer</a></li>
     </ul>

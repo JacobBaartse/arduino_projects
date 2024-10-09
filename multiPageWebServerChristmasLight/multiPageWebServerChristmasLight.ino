@@ -1,17 +1,10 @@
-/*
- * Created by ArduinoGetStarted.com
- *
- * This example code is in the public domain
- *
- * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-web-server-multiple-pages
- */
 
 #include <WiFiS3.h>
 #include "arduino_secrets.h"
 #include "index.h"
 #include "temperature.h"
 #include "light.h"
-#include "led.h"
+#include "lamp.h"
 #include "error_404.h"
 #include "error_405.h"
 
@@ -25,7 +18,7 @@ DHT dht22(DHT22_PIN, DHT22);
 #define PAGE_HOME 0
 #define PAGE_TEMPERATURE 1
 #define PAGE_LIGHT 2
-#define PAGE_LED 3
+#define PAGE_LAMP 3
 
 const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
@@ -33,16 +26,12 @@ const int PAGE_ERROR_405 = -2;
 int sensorPin = A0;   // select the input pin to be measured
 int sensorValue = 0;  // variable to store the value coming from the sensor
 
-// int wifi_ready_led = 8;
-// int wifi_client_active = 9;
-// int relay = 13;
-
 
 const char ssid[] = SECRET_SSID;  // change your network SSID (name)
 const char pass[] = SECRET_PASS;   // change your network password (use for WPA, or use as key for WEP)
-String led_state1 = "---";
-String led_state2 = "---";
-String led_state3 = "---";
+String lamp_state1 = "---";
+String lamp_state2 = "---";
+String lamp_state3 = "---";
 
 int status = WL_IDLE_STATUS;
 
@@ -70,15 +59,6 @@ void setup() {
   dht22.begin(); 
   rf_setup(RF_PIN);
 
-  // pinMode(wifi_ready_led, OUTPUT);
-  // digitalWrite(wifi_ready_led, LOW);  
-  
-  // pinMode(wifi_client_active, OUTPUT);
-  // digitalWrite(wifi_client_active, LOW);
-
-  // pinMode(relay, OUTPUT);
-  // digitalWrite(relay, LOW);
-
   String fv = WiFi.firmwareVersion();
   if (fv < WIFI_FIRMWARE_LATEST_VERSION)
     Serial.println("Please upgrade the firmware");
@@ -105,7 +85,6 @@ void loop() {
   // listen for incoming clients
   WiFiClient client = server.available();
   if (client) {
-    // digitalWrite(wifi_client_active, HIGH);
     // read the first line of HTTP request header
     String HTTP_req = "";
     while (client.connected()) {
@@ -144,47 +123,54 @@ void loop() {
       } else if (HTTP_req.indexOf("GET /light") > -1) {
         // Serial.println("light page");
         page_id = PAGE_LIGHT;
-      }else if (HTTP_req.indexOf("GET /led?1") > -1) {
-          //Serial.println("led on page");
+      }else if (HTTP_req.indexOf("GET /lamp?1") > -1) {
+          //Serial.println("lamp on page");
           // digitalWrite(relay, HIGH);
           send_code(RF_LIGHT_ON1);
-          led_state1 = "aan";
-          page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led?2") > -1) {
-          //Serial.println("led off page");
+          lamp_state1 = "aan";
+          page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /lamp?2") > -1) {
+          //Serial.println("lamp off page");
           send_code(RF_LIGHT_OFF1);
-          led_state1 = "uit";
-          page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led?3") > -1) {
-          //Serial.println("led off page");
+          lamp_state1 = "uit";
+          page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /lamp?3") > -1) {
+          //Serial.println("lamp off page");
           send_code(RF_LIGHT_ON2);
-          led_state2 = "aan";
-          page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led?4") > -1) {
-          //Serial.println("led off page");
+          lamp_state2 = "aan";
+          page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /lamp?4") > -1) {
+          //Serial.println("lamp off page");
           send_code(RF_LIGHT_OFF2);
-          led_state2 = "uit";
-          page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led?5") > -1) {
-          //Serial.println("led off page");
+          lamp_state2 = "uit";
+          page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /lamp?5") > -1) {
+          //Serial.println("lamp off page");
           send_code(RF_LIGHT_ON3);
-          led_state3 = "aan";
-          page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led?6") > -1) {
-          //Serial.println("led off page");
+          lamp_state3 = "aan";
+          page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /lamp?6") > -1) {
+          //Serial.println("lamp off page");
           send_code(RF_LIGHT_OFF3);
-          led_state3 = "uit";
-          page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led?7") > -1) {
-          //Serial.println("led off page");
+          lamp_state3 = "uit";
+          page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /lamp?7") > -1) {
+          //Serial.println("lamp off page");
+          send_code(RF_LIGHT_ALL_ON);
+          lamp_state1 = "aan";
+          lamp_state2 = "aan";
+          lamp_state3 = "aan";
+          page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /lamp?8") > -1) {
+          //Serial.println("lamp off page");
           send_code(RF_LIGHT_ALL_OFF);
-          led_state1 = "uit";
-          led_state2 = "uit";
-          led_state3 = "uit";
-          page_id = PAGE_LED;
-      } else if (HTTP_req.indexOf("GET /led") > -1 ) {
-        // Serial.println("led page");
-        page_id = PAGE_LED;
+          lamp_state1 = "uit";
+          lamp_state2 = "uit";
+          lamp_state3 = "uit";
+          page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /lamp") > -1 ) {
+        // Serial.println("lamp page");
+        page_id = PAGE_LAMP;
       } else {  // 404 Not Found
         // Serial.println("404 Not Found");
         page_id = PAGE_ERROR_404;
@@ -209,7 +195,7 @@ void loop() {
 
     // send the HTTP response body
     String html;
-    String led_state;
+    String lamp_state;
     switch (page_id) {
       case PAGE_HOME:
         html = String(HTML_CONTENT_HOME);
@@ -222,11 +208,11 @@ void loop() {
         html = String(HTML_CONTENT_LIGHT);
         html.replace("LIGHT_STATE_MARKER", getLight_value());  // replace the marker by a real value
         break;
-      case PAGE_LED:
-        html = String(HTML_CONTENT_LED);
+      case PAGE_LAMP:
+        html = String(HTML_CONTENT_LAMP);
 
-        led_state = String(" "+led_state1 + " " + led_state2 + " " + led_state3);
-        html.replace("LED_STATE_MARKER", led_state);  // replace the marker by a real value
+        lamp_state = String(" "+lamp_state1 + " " + lamp_state2 + " " + lamp_state3);
+        html.replace("LAMP_STATE_MARKER", lamp_state);  // replace the marker by a real value
         break;
       case PAGE_ERROR_404:
         html = String(HTML_CONTENT_404);
@@ -240,11 +226,10 @@ void loop() {
     client.flush();
     
     // give the web browser time to receive the data
-    delay(1);
+    delay(10);
 
     // close the connection:
     client.stop();
-    // digitalWrite(wifi_client_active, LOW);
   }
 }
 
@@ -257,5 +242,4 @@ void printWifiStatus() {
   Serial.print("signal strength (RSSI): ");
   Serial.print(WiFi.RSSI());
   Serial.println(" dBm");
-  // digitalWrite(wifi_ready_led, HIGH);
 }
