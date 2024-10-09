@@ -7,6 +7,7 @@ const int one_bit_val = 3;
 //variables used in and outside the interrupt routine
 volatile byte trace_array[buffer_size]; // circulair buffer
 volatile int trace_index = 0;
+volatile int sequence_index = 0;
 volatile unsigned long prev_micros = 0;
 
 int prev_trace_index = 0;
@@ -37,7 +38,7 @@ unsigned long getRfCode(){
       // Serial.println("decode the data");
       tmp_trace_index = trace_index;
       if (tmp_trace_index < prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped.
-      if (tmp_trace_index > prev_trace_index + 66){ // is there enough data to decode?
+      if (tmp_trace_index > prev_trace_index + 64){ // is there enough data to decode?
         // Serial.println("enough data to decode");
         unsigned long decoded_value = 0;
         int bit_num = 32;
@@ -62,7 +63,7 @@ unsigned long getRfCode(){
         }
         if (all_decoded){
           // Serial.print("0x");
-          Serial.println(decoded_value, HEX);
+          // Serial.println(decoded_value, HEX);
           return decoded_value;
         }
       }
@@ -77,23 +78,39 @@ unsigned long getRfCode(){
   return 0;
 }
 
-void buttonfromrfcode(unsigned long rfcode){
-  String ButtonId = "TBD";
+String buttonfromrfcode(unsigned long rfcode){
+  String ButtonId = "noId";
   switch(rfcode){
-    case 12:
+    case 0x90C40090:
       ButtonId = "R1B1";
       break;
-    case 0x2312:
+    case 0x90C40080:
       ButtonId = "R1B2";
       break;
+    case 0x90C40091:
+      ButtonId = "R1B3";
+      break;
+    case 0x90C40081:
+      ButtonId = "R1B4";
+      break;
+    case 0x90C40092:
+      ButtonId = "R1B5";
+      break;
+    case 0x90C40082:
+      ButtonId = "R1B6";
+      break;
+    case 0x90C400A0:
+      ButtonId = "R1B7";
+      break;
     default:
-      Serial.print("Found: ");
+      Serial.print("Found RF code: ");
       Serial.println(rfcode);
   }
 
+  Serial.println(" ");
   Serial.print("Remote control button: ");
   Serial.println(ButtonId);
-  // return ButtonId
+  return ButtonId;
 }
 
 void setup() {
@@ -101,10 +118,10 @@ void setup() {
   while (!Serial) {
     // some boards need this because of native USB capability
   }
-  for (int i=0; i< buffer_size; i++){
+  for (int i=0;i<buffer_size;i++){
     trace_array[i] = 0;
   }
-  pinMode(LED_BUILTIN, OUTPUT);
+  // pinMode(LED_BUILTIN, OUTPUT);
   pinMode(rfReceiverPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(rfReceiverPin), logRfTime, RISING);
   Serial.println("Started");
@@ -114,14 +131,20 @@ void loop() {
   unsigned long rfcommand = getRfCode();
   if (rfcommand > 0){
     if (prv_rfcommand != rfcommand){ // store rf code only once
-      digitalWrite(LED_BUILTIN, HIGH);
-      buttonfromrfcode(rfcommand);
+      // digitalWrite(LED_BUILTIN, HIGH);
+      String ButtonCode = buttonfromrfcode(rfcommand);
+      sequence_index++;
+      sequence_index = sequence_index%256;
+      Serial.print("Sequence: ");
+      Serial.print(sequence_index);
+      Serial.print(", control button: ");
+      Serial.println(ButtonCode);
     }
     prv_rfcommand = rfcommand;
   }
 
   delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
+  // digitalWrite(LED_BUILTIN, LOW);
 }
 
 void logRfTime(){
