@@ -13,14 +13,6 @@
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-/*
-https://www.youtube.com/watch?v=_8KZoNWa-nw
-9 CSN
-10 CE
-11 MOSI
-12 MISO
-13 SCK
-*/
 RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
@@ -59,7 +51,7 @@ void setup() {
   mesh.setNodeID(slavenodeID);
   // Connect to the mesh
   Serial.print(F("Setup node: "));
-  Serial.print(nodeID);
+  Serial.print(slavenodeID);
   Serial.println(F(", connecting to the mesh..."));
   // Connect to the mesh
   mesh.begin(radioChannel);
@@ -72,7 +64,7 @@ void loop() {
   //// Send to the master node every two seconds - BEGIN
   if (millis() - sleepTimer > 2000) {
     sleepTimer = millis();
-    payload_from_slave payload = {nodeID, sleepTimer, showLed};
+    payload_from_slave payload = {slavenodeID, sleepTimer, showLed};
  
     // Send an 'M' type message containing the current millis()
     if (!mesh.write(&payload, 'M', sizeof(payload))) {
