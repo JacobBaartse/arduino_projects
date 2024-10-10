@@ -7,7 +7,12 @@
 #include "lamp.h"
 #include "error_404.h"
 #include "error_405.h"
+#include <Adafruit_SSD1306.h>
 
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+#define SCREEN_ADDRESS 0x3C
+#define OLED_RESET     -1 
 #include "DHT.h"
 #include "rfzender.h"
 #define DHT22_PIN 12
@@ -37,6 +42,17 @@ int status = WL_IDLE_STATUS;
 
 WiFiServer server(80);
 
+unsigned long prev_seconds = 0;
+bool elapsed_seconds(int seconds_delay){
+  unsigned long cur_seconds = millis() / 1000;
+  if (cur_seconds > (prev_seconds + seconds_delay)){
+    prev_seconds = cur_seconds;
+    return true;
+  }
+  return false;
+}
+
+
 String getLight_value(){
   sensorValue = analogRead(sensorPin);
   //Serial.println(sensorValue);
@@ -53,9 +69,31 @@ String getTemperature_humidity() {
   return String(tempC, 1) + "," + String(humid, 1);
 }
 
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+void display_oled( bool clear, int x, int y, String text){
+  if (clear) display.clearDisplay();
+  display.setCursor(x,y);
+  display.print(text);
+  display.display();
+}
+
+
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
+      // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+  display.clearDisplay();
+  // display.setTextSize(1);  // 4 lines of 21 chars  
+  display.setTextSize(2);  // 2 lines of 10 chars
+  // display.setTextSize(3);  // 1 lines of 7 chars
+  display.setTextColor(WHITE);
+  display.display();
+
   dht22.begin(); 
   rf_setup(RF_PIN);
 
@@ -231,12 +269,19 @@ void loop() {
     // close the connection:
     client.stop();
   }
+  if (elapsed_seconds(5)){
+    display_oled(true, 0, 0, getTemperature_humidity());
+    display_oled(false, 0, 16, getLight_value());
+  }
+
 }
 
 void printWifiStatus() {
   // print your board's IP address:
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
+
+  display_oled(false, 0, 0, WiFi.localIP().toString());
 
   // print the received signal strength:
   Serial.print("signal strength (RSSI): ");
