@@ -10,6 +10,7 @@ void set_clock(unsigned long unix_time){
 
 
 void get_time_form_worldtimeapi_org(){
+  RTC.begin();
   WiFiClient client;
   String readString; 
   char server[] = "worldtimeapi.org"; 
@@ -71,7 +72,6 @@ void(* restart_uno) (void) = 0; //declare reset function @ address 0
 void update_clock(){
   RTC.getTime(currentTime);
   if (currentTime.getSeconds() != prev_second){
-    //Serial.println("clock loop once");
     prev_second = currentTime.getSeconds();
     unsigned long unix_time = currentTime.getUnixTime();
     unsigned long elapsed_seconds = unix_time - startup_unix_time_rtc;

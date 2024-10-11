@@ -281,7 +281,8 @@ void loop() {
     display_oled(true, 0, 12,String(tempC, 1) + " C " + String(humid, 0) + "%");
     display_oled(false, 48, 3,".");    // simulate the graden C
     display_oled(false, 0, 27, getLight_value());
-    display_oled(false, 64, 27, String(Hour) + ":" + String(Minutes));
+    if (Minutes<10)    display_oled(false, 64, 27, String(Hour) + ":0" + String(Minutes));
+    else display_oled(false, 64, 27, String(Hour) + ":" + String(Minutes));
   }
 
 }
