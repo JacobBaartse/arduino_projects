@@ -5,6 +5,8 @@
 #include "temperature.h"
 #include "light.h"
 #include "lamp.h"
+#include "RTC.h"
+#include "clock.h"
 #include "error_404.h"
 #include "error_405.h"
 #include <Adafruit_SSD1306.h>
@@ -119,6 +121,7 @@ void setup() {
   server.begin();
   // you're connected now, so print out the status:
   printWifiStatus();
+  get_time_form_worldtimeapi_org();
 }
 
 void loop() {
@@ -272,11 +275,13 @@ void loop() {
     client.stop();
   }
   if (elapsed_seconds(5)){
+    update_clock();
     float humid  = dht22.readHumidity();
     float tempC = dht22.readTemperature();
     display_oled(true, 0, 12,String(tempC, 1) + " C " + String(humid, 0) + "%");
     display_oled(false, 48, 3,".");    // simulate the graden C
     display_oled(false, 0, 27, getLight_value());
+    display_oled(false, 64, 27, String(Hour) + ":" + String(Minutes));
   }
 
 }
