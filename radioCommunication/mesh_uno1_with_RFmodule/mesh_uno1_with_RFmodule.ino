@@ -3,8 +3,6 @@
 #include "RF24.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
-#include <EEPROM.h>
-//#include <printf.h>
  
 #define radioChannel 78
 /** User Configuration per 'slave' node: nodeID **/
@@ -19,14 +17,14 @@ RF24Mesh mesh(radio, network);
  
 // Payload from MASTER
 struct payload_from_master {
-  unsigned long counter;
+  uint32_t counter;
   bool showLed;
 };
  
 // Payload to SLAVES
 struct payload_from_slave {
   uint8_t nodeId;
-  unsigned long timer;
+  uint32_t timer;
   bool ledShown;
 };
  
@@ -82,7 +80,7 @@ void loop() {
         Serial.println(payload.ledShown);
         break;
       default: network.read(header,0,0);
-        Serial.print(f("header.type: "));
+        Serial.print(F("header.type: "));
         Serial.println(header.type);
     }
   }
@@ -115,9 +113,10 @@ void loop() {
       for(int i=0; i<mesh.addrListTop; i++){
         counter++;
         payload_from_master payload = {counter, showLed};
-        RF24NetworkHeader header(mesh.addrList[i].address, OCT);
-        // int x = network.write(header, &payload, sizeof(payload));
-        network.write(header, &payload, sizeof(payload));
+        // RF24NetworkHeader header(mesh.addrList[i].address, OCT);
+        // // int x = network.write(header, &payload, sizeof(payload));
+        // network.write(header, &payload, sizeof(payload));
+        mesh.write(&payload, 'M', sizeof(payload), mesh.addrList[i].nodeID);
       }
     }
     else{

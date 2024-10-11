@@ -3,12 +3,10 @@
 #include "RF24.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
-#include <EEPROM.h>
-//#include <printf.h>
  
 #define radioChannel 78
 /** User Configuration per 'slave' node: nodeID **/
-#define slavenodeID 5
+#define slavenodeID 4
 #define masterNodeID 0
 
 
@@ -19,7 +17,7 @@ RF24Mesh mesh(radio, network);
  
 // Payload to MASTER
 struct payload_from_master {
-  unsigned long counter;
+  uint32_t counter;
   bool showLed;
 };
  
@@ -49,12 +47,13 @@ void setup() {
 
   // Set the nodeID manually
   mesh.setNodeID(slavenodeID);
-  // Connect to the mesh
-  Serial.print(F("Setup node: "));
-  Serial.print(slavenodeID);
+  // Serial.print(F("Setup node: "));
+  // Serial.print(slavenodeID);
   Serial.println(F(", connecting to the mesh..."));
   // Connect to the mesh
   mesh.begin(radioChannel);
+  Serial.print(F("Starting the mesh, nodeID: "));
+  Serial.println(mesh.getNodeID());
 }
  
 void loop() {
