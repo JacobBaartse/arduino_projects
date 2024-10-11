@@ -32,7 +32,7 @@ DHT dht22(DHT22_PIN, DHT22);
 const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
 
-int sensorPin = A0;   // select the input pin to be measured
+int lightSensorPin = A0;   // select the input pin to be measured
 int sensorValue = 0;  // variable to store the value coming from the sensor
 
 
@@ -58,7 +58,7 @@ bool elapsed_seconds(int seconds_delay){
 
 
 String getLight_value(){
-  sensorValue = analogRead(sensorPin);
+  sensorValue = analogRead(lightSensorPin);
   //Serial.println(sensorValue);
   return String(sensorValue);
 }
@@ -124,6 +124,7 @@ void setup() {
   get_time_form_worldtimeapi_org();
 }
 
+bool auto_lights_on = false;
 void loop() {
   // listen for incoming clients
   WiFiClient client = server.available();
@@ -283,9 +284,26 @@ void loop() {
     display_oled(false, 0, 27, getLight_value());
     if (Minutes<10)    display_oled(false, 64, 27, String(Hour) + ":0" + String(Minutes));
     else display_oled(false, 64, 27, String(Hour) + ":" + String(Minutes));
-  }
 
-}
+    bool low_light = false;
+    if (analogRead(lightSensorPin) < 50) low_light = true;
+    bool eavening = false;
+    if (Hour>16 && Hour<23)
+      if (Hour<23) eavening = true;
+      else if (Minutes <30) eavening = true;
+    if (auto_lights_on)
+      if (!eavening){
+        send_code(RF_LIGHT_ALL_OFF);
+        auto_lights_on = false;
+      }
+    if (!auto_lights_on)
+      if (eavening)
+        if (low_light){
+          send_code(RF_LIGHT_ALL_ON);
+          auto_lights_on = true;
+        }
+    } // elapsed_seconds(5)   
+  }
 
 void printWifiStatus() {
   // print your board's IP address:
