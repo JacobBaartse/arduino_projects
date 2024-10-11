@@ -8,21 +8,11 @@
  
 #define radioChannel 78
 /** User Configuration per 'slave' node: nodeID **/
-#define slavenodeID 5
+#define slavenodeID 3
 #define masterNodeID 0
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-/*
-https://www.youtube.com/watch?v=8p_hN53TxY8
-
-https://www.electronicwings.com/arduino/nrf24l01-interfacing-with-arduino-uno
-
-
-this one:
-https://forum.arduino.cc/t/simple-nrf24l01-2-4ghz-transceiver-demo/405123/3
-
-*/
 RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
@@ -92,6 +82,7 @@ void loop() {
         Serial.println(payload.ledShown);
         break;
       default: network.read(header,0,0);
+        Serial.print(f("header.type: "));
         Serial.println(header.type);
     }
   }
@@ -113,7 +104,7 @@ void loop() {
       Serial.println(F("**********************************"));
     }
     else{
-      Serial.print(F(" . "));
+      Serial.print(F(" ."));
     }
     //// SHOW DHCP TABLE - END
 
