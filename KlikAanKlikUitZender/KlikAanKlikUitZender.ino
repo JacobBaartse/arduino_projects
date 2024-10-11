@@ -1,4 +1,4 @@
-int OUTPUTPIN = 3;
+int OUTPUTPIN = 8;
 
 
 int stop, start, counter1, counter2;
