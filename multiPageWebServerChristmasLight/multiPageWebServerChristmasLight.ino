@@ -8,6 +8,8 @@
 #include "error_404.h"
 #include "error_405.h"
 #include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
+#include <Fonts/FreeMono9pt7b.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
@@ -88,10 +90,10 @@ void setup() {
     for(;;); // Don't proceed, loop forever
   }
   display.clearDisplay();
-  // display.setTextSize(1);  // 4 lines of 21 chars  
-  display.setTextSize(2);  // 2 lines of 10 chars
-  // display.setTextSize(3);  // 1 lines of 7 chars
+  display.setFont(&FreeMono9pt7b);
+  display.setTextSize(1);  // 2 lines of 11 chars
   display.setTextColor(WHITE);
+  display.dim(true);
   display.display();
 
   dht22.begin(); 
@@ -270,8 +272,11 @@ void loop() {
     client.stop();
   }
   if (elapsed_seconds(5)){
-    display_oled(true, 0, 0, getTemperature_humidity());
-    display_oled(false, 0, 16, getLight_value());
+    float humid  = dht22.readHumidity();
+    float tempC = dht22.readTemperature();
+    display_oled(true, 0, 12,String(tempC, 1) + " C " + String(humid, 0) + "%");
+    display_oled(false, 48, 3,".");    // simulate the graden C
+    display_oled(false, 0, 27, getLight_value());
   }
 
 }
@@ -281,7 +286,7 @@ void printWifiStatus() {
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
-  display_oled(false, 0, 0, WiFi.localIP().toString());
+  display_oled(false, 0, 12, WiFi.localIP().toString());
 
   // print the received signal strength:
   Serial.print("signal strength (RSSI): ");
