@@ -78,11 +78,9 @@ void display_digit_setup() {
 
   if (display_found){
       display.clearDisplay();
-      display.setTextSize(2);
+      display.setFont(&FreeMono9pt7b);
+      display.setTextSize(1);
       display.setTextColor(WHITE);
-      // display.print("Test");
-      // display.display();
-      // delay(1000);
   }
   matrix.begin();
 }
@@ -91,9 +89,9 @@ const char multiplier [] = "KM ";
 void oled_display(String text, int letter){ 
     if (display_found) {
       display.clearDisplay();
-      display.setCursor(0,0);
+      display.setCursor(0,12);
       display.print(text + " " + multiplier[letter]);
-      display.setCursor(0,16);
+      display.setCursor(0,27);
       display.print("       ohm");
       display.display();
     }

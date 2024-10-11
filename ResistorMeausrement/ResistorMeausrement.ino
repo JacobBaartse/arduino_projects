@@ -4,6 +4,8 @@
 
 #include "display_3xdigit.h"
 #include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
+#include <Fonts/FreeMono9pt7b.h>
 
 
 bool debug=false;
