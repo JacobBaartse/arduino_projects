@@ -6,7 +6,7 @@
  
 #define radioChannel 78
 /** User Configuration per 'slave' node: nodeID **/
-#define slavenodeID 4
+#define slavenodeID 3
 #define masterNodeID 0
 
 
@@ -28,8 +28,9 @@ struct payload_from_slave {
   bool ledShown;
 };
  
-bool showLed;
+uint8_t slaveIDNode = slavenodeID;
 uint32_t sleepTimer;
+bool showLed;
 
 void setup() {
   Serial.begin(115200);
@@ -63,7 +64,7 @@ void loop() {
   //// Send to the master node every two seconds - BEGIN
   if (millis() - sleepTimer > 2000) {
     sleepTimer = millis();
-    payload_from_slave payload = {slavenodeID, sleepTimer, showLed};
+    payload_from_slave payload = {slaveIDNode, sleepTimer, showLed};
  
     // Send an 'M' type message containing the current millis()
     if (!mesh.write(&payload, 'M', sizeof(payload))) {

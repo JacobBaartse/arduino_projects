@@ -64,14 +64,15 @@ void loop() {
   mesh.DHCP();
  
   // Check for incoming data from the sensors
-  if(network.available()){
+  while (network.available()) {
     RF24NetworkHeader header;
     network.peek(header);
     payload_from_slave payload;
   
-    switch(header.type){
+    switch(header.type) {
       // Display the incoming millis() values from sensor nodes
-      case 'M': network.read(header, &payload, sizeof(payload));
+      case 'M': 
+        network.read(header, &payload, sizeof(payload));
         Serial.print(F(" On slave: "));
         Serial.print(payload.nodeId);
         Serial.print(F(", millis: "));
@@ -79,18 +80,19 @@ void loop() {
         Serial.print(F(", Led shown: "));
         Serial.println(payload.ledShown);
         break;
-      default: network.read(header,0,0);
+      default: 
+        network.read(header,0,0);
         Serial.print(F("header.type: "));
         Serial.println(header.type);
     }
   }
   
   // Meanwhile, every 5 seconds...
-  if(millis() - displayTimer > 5000){
+  if(millis() - displayTimer > 5000) {
     displayTimer = millis();
 
     //// SHOW DHCP TABLE - BEGIN
-    if (mesh.addrListTop > 0){
+    if (mesh.addrListTop > 0) {
       Serial.println(F(" "));
       Serial.println(F("********Assigned Addresses********"));
       for(int i=0; i<mesh.addrListTop; i++){
@@ -107,7 +109,7 @@ void loop() {
     //// SHOW DHCP TABLE - END
 
     //// Send same master message to all slaves - BEGIN
-    if (mesh.addrListTop > 0){
+    if (mesh.addrListTop > 0) {
       showLed = !showLed;
 
       for(int i=0; i<mesh.addrListTop; i++){
@@ -116,7 +118,7 @@ void loop() {
         // RF24NetworkHeader header(mesh.addrList[i].address, OCT);
         // // int x = network.write(header, &payload, sizeof(payload));
         // network.write(header, &payload, sizeof(payload));
-        mesh.write(&payload, 'M', sizeof(payload), mesh.addrList[i].nodeID);
+        mesh.write(&payload, 'S', sizeof(payload), mesh.addrList[i].nodeID);
       }
     }
     else{
