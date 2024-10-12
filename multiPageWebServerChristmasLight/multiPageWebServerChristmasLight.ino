@@ -16,7 +16,7 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define SCREEN_ADDRESS 0x3C
-#define OLED_RESET     -1 
+#define OLED_RESET     -1
 #include "DHT.h"
 #include "rfzender.h"
 #define DHT22_PIN 12
@@ -28,6 +28,12 @@ DHT dht22(DHT22_PIN, DHT22);
 #define PAGE_TEMPERATURE 1
 #define PAGE_LIGHT 2
 #define PAGE_LAMP 3
+
+#define GREEN_LED_PIN 6
+#define RED_LED_PIN 4
+#define RED_BUTTON_PIN 5
+#define GREEN_BUTTON_PIN 7
+#define PUSHED LOW
 
 const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
@@ -91,6 +97,12 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
+
+  pinMode(GREEN_LED_PIN, OUTPUT);
+  pinMode(GREEN_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(RED_LED_PIN, OUTPUT);
+  pinMode(RED_BUTTON_PIN, INPUT_PULLUP);
+
   display.clearDisplay();
   display.setFont(&FreeMono9pt7b);
   display.setTextSize(1);  // 2 lines of 11 chars
@@ -302,6 +314,17 @@ void loop() {
           auto_lights_on = true;
         }
     } // elapsed_seconds(5)   
+
+    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED){
+      digitalWrite(GREEN_LED_PIN, HIGH);  
+      send_code(RF_LIGHT_ALL_ON);
+    } 
+    else digitalWrite(GREEN_LED_PIN, LOW);  
+    if (digitalRead(RED_BUTTON_PIN)==PUSHED){
+      digitalWrite(RED_LED_PIN, HIGH);
+      send_code(RF_LIGHT_ALL_OFF);
+    } 
+    else digitalWrite(RED_LED_PIN, LOW);  
   }
 
 void printWifiStatus() {
