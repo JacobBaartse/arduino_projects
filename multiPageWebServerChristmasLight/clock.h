@@ -67,7 +67,11 @@ int Minutes = 0;
 int Seconds = -1;
 
 
-void(* restart_uno) (void) = 0; //declare reset function @ address 0
+void restart_uno(){
+  Serial.println("Restart the uno r4 wifi...");
+  delay(2000);
+  NVIC_SystemReset();
+}
 
 void update_clock(){
   RTC.getTime(currentTime);
@@ -83,7 +87,7 @@ void update_clock(){
     Hour = (corrected_unix_time / hour) % 24;
     Seconds = corrected_unix_time % 60;
 
-    if (currentTime.getHour()== 4 && (millis()/1000/hour)>6) restart_uno();  //restart every night at 4 a clock once.
+    if (currentTime.getHour()== 4 && (millis()/1000/hour)>2) restart_uno();  //restart every night at 4 a clock once.
   }
 }
 

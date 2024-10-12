@@ -288,9 +288,8 @@ void loop() {
     bool low_light = false;
     if (analogRead(lightSensorPin) < 50) low_light = true;
     bool eavening = false;
-    if (Hour>16 && Hour<23)
-      if (Hour<23) eavening = true;
-      else if (Minutes <30) eavening = true;
+    if (Hour>16 && Hour<23) eavening = true;
+    if (Hour==22 && Minutes >=30) eavening = false;
     if (auto_lights_on)
       if (!eavening){
         send_code(RF_LIGHT_ALL_OFF);
