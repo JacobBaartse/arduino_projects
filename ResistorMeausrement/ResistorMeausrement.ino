@@ -8,7 +8,7 @@
 #include <Fonts/FreeMono9pt7b.h>
 
 
-bool debug=false;
+bool debug=true;
 
 int sensorPin = A0;   // select the input pin to be measured
 float sensorValue = 0;  // variable to store the value coming from the sensor
@@ -16,7 +16,7 @@ const int minus_sign = 15;
 const int exponent_offset = 10;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
@@ -26,9 +26,10 @@ void setup() {
 
 float voltage_gemeten=0;
 float i_ref_resistor=0;
-float unkonwn_resistor=0;
+float unknown_resistor=0;
+float high_correction_factor=1;
 
-const int num_measurements = 1000;
+const int num_measurements = 2616;  // num of measurements should result in a multiple of  about 0,060 ms ( 3 times 50 hz duration)
 void loop() {
   // read the value from the sensor:
   sensorValue = 0;
@@ -46,11 +47,16 @@ void loop() {
 
   i_ref_resistor = (5-voltage_gemeten)/1000;
   
-   if (debug) Serial.println(i_ref_resistor, 6);
-   if (i_ref_resistor < 0.000001) i_ref_resistor=0.000001;
-  unkonwn_resistor = voltage_gemeten/i_ref_resistor - 0.65;   // correction for low resisteor values
+  if (debug) Serial.println(i_ref_resistor, 6);
+  if (i_ref_resistor < 0.00000001) i_ref_resistor=0.00000001;  // prevent divede by zero
+  unknown_resistor = voltage_gemeten/i_ref_resistor - 0.65;   // correction for low resisteor values
 
-   if (debug) Serial.println(unkonwn_resistor, 6);
+  // correct for high values
+  high_correction_factor = 1 + (unknown_resistor / 11000000);
+  unknown_resistor *= high_correction_factor;
+  
+
+   if (debug) Serial.println(unknown_resistor, 6);
    if (debug) Serial.println("------");
-   show_value(unkonwn_resistor);
+   show_value(unknown_resistor);
 }

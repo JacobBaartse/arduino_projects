@@ -98,6 +98,7 @@ void oled_display(String text, int letter){
 }
 
 void show_value(float value){
+  if (value > 5000000) value = 2000000000;  // above 5M is not possible to measure so show Max ohm  ---
   if (value<0) value=0;
   int letter = space_letter;
   int dot_pos = 3;
