@@ -15,13 +15,13 @@ RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
-// Payload from MASTER
+// Payload from/for MASTER
 struct payload_from_master {
   uint32_t counter;
   bool showLed;
 };
  
-// Payload to SLAVES
+// Payload from/for SLAVES
 struct payload_from_slave {
   uint8_t nodeId;
   uint32_t timer;
@@ -67,11 +67,11 @@ void loop() {
   while (network.available()) {
     RF24NetworkHeader header;
     network.peek(header);
-    payload_from_slave payload;
   
     switch(header.type) {
       // Display the incoming millis() values from sensor nodes
       case 'M': 
+        payload_from_slave payload;
         network.read(header, &payload, sizeof(payload));
         Serial.print(F(" On slave: "));
         Serial.print(payload.nodeId);
@@ -111,14 +111,18 @@ void loop() {
     //// Send same master message to all slaves - BEGIN
     if (mesh.addrListTop > 0) {
       showLed = !showLed;
+      counter++;
+      payload_from_master payloadS = {counter, showLed};
 
       for(int i=0; i<mesh.addrListTop; i++){
-        counter++;
-        payload_from_master payload = {counter, showLed};
         // RF24NetworkHeader header(mesh.addrList[i].address, OCT);
         // // int x = network.write(header, &payload, sizeof(payload));
-        // network.write(header, &payload, sizeof(payload));
-        mesh.write(&payload, 'S', sizeof(payload), mesh.addrList[i].nodeID);
+        // network.write(header, &payloadS, sizeof(payloadS));
+        if (!mesh.write(&payloadS, 'S', sizeof(payloadS), mesh.addrList[i].nodeID)) {
+          Serial.print(F("Send fail, Master to Slave, nodeID: "));
+          Serial.print(mesh.addrList[i].nodeID);
+          Serial.println(" ");
+        }
       }
     }
     else{

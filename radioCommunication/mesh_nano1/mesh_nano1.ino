@@ -15,13 +15,13 @@ RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
-// Payload to MASTER
+// Payload from/for MASTER
 struct payload_from_master {
   uint32_t counter;
   bool showLed;
 };
  
-// Payload from SLAVE
+// Payload from/for SLAVE
 struct payload_from_slave {
   uint8_t nodeId;
   uint32_t timer;
@@ -77,7 +77,7 @@ void loop() {
         Serial.println(F("Send fail, Test OK"));
       }
     } else {
-      Serial.print(F("Send OK: "));
+      Serial.print(F("Send to Master OK: "));
       Serial.println(payload.timer);
     }
   }
