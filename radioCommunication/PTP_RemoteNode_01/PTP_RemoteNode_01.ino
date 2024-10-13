@@ -27,6 +27,7 @@ void setup() {
 }
 
 unsigned long angleValue = 123;
+unsigned long sendingTimer = 0;
 
 void loop() {
   network.update();
@@ -50,10 +51,14 @@ void loop() {
   }
 
   //===== Sending =====//
-  angleValue++; 
-  RF24NetworkHeader header0(master00); // (Address where the data is going)
-  bool ok = network.write(header0, &angleValue, sizeof(angleValue)); // Send the data
-  if(!ok){
-    Serial.print(F("Error sending message"));
+    // Meanwhile, every x seconds...
+  if(millis() - sendingTimer > 7000) {
+    sendingTimer = millis();
+    angleValue++; 
+    RF24NetworkHeader header0(master00); // (Address where the data is going)
+    bool ok = network.write(header0, &angleValue, sizeof(angleValue)); // Send the data
+    if(!ok){
+      Serial.println(F("Error sending message"));
+    }
   }
 }

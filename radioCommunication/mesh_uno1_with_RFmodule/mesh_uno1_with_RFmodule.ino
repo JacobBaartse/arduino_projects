@@ -23,14 +23,14 @@ struct payload_from_master {
  
 // Payload from/for SLAVES
 struct payload_from_slave {
-  uint8_t nodeId;
-  uint32_t timer;
+  uint32_t timing;
   bool ledShown;
+  uint8_t nodeId;
 };
  
 uint32_t displayTimer = 0;
 uint32_t counter = 0;
-bool showLed;
+bool showLed = false;
 
 void setup() {
   Serial.begin(115200);
@@ -73,10 +73,10 @@ void loop() {
       case 'M': 
         payload_from_slave payload;
         network.read(header, &payload, sizeof(payload));
-        Serial.print(F(" On slave: "));
+        Serial.print(F(" Slave nodeId: "));
         Serial.print(payload.nodeId);
-        Serial.print(F(", millis: "));
-        Serial.print(payload.timer);
+        Serial.print(F(", timing: "));
+        Serial.print(payload.timing);
         Serial.print(F(", Led shown: "));
         Serial.println(payload.ledShown);
         break;

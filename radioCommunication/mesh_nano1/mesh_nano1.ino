@@ -6,7 +6,7 @@
  
 #define radioChannel 78
 /** User Configuration per 'slave' node: nodeID **/
-#define slavenodeID 3
+#define slaveNodeID 3
 #define masterNodeID 0
 
 
@@ -23,14 +23,13 @@ struct payload_from_master {
  
 // Payload from/for SLAVE
 struct payload_from_slave {
-  uint8_t nodeId;
-  uint32_t timer;
+  uint32_t timing;
   bool ledShown;
+  uint8_t nodeId;
 };
  
-uint8_t slaveIDNode = slavenodeID;
-uint32_t sleepTimer;
-bool showLed;
+uint32_t sleepTimer = 0;
+bool showLed = false;
 
 void setup() {
   Serial.begin(115200);
@@ -47,7 +46,7 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0);
 
   // Set the nodeID manually
-  mesh.setNodeID(slavenodeID);
+  mesh.setNodeID(slaveNodeID);
   // Serial.print(F("Setup node: "));
   // Serial.print(slavenodeID);
   Serial.println(F(", connecting to the mesh..."));
@@ -60,28 +59,6 @@ void setup() {
 void loop() {
   // Call mesh.update to keep the network updated
   mesh.update();
- 
-  //// Send to the master node every two seconds - BEGIN
-  if (millis() - sleepTimer > 2000) {
-    sleepTimer = millis();
-    payload_from_slave payload = {slaveIDNode, sleepTimer, showLed};
- 
-    // Send an 'M' type message containing the current millis()
-    if (!mesh.write(&payload, 'M', sizeof(payload))) {
-      // If a write fails, check connectivity to the mesh network
-      if (!mesh.checkConnection()) {
-        //refresh the network address
-        Serial.println(F("Renewing Address"));
-        mesh.renewAddress();
-      } else {
-        Serial.println(F("Send fail, Test OK"));
-      }
-    } else {
-      Serial.print(F("Send to Master OK: "));
-      Serial.println(payload.timer);
-    }
-  }
-  //// Send to the master node every two seconds - END
  
   //// Receive a message from master if available - START
   while (network.available()) {
@@ -106,4 +83,28 @@ void loop() {
     /* */
   }
   //// Receive a message from master if available - END
+
+  //// Send to the master node every two seconds - BEGIN
+  if (millis() - sleepTimer > 2000) {
+    sleepTimer = millis();
+    showLed = !showLed;
+    payload_from_slave payload = {sleepTimer, showLed, slaveNodeID};
+ 
+    // Send an 'M' type message containing the current millis()
+    if (!mesh.write(&payload, 'M', sizeof(payload))) {
+      // If a write fails, check connectivity to the mesh network
+      if (!mesh.checkConnection()) {
+        //refresh the network address
+        Serial.println(F("Renewing Address"));
+        mesh.renewAddress();
+      } else {
+        Serial.println(F("Send fail, Test OK"));
+      }
+    } else {
+      Serial.print(F("Send to Master OK: "));
+      Serial.println(payload.timing);
+    }
+  }
+  //// Send to the master node every two seconds - END
+ 
 }
