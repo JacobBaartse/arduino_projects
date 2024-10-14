@@ -15,14 +15,19 @@ RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
+char const keywordval[] = "BeAfMeAt"; 
+// { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" };
+
 // Payload from/for MASTER
 struct payload_from_master {
+  //char keyword[11];
   uint32_t counter;
   bool showLed;
 };
  
 // Payload from/for SLAVE
 struct payload_from_slave {
+  //char keyword[11];
   uint32_t timing;
   bool ledShown;
   uint8_t nodeId;
@@ -30,6 +35,14 @@ struct payload_from_slave {
  
 uint32_t sleepTimer = 0;
 bool showLed = false;
+bool meshrunning = false;
+
+bool meshstartup(){
+  if (meshrunning){
+    Serial.println(F("Radio issue, turn op PA level?"));
+  }
+  return mesh.begin(radioChannel);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -51,12 +64,18 @@ void setup() {
   // Serial.print(slavenodeID);
   Serial.println(F(", connecting to the mesh..."));
   // Connect to the mesh
-  mesh.begin(radioChannel);
+  meshrunning = meshstartup();
   Serial.print(F("Starting the mesh, nodeID: "));
   Serial.println(mesh.getNodeID());
 }
  
+unsigned int mesherror = 0;
+
 void loop() {
+  if (mesherror > 9) {
+    meshrunning = meshstartup();
+    mesherror = 0;
+  }
   // Call mesh.update to keep the network updated
   mesh.update();
  
@@ -88,10 +107,11 @@ void loop() {
   if (millis() - sleepTimer > 2000) {
     sleepTimer = millis();
     showLed = !showLed;
-    payload_from_slave payload = {sleepTimer, showLed, slaveNodeID};
+    //payload_from_slave payloadM = {{keywordval}, sleepTimer, showLed, slaveNodeID};
+    payload_from_slave payloadM = {sleepTimer, showLed, slaveNodeID};
  
     // Send an 'M' type message containing the current millis()
-    if (!mesh.write(&payload, 'M', sizeof(payload))) {
+    if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {
       // If a write fails, check connectivity to the mesh network
       if (!mesh.checkConnection()) {
         //refresh the network address
@@ -99,12 +119,13 @@ void loop() {
         mesh.renewAddress();
       } else {
         Serial.println(F("Send fail, Test OK"));
+        mesherror++;
       }
     } else {
       Serial.print(F("Send to Master OK: "));
-      Serial.println(payload.timing);
+      Serial.println(payloadM.timing);
+      mesherror = 0;
     }
   }
   //// Send to the master node every two seconds - END
- 
 }

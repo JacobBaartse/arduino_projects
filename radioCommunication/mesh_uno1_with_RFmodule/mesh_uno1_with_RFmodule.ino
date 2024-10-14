@@ -15,14 +15,19 @@ RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
+char const keywordval[] = "BeAfMeAt"; 
+// { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" };
+
 // Payload from/for MASTER
 struct payload_from_master {
+  //char keyword[11];
   uint32_t counter;
   bool showLed;
 };
  
 // Payload from/for SLAVES
 struct payload_from_slave {
+  //char keyword[11];
   uint32_t timing;
   bool ledShown;
   uint8_t nodeId;
@@ -31,6 +36,14 @@ struct payload_from_slave {
 uint32_t displayTimer = 0;
 uint32_t counter = 0;
 bool showLed = false;
+bool meshrunning = false;
+
+bool meshstartup(){
+  if (meshrunning){
+    Serial.println(F("Radio issue, turn op PA level?"));
+  }
+  return mesh.begin(radioChannel);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -51,10 +64,16 @@ void setup() {
   Serial.print(F("Starting Master of the mesh, nodeID: "));
   Serial.println(mesh.getNodeID());
   // Connect to the mesh
-  mesh.begin(radioChannel);
+  meshrunning = meshstartup();
 }
  
+unsigned int mesherror = 0;
+
 void loop() {
+  if (mesherror > 9) {
+    meshrunning = meshstartup();
+    mesherror = 0;
+  }
   // Call mesh.update to keep the network updated
   mesh.update();
  
@@ -73,7 +92,7 @@ void loop() {
       case 'M': 
         payload_from_slave payload;
         network.read(header, &payload, sizeof(payload));
-        Serial.print(F(" Slave nodeId: "));
+        Serial.print(F("Received from Slave nodeId: "));
         Serial.print(payload.nodeId);
         Serial.print(F(", timing: "));
         Serial.print(payload.timing);
@@ -81,8 +100,8 @@ void loop() {
         Serial.println(payload.ledShown);
         break;
       default: 
-        network.read(header,0,0);
-        Serial.print(F("header.type: "));
+        network.read(header, 0, 0);
+        Serial.print(F("TBD header.type: "));
         Serial.println(header.type);
     }
   }
@@ -111,22 +130,32 @@ void loop() {
     //// Send same master message to all slaves - BEGIN
     if (mesh.addrListTop > 0) {
       showLed = !showLed;
-      counter++;
-      payload_from_master payloadS = {counter, showLed};
-
       for(int i=0; i<mesh.addrListTop; i++){
+        counter += 1;
+        payload_from_master payloadS = {counter, showLed};        
+        //payload_from_slave payloadM = {{keywordval}, counter, showLed, slavenodeID};        
+        
         // RF24NetworkHeader header(mesh.addrList[i].address, OCT);
         // // int x = network.write(header, &payload, sizeof(payload));
         // network.write(header, &payloadS, sizeof(payloadS));
+        
         if (!mesh.write(&payloadS, 'S', sizeof(payloadS), mesh.addrList[i].nodeID)) {
           Serial.print(F("Send fail, Master to Slave, nodeID: "));
           Serial.print(mesh.addrList[i].nodeID);
           Serial.println(" ");
         }
+        else {
+          Serial.print(F("Send to Slave Node "));
+          Serial.print(mesh.addrList[i].nodeID);
+          Serial.print(F(" OK: "));
+          Serial.println(payloadS.counter);
+          mesherror = 0;
+        }
       }
     }
     else{
       Serial.println(F("No network node to write to"));
+      mesherror++;
     }
     //// Send same master message to all slaves - END
   }
