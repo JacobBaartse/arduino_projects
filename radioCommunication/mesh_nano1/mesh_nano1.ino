@@ -6,7 +6,7 @@
  
 #define radioChannel 78
 /** User Configuration per 'slave' node: nodeID **/
-#define slavenodeID 4
+#define slaveNodeID 3
 #define masterNodeID 0
 
 
@@ -15,21 +15,34 @@ RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
-// Payload to MASTER
+char const keywordval[] = "BeAfMeAt"; 
+// { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" };
+
+// Payload from/for MASTER
 struct payload_from_master {
+  //char keyword[11];
   uint32_t counter;
   bool showLed;
 };
  
-// Payload from SLAVE
+// Payload from/for SLAVE
 struct payload_from_slave {
-  uint8_t nodeId;
-  uint32_t timer;
+  //char keyword[11];
+  uint32_t timing;
   bool ledShown;
+  uint8_t nodeId;
 };
  
-bool showLed;
-uint32_t sleepTimer;
+uint32_t sleepTimer = 0;
+bool showLed = false;
+bool meshrunning = false;
+
+bool meshstartup(){
+  if (meshrunning){
+    Serial.println(F("Radio issue, turn op PA level?"));
+  }
+  return mesh.begin(radioChannel);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -46,41 +59,25 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0);
 
   // Set the nodeID manually
-  mesh.setNodeID(slavenodeID);
+  mesh.setNodeID(slaveNodeID);
   // Serial.print(F("Setup node: "));
   // Serial.print(slavenodeID);
   Serial.println(F(", connecting to the mesh..."));
   // Connect to the mesh
-  mesh.begin(radioChannel);
+  meshrunning = meshstartup();
   Serial.print(F("Starting the mesh, nodeID: "));
   Serial.println(mesh.getNodeID());
 }
  
+unsigned int mesherror = 0;
+
 void loop() {
+  if (mesherror > 9) {
+    meshrunning = meshstartup();
+    mesherror = 0;
+  }
   // Call mesh.update to keep the network updated
   mesh.update();
- 
-  //// Send to the master node every two seconds - BEGIN
-  if (millis() - sleepTimer > 2000) {
-    sleepTimer = millis();
-    payload_from_slave payload = {slavenodeID, sleepTimer, showLed};
- 
-    // Send an 'M' type message containing the current millis()
-    if (!mesh.write(&payload, 'M', sizeof(payload))) {
-      // If a write fails, check connectivity to the mesh network
-      if (!mesh.checkConnection()) {
-        //refresh the network address
-        Serial.println(F("Renewing Address"));
-        mesh.renewAddress();
-      } else {
-        Serial.println(F("Send fail, Test OK"));
-      }
-    } else {
-      Serial.print(F("Send OK: "));
-      Serial.println(payload.timer);
-    }
-  }
-  //// Send to the master node every two seconds - END
  
   //// Receive a message from master if available - START
   while (network.available()) {
@@ -105,4 +102,30 @@ void loop() {
     /* */
   }
   //// Receive a message from master if available - END
+
+  //// Send to the master node every two seconds - BEGIN
+  if (millis() - sleepTimer > 2000) {
+    sleepTimer = millis();
+    showLed = !showLed;
+    //payload_from_slave payloadM = {{keywordval}, sleepTimer, showLed, slaveNodeID};
+    payload_from_slave payloadM = {sleepTimer, showLed, slaveNodeID};
+ 
+    // Send an 'M' type message containing the current millis()
+    if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {
+      // If a write fails, check connectivity to the mesh network
+      if (!mesh.checkConnection()) {
+        //refresh the network address
+        Serial.println(F("Renewing Address"));
+        mesh.renewAddress();
+      } else {
+        Serial.println(F("Send fail, Test OK"));
+        mesherror++;
+      }
+    } else {
+      Serial.print(F("Send to Master OK: "));
+      Serial.println(payloadM.timing);
+      mesherror = 0;
+    }
+  }
+  //// Send to the master node every two seconds - END
 }

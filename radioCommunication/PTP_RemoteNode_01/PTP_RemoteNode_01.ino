@@ -11,29 +11,23 @@ location JWF21
 #include <RF24Network.h>
 #include <RF24.h>
 #include <SPI.h>
-//#include <Servo.h>
-
-//#define led 2
 
 RF24 radio(10, 9);               // nRF24L01 (CE,CSN)
 RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 01;   // Address of our node in Octal format (04, 031, etc.)
 const uint16_t master00 = 00;    // Address of the other node in Octal format
 
-//Servo myservo;  // create servo object to control a servo
-
 void setup() {
   Serial.begin(115200);
   SPI.begin();
   radio.begin();
   // radio.setPALevel(RF24_PA_HIGH, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  network.begin(90, this_node); // (channel, node address)
+  network.begin(70, this_node); // (channel, node address)
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-  //myservo.attach(3);   // (servo pin)
-  //pinMode(led, OUTPUT);
 }
 
 unsigned long angleValue = 123;
+unsigned long sendingTimer = 0;
 
 void loop() {
   network.update();
@@ -57,10 +51,14 @@ void loop() {
   }
 
   //===== Sending =====//
-  angleValue++; 
-  RF24NetworkHeader header0(master00);     // (Address where the data is going)
-  bool ok = network.write(header0, &angleValue, sizeof(angleValue)); // Send the data
-  if(!ok){
-    Serial.print(F("Error sending message"));
+    // Meanwhile, every x seconds...
+  if(millis() - sendingTimer > 7000) {
+    sendingTimer = millis();
+    angleValue++; 
+    RF24NetworkHeader header0(master00); // (Address where the data is going)
+    bool ok = network.write(header0, &angleValue, sizeof(angleValue)); // Send the data
+    if(!ok){
+      Serial.println(F("Error sending message"));
+    }
   }
 }
