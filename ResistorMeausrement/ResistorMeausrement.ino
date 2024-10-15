@@ -11,6 +11,8 @@
 bool debug=true;
 
 int sensorPin = A0;   // select the input pin to be measured
+// const int pullup1k = A1;
+const int pullup1k = A2;
 float sensorValue = 0;  // variable to store the value coming from the sensor
 const int minus_sign = 15;
 const int exponent_offset = 10;
@@ -22,6 +24,9 @@ void setup() {
   }
   analogReadResolution(14);
   display_digit_setup();
+  pinMode(pullup1k,OUTPUT);
+  digitalWrite(pullup1k, HIGH);
+  delay(100);
 }
 
 float voltage_gemeten=0;
@@ -29,13 +34,23 @@ float i_ref_resistor=0;
 float unknown_resistor=0;
 float high_correction_factor=1;
 
-const int num_measurements = 2616;  // num of measurements should result in a multiple of  about 0,060 ms ( 3 times 50 hz duration)
+const int num_measurements = 100;  // num of measurements should result in a multiple of  about 0,060 ms ( 3 times 50 hz duration)
+
 void loop() {
   // read the value from the sensor:
+  int results [num_measurements];
   sensorValue = 0;
   for  (int i=0; i< num_measurements; i++){
-      sensorValue += analogRead(sensorPin);
+      //sensorValue += analogRead(sensorPin);
+      delay(1);
+      results[i]=analogRead(sensorPin);
   }
+  for  (int i=0; i< num_measurements; i++){
+    Serial.println(results[i]);
+    sensorValue += results[i];
+  }
+  Serial.println("results done");
+  
   sensorValue /= num_measurements;
   if (debug) Serial.println(sensorValue, 6);
 
