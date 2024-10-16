@@ -9,29 +9,48 @@ void set_clock(unsigned long unix_time){
 }
 
 
+void restart_uno(){
+  Serial.println("Restart the uno r4 wifi...");
+  delay(2000);
+  NVIC_SystemReset();
+}
+
+
 void get_time_form_worldtimeapi_org(){
   RTC.begin();
   WiFiClient client;
   String readString; 
   char server[] = "worldtimeapi.org"; 
 
-  if (client.connect(server, 80)) {
-    // Serial.println("connected to server");
-    // send the HTTP request:
-    client.println("GET /api/timezone/Europe/Amsterdam HTTP/1.1");
-    client.println("Host: worldtimeapi.org");
-    client.println("Connection: close");
-    client.println();
-  };
+  bool time_response_received = false;
   int counter = 0;
-  while (!client.available()){
+  while (!time_response_received){
+    if (client.connect(server, 80)) {
+      //Serial.println("connected to server");
+      // send the HTTP request:
+      client.println("GET /api/timezone/Europe/Amsterdam HTTP/1.1");
+      client.println("Host: worldtimeapi.org");
+      client.println("Connection: close");
+      client.println();
+      client.flush();
+    };
+    delay(500);
     counter += 1;
-    delay(1000);
-  }
+    if (counter>60)  restart_uno();
+    if (!client.connected()) continue;
+    while (!client.available()){
+      //Serial.println("wait for response data");
+      counter += 1;
+      if (counter>60)  restart_uno();
+      delay(100);
+    }
 
-  while (client.available()) {
-    char c = client.read();
-    readString += c;
+    while (client.available()) {
+      //Serial.println("read response data");
+      char c = client.read();
+      readString += c;
+      time_response_received = true;
+    }
   }
 
   client.stop();
@@ -66,12 +85,6 @@ int Hour = 0;
 int Minutes = 0;
 int Seconds = -1;
 
-
-void restart_uno(){
-  Serial.println("Restart the uno r4 wifi...");
-  delay(2000);
-  NVIC_SystemReset();
-}
 
 void update_clock(){
   RTC.getTime(currentTime);
