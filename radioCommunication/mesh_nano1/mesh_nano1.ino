@@ -15,19 +15,19 @@ RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
-char const keywordval[] = "BeAfMeAt"; 
-// { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" };
+unsigned long const keywordvalM = 0xfeebbeef; 
+unsigned long const keywordvalS = 0xbeeffeeb; 
 
 // Payload from/for MASTER
 struct payload_from_master {
-  //char keyword[11];
+  unsigned long keyword;
   uint32_t counter;
   bool showLed;
 };
  
 // Payload from/for SLAVE
 struct payload_from_slave {
-  //char keyword[11];
+  unsigned long keyword;
   uint32_t timing;
   bool ledShown;
   uint8_t nodeId;
@@ -36,6 +36,12 @@ struct payload_from_slave {
 uint32_t sleepTimer = 0;
 bool showLed = false;
 bool meshrunning = false;
+
+void restart_arduino(){
+  Serial.println("Restart the arduino board...");
+  delay(2000);
+  //NVIC_SystemReset();
+}
 
 bool meshstartup(){
   if (meshrunning){
@@ -88,6 +94,12 @@ void loop() {
     Serial.print(payload.counter);
     Serial.print(F(", show led="));
     Serial.println(payload.showLed);
+    if (payload.keyword == keywordvalM) {
+
+    }
+    else{
+      Serial.println("Wrong keyword"); 
+    }
  
     /*
     // this LED is not connected, this example uses the serial output to confirm the mesh is working
@@ -107,8 +119,7 @@ void loop() {
   if (millis() - sleepTimer > 2000) {
     sleepTimer = millis();
     showLed = !showLed;
-    //payload_from_slave payloadM = {{keywordval}, sleepTimer, showLed, slaveNodeID};
-    payload_from_slave payloadM = {sleepTimer, showLed, slaveNodeID};
+    payload_from_slave payloadM = {keywordvalS, sleepTimer, showLed, slaveNodeID};
  
     // Send an 'M' type message containing the current millis()
     if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {
