@@ -15,19 +15,19 @@ RF24 radio(10, 9);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
-char const keywordval[] = "BeAfMeAt"; 
-// { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" };
+unsigned long const keywordvalM = 0xfeebbeef; 
+unsigned long const keywordvalS = 0xbeeffeeb; 
 
 // Payload from/for MASTER
 struct payload_from_master {
-  //char keyword[11];
+  unsigned long keyword;
   uint32_t counter;
   bool showLed;
 };
  
 // Payload from/for SLAVES
 struct payload_from_slave {
-  //char keyword[11];
+  unsigned long keyword;
   uint32_t timing;
   bool ledShown;
   uint8_t nodeId;
@@ -38,9 +38,15 @@ uint32_t counter = 0;
 bool showLed = false;
 bool meshrunning = false;
 
+void restart_arduino(){
+  Serial.println("Restart the arduino UNO board...");
+  delay(2000);
+  NVIC_SystemReset();
+}
+
 bool meshstartup(){
   if (meshrunning){
-    Serial.println(F("Radio issue, turn op PA level?"));
+    Serial.println(F("Radio issue, turn up PA level?"));
   }
   return mesh.begin(radioChannel);
 }
@@ -98,6 +104,12 @@ void loop() {
         Serial.print(payload.timing);
         Serial.print(F(", Led shown: "));
         Serial.println(payload.ledShown);
+        if (payload.keyword == keywordvalS) {
+
+        }
+        else{
+          Serial.println("Wrong keyword"); 
+        }
         break;
       default: 
         network.read(header, 0, 0);
@@ -132,8 +144,7 @@ void loop() {
       showLed = !showLed;
       for(int i=0; i<mesh.addrListTop; i++){
         counter += 1;
-        payload_from_master payloadS = {counter, showLed};        
-        //payload_from_slave payloadM = {{keywordval}, counter, showLed, slavenodeID};        
+        payload_from_master payloadS = {keywordvalM, counter, showLed};        
         
         // RF24NetworkHeader header(mesh.addrList[i].address, OCT);
         // // int x = network.write(header, &payload, sizeof(payload));
