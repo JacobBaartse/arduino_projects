@@ -23,6 +23,14 @@ RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
 const uint16_t node01 = 01;      // Address of the other node in Octal format
 
+unsigned long const keywordval= 0xabcdfedc; 
+
+struct network_payload {
+  unsigned long keyword;
+  unsigned long counter;
+  unsigned long timing;
+};
+
 void setup() {
   Serial.begin(115200);
   SPI.begin();
@@ -50,7 +58,8 @@ void messageStatus(int interval)
   static unsigned long statustime = 0;
   if (millis() < statustime) return;
   statustime = millis() + interval;
-  Serial.print(F("Received: "));
+  Serial.print(F("Network messages "));
+  Serial.print(F("received: "));
   Serial.print(receivedmsg);
   Serial.print(F(", send: "));
   Serial.print(sendmsg);
@@ -58,7 +67,6 @@ void messageStatus(int interval)
   Serial.print(droppedmsg);
   Serial.print(F(", failed: "));
   Serial.print(failedmsg);
-  Serial.println(F(" (network messages)."));
   Serial.println(" ");  
 }
 
@@ -74,7 +82,7 @@ void loop() {
   //===== Receiving =====//
   while (network.available()) {     // Is there any incoming data?
     RF24NetworkHeader header;
-    unsigned long incomingData;
+    network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
     if (header.from_node != 1) {
       Serial.print(F("received unexpected message, from_node: "));
@@ -83,7 +91,7 @@ void loop() {
     }
     receivedmsg++;
     Serial.print(F("incomingData: "));
-    Serial.println(incomingData);
+    Serial.println(incomingData.counter);
     //Serial.println(" ");
   }
 
@@ -93,7 +101,8 @@ void loop() {
     sendingTimer = millis();
     sendingCounter = updatecounter(sendingCounter); 
     RF24NetworkHeader header1(node01); // (Address where the data is going)
-    bool ok = network.write(header1, &sendingCounter, sizeof(sendingCounter)); // Send the data
+    network_payload outgoing = {keywordval, sendingCounter, millis()};
+    bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
     if(!ok){
       Serial.println(F("Error sending message"));
       failedmsg++;
