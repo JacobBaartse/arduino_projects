@@ -1,3 +1,5 @@
+#include "RTC.h"
+
 unsigned long startup_unix_time_internet;
 unsigned long startup_unix_time_rtc;
 RTCTime currentTime;
