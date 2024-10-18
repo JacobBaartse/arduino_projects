@@ -22,41 +22,59 @@ RF24 radio(10, 9);               // nRF24L01 (CE,CSN)
 RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
 const uint16_t node01 = 01;      // Address of the other node in Octal format
+const uint16_t wrappingcounter = 255;
 
 unsigned long const keywordval= 0xabcdfedc; 
+unsigned long const command_none = 0x00; 
+unsigned long const command_clear_counters = 0x01; 
+unsigned long const command_status = 0x02; 
+//unsigned long const command_reboot = 0x04; 
+//unsigned long const command_status = 0x08; 
+unsigned long const response_none = 0x00; 
 
 struct network_payload {
   unsigned long keyword;
   unsigned long counter;
   unsigned long timing;
+  unsigned long command;
+  unsigned long response;
 };
 
 void setup() {
   Serial.begin(115200);
   SPI.begin();
   radio.begin();
-  // radio.setPALevel(RF24_PA_HIGH, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   network.begin(70, this_node); // (channel, node address)
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  delay(1000);
+  Serial.println(" ");  
+  Serial.println(" *************** ");  
+  Serial.println(" ");  
+  Serial.flush();  
 }
 
-unsigned long updatecounter(unsigned long countval, unsigned long wrapping=255) {
-  if (countval == wrapping) countval = 1;
-  else {
-    countval++;
-  }
+unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrappingcounter) {
+  countval++;
+  if (countval > wrapping) countval = 1;
   return countval;
 }
+
+// void restart_arduino(){
+//   Serial.println("Restart the Arduino UNO board...");
+//   delay(2000);
+//   NVIC_SystemReset();
+// }
 
 unsigned long receivedmsg = 0;
 unsigned long sendmsg = 0;
 unsigned long droppedmsg = 0;
 unsigned long failedmsg = 0;
 
-void messageStatus(int interval)
+bool messageStatus(unsigned long interval)
 {
   static unsigned long statustime = 0;
-  if (millis() < statustime) return;
+  if (millis() < statustime) return false;
   statustime = millis() + interval;
   Serial.print(F("Network messages "));
   Serial.print(F("received: "));
@@ -68,16 +86,28 @@ void messageStatus(int interval)
   Serial.print(F(", failed: "));
   Serial.print(failedmsg);
   Serial.println(" ");  
+  // if (statustime > 0xf0000000){
+  //   restart_arduino();
+  // }
+  return true;
 }
 
 unsigned long sendingTimer = 0;
 unsigned long sendingCounter = 0;
 unsigned long receiveCounter = 0;
+unsigned long rcvmsgcount = 2 * wrappingcounter;
+
+unsigned long commanding = command_none;
+unsigned long responding = response_none;
+unsigned long responsefromremote = response_none;
 
 void loop() {
   network.update();
 
-  messageStatus(4000);
+  bool statusprinted = messageStatus(60000);
+  if (statusprinted) {
+    commanding = command_status;
+  }
 
   //===== Receiving =====//
   while (network.available()) {     // Is there any incoming data?
@@ -90,22 +120,71 @@ void loop() {
       break;
     }
     receivedmsg++;
-    Serial.print(F("incomingData: "));
-    Serial.println(incomingData.counter);
-    //Serial.println(" ");
+    // Serial.print(F("incomingData: "));
+    // Serial.println(incomingData.counter);
+    // check keyword and sequencenumber
+    if (incomingData.keyword == keywordval){
+      receiveCounter = incomingData.counter;
+      responsefromremote = incomingData.response;
+      if (rcvmsgcount > wrappingcounter) { // initialisation
+        rcvmsgcount = receiveCounter;
+      }
+      else { // check received message value
+        if (rcvmsgcount != receiveCounter) {
+          if (receivedmsg > 1) droppedmsg++; // this could be multiple as well
+          rcvmsgcount = receiveCounter; // re-synchronize
+        }
+      }
+      rcvmsgcount = updatecounter(rcvmsgcount); // calculate next expected message 
+    }
+    else{
+      Serial.println(F("Keyword failure"));
+    }
+  }
+
+  if (responsefromremote > response_none) {
+    Serial.print(F("responsefromremote: "));
+    Serial.println(responsefromremote, HEX);
+    unsigned long fails = responsefromremote & 0xff;
+    unsigned long drops = (responsefromremote >> 8) & 0xff;
+    unsigned long rsend = (responsefromremote >> 16) & 0xff;
+    unsigned long rcoll = (responsefromremote >> 24) & 0xff;
+    Serial.print(F("Remote network messages "));
+    Serial.print(F("received: "));
+    Serial.print(rcoll);
+    Serial.print(F(", send: "));
+    Serial.print(rsend);
+    Serial.print(F(", missed: "));
+    Serial.print(drops);
+    Serial.print(F(", failed: "));
+    Serial.print(fails);
+    Serial.println(" ");  
+    responsefromremote = response_none;
   }
 
   //===== Sending =====//
   // Meanwhile, every x seconds...
-  if(millis() - sendingTimer > 4000) {
-    sendingTimer = millis();
+  unsigned long currentmilli = millis();
+  if(currentmilli - sendingTimer > 5000) {
+    sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
     RF24NetworkHeader header1(node01); // (Address where the data is going)
-    network_payload outgoing = {keywordval, sendingCounter, millis()};
+    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commanding, responding};
     bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
-    if(!ok){
-      Serial.println(F("Error sending message"));
+    if (!ok) {
+      Serial.print(F("Retry sending message: "));
+      Serial.println(sendingCounter);      
+      ok = network.write(header1, &outgoing, sizeof(outgoing)); // retry once
+    }
+    if (ok) {
+      sendmsg++;
+      commanding = command_none;
+    }
+    else{
+      Serial.print(F("Error sending message: "));
+      Serial.println(sendingCounter);
       failedmsg++;
     }
+    responding = response_none;
   }
 }
