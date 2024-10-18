@@ -9,13 +9,14 @@
 #include "clock.h"
 #include "error_404.h"
 #include "error_405.h"
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_SH110X.h>
 #include <Adafruit_GFX.h>
-#include <Fonts/FreeMono9pt7b.h>
+#include "FreeSerif12pt7b_special.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define SCREEN_ADDRESS 0x3C
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define i2c_Address 0x3c //initialize with the I2C addr 0x3C Typically eBay OLED's
+//#define i2c_Address 0x3d //initialize with the I2C addr 0x3D Typically Adafruit OLED's
 #define OLED_RESET     -1
 #include "DHT.h"
 #include "rfzender.h"
@@ -79,7 +80,7 @@ String getTemperature_humidity() {
   return String(tempC, 1) + "," + String(humid, 1);
 }
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void display_oled( bool clear, int x, int y, String text){
   if (clear) display.clearDisplay();
@@ -93,10 +94,8 @@ void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
       // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  }
+  display.begin(i2c_Address, true); // Address 0x3C default
+  display.setContrast (0); // dim display
 
   pinMode(GREEN_LED_PIN, OUTPUT);
   pinMode(GREEN_BUTTON_PIN, INPUT_PULLUP);
@@ -104,10 +103,9 @@ void setup() {
   pinMode(RED_BUTTON_PIN, INPUT_PULLUP);
 
   display.clearDisplay();
-  display.setFont(&FreeMono9pt7b);
+  display.setFont(&FreeSerif12pt7b);
   display.setTextSize(1);  // 2 lines of 11 chars
-  display.setTextColor(WHITE);
-  display.dim(true);
+  display.setTextColor(SH110X_WHITE);
   display.display();
 
   dht22.begin(); 
@@ -291,11 +289,12 @@ void loop() {
     update_clock();
     float humid  = dht22.readHumidity();
     float tempC = dht22.readTemperature();
-    display_oled(true, 0, 12,String(tempC, 1) + " C " + String(humid, 0) + "%");
-    display_oled(false, 48, 3,".");    // simulate the graden C
-    display_oled(false, 0, 27, getLight_value());
-    if (Minutes<10)    display_oled(false, 64, 27, String(Hour) + ":0" + String(Minutes));
-    else display_oled(false, 64, 27, String(Hour) + ":" + String(Minutes));
+  
+    display_oled(true, 0, 16,String(tempC, 1) + " }C ");  // } is converted to degrees in this font.
+    display_oled(false, 0, 40,String(humid, 0) + " %");
+    if (Minutes<10)    display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes));
+    else display_oled(false, 0, 63, String(Hour) + ":" + String(Minutes));
+    display_oled(false, 70, 63, getLight_value());
 
     bool low_light = false;
     if (analogRead(lightSensorPin) < 50) low_light = true;
