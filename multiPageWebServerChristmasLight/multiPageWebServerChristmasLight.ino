@@ -331,7 +331,7 @@ void printWifiStatus() {
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
-  display_oled(false, 0, 12, WiFi.localIP().toString());
+  display_oled(false, 0, 18, WiFi.localIP().toString());
 
   // print the received signal strength:
   Serial.print("signal strength (RSSI): ");
