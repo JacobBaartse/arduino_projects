@@ -23,7 +23,7 @@ location SO148
 #include <RF24.h>
 #include <SPI.h>
 
-RF24 radio(8, 7);               // nRF24L01 (CE,CSN)
+RF24 radio(8, 7);               // nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
 const uint16_t node01 = 01;      // Address of the other node in Octal format

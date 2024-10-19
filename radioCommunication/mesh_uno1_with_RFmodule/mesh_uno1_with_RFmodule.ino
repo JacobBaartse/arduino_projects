@@ -1,4 +1,7 @@
- 
+/*
+ *
+ */
+
 #include "RF24Network.h"
 #include "RF24.h"
 #include "RF24Mesh.h"
@@ -11,7 +14,7 @@
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(10, 9);
+RF24 radio(8, 7);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
@@ -76,7 +79,7 @@ void setup() {
 unsigned int mesherror = 0;
 
 void loop() {
-  if (mesherror > 9) {
+  if (mesherror > 8) {
     meshrunning = meshstartup();
     mesherror = 0;
   }
@@ -118,8 +121,8 @@ void loop() {
     }
   }
   
-  // Meanwhile, every 5 seconds...
-  if(millis() - displayTimer > 5000) {
+  // Meanwhile, every x seconds...
+  if(millis() - displayTimer > 15000) {
     displayTimer = millis();
 
     //// SHOW DHCP TABLE - BEGIN
@@ -130,7 +133,7 @@ void loop() {
         Serial.print(F("NodeID: "));
         Serial.print(mesh.addrList[i].nodeID);
         Serial.print(F(" RF24Network Address: 0")); // this is in octal
-        Serial.println(mesh.addrList[i].address,OCT);
+        Serial.println(mesh.addrList[i].address, OCT);
       }
       Serial.println(F("**********************************"));
     }
@@ -165,9 +168,12 @@ void loop() {
       }
     }
     else{
-      Serial.println(F("No network node to write to"));
       mesherror++;
+      Serial.print(F("No network node to write to ("));
+      Serial.print(mesherror);
+      Serial.println(F(")"));
     }
     //// Send same master message to all slaves - END
   }
+
 }
