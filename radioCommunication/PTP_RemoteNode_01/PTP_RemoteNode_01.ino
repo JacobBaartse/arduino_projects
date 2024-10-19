@@ -4,7 +4,8 @@
 
 https://howtomechatronics.com/tutorials/arduino/how-to-build-an-arduino-wireless-network-with-multiple-nrf24l01-modules/#h-node-01-source-code
 
-target old nano, with RF24 module Long Range
+Target: NANO, with RF24 module Long Range
+nRF24L01 (CE,CSN) connected to pin 8, 7
 location JWF21
 */
 
@@ -13,6 +14,7 @@ location JWF21
 #include <SPI.h>
 
 RF24 radio(10, 9);               // nRF24L01 (CE,CSN)
+//RF24 radio(8, 7);               // nRF24L01 (CE,CSN)
 RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 01;   // Address of our node in Octal format (04, 031, etc.)
 const uint16_t master00 = 00;    // Address of the other node in Octal format
@@ -23,15 +25,22 @@ unsigned long const command_none = 0x00;
 unsigned long const command_clear_counters = 0x01; 
 unsigned long const command_status = 0x02; 
 //unsigned long const command_reboot = 0x04; 
-//unsigned long const command_status = 0x08; 
+//unsigned long const command_unixtime = 0x08; 
 unsigned long const response_none = 0x00; 
+unsigned long const response_button = 0x01; 
+unsigned long const response_ack = 0x02; 
 
+// max 32 bytes can be in the FIFO of the nRF24L01
+// that means maximum 8 data items of unsigned long
 struct network_payload {
   unsigned long keyword;
   unsigned long counter;
   unsigned long timing;
   unsigned long command;
   unsigned long response;
+  unsigned long data1;
+  unsigned long data2;
+  unsigned long data3;
 };
 
 void setup() {
@@ -85,6 +94,10 @@ unsigned long rcvmsgcount = 10000;
 
 unsigned long commanding = command_none;
 unsigned long responding = response_none;
+unsigned long data1 = response_none;
+unsigned long data2 = response_none;
+unsigned long data3 = response_none;
+
 bool printstatus = false;
 unsigned long receivedcommand = command_none;
 unsigned long commandfrombase = command_none;
@@ -125,7 +138,14 @@ void loop() {
       }
       else { // check received message value
         if (rcvmsgcount != receiveCounter) {
-          if (receivedmsg > 1) droppedmsg++; // this could be multiple as well
+          if (receivedmsg > 1) {
+             droppedmsg++; // this could be multiple as well
+            Serial.print(F("Missed network message(s): "));
+            Serial.print(F("received id: "));
+            Serial.print(receiveCounter);
+            Serial.print(F(", expected id: "));
+            Serial.println(rcvmsgcount);             
+          }
           rcvmsgcount = receiveCounter; // re-synchronize
         }
       }
@@ -156,29 +176,21 @@ void loop() {
         droppedmsg = 0;
         failedmsg = 0;
       }
-      if ((commandfrombase & command_status) > 0) {
+      else if ((commandfrombase & command_status) > 0) {
         printstatus = true;
         responding = receivedmsg;
-        // Serial.print(F("1 responding: "));
-        // Serial.println(responding, HEX);
-        responding = (responding << 8) + sendmsg;
-        // Serial.print(F("2 responding: "));
-        // Serial.println(responding, HEX);
-        responding = (responding << 8) + droppedmsg;
-        // Serial.print(F("3 responding: "));
-        // Serial.println(responding, HEX);
-        responding = (responding << 8) + failedmsg;
-        // Serial.print(F("4 responding: "));
-        // Serial.println(responding, HEX);
+        data1 = sendmsg;
+        data2 = droppedmsg;
+        data2 = (data2 << 16) + failedmsg;
       }
       else {
-        Serial.print(F("TBD commandfrombase: "));
+        Serial.print(F("TBD implement commandfrombase: "));
         Serial.println(commandfrombase);
       }
       commandfrombase = command_none;
     }
 
-    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commanding, responding};
+    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commanding, responding, data1, data2, data3};
     bool ok = network.write(header0, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {
       Serial.print(F("Retry sending message: "));
@@ -195,5 +207,8 @@ void loop() {
     }
     commanding = command_none;
     responding = response_none;
+    data1 = response_none;
+    data2 = response_none;
+    data3 = response_none;
   }
 }
