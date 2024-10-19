@@ -31,5 +31,11 @@ https://sandervandevelde.wordpress.com/2016/05/30/cheap-arduino-mesh-using-rf24-
 https://github.com/nRF24/RF24Mesh/tree/master/examples
 
 
-#  interrupts om arduino
+#  Interrupts on arduino
 https://www.best-microcontroller-projects.com/arduino-interrupt.html
+
+
+# BUILTIN LED 
+The SPI interface uses PIN 13 as output
+
+This means the buildin LED of the Arduino UNO R4 WiFi cannot be used (hard-wired to PIN 13).
