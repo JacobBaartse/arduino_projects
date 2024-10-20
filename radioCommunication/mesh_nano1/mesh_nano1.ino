@@ -12,7 +12,7 @@
 #define slaveNodeID 3
 #define masterNodeID 0
 
-int rfReceiverPin = 2; // should be a pin that supports interrupts
+const int rfReceiverPin = 2; // should be a pin that supports interrupts
 const int buffer_size = 1024;
 const int start_indicator_val = 6;
 const int one_bit_val = 3;
@@ -128,9 +128,9 @@ String buttonfromrfcode(unsigned long rfcode){
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 // for the NANO with onboard RF24 module:
-RF24 radio(10, 9);               // nRF24L01 (CE, CSN)
+RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 // for the NANO with external RF24 module:
-//RF24 radio(8, 7);               // nRF24L01 (CE, CSN)
+//RF24 radio(8, 7); // nRF24L01 (CE, CSN)
 
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
@@ -158,9 +158,9 @@ bool showLed = false;
 bool meshrunning = false;
 
 void restart_arduino(){
-  Serial.println("Restart the arduino board...");
+  Serial.println("Restart the Arduino board...");
   delay(2000);
-  //NVIC_SystemReset();
+  //NVIC_SystemReset(); // TBD
 }
 
 bool meshstartup(){
@@ -204,15 +204,22 @@ void setup() {
 }
  
 unsigned int mesherror = 0;
+uint8_t meshupdaterc = 0;
+uint8_t rem_meshupdaterc = 200;
 
 void loop() {
-  if (mesherror > 9) {
+  if (mesherror > 8) {
     meshrunning = meshstartup();
     mesherror = 0;
   }
   // Call mesh.update to keep the network updated
-  mesh.update();
- 
+  meshupdaterc = mesh.update();
+  if (meshupdaterc != rem_meshupdaterc) {
+    Serial.print(F("meshupdaterc: "));
+    Serial.println(meshupdaterc);
+    rem_meshupdaterc = meshupdaterc;
+  } 
+
   //// Receive a message from master if available - START
   while (network.available()) {
     RF24NetworkHeader header;
@@ -272,7 +279,6 @@ void loop() {
   rfcommand = getRfCode();
   if (rfcommand > 0){
     if (prv_rfcommand != rfcommand){ // store rf code only once (TBD per 4 seconds)
-      // digitalWrite(LED_BUILTIN, HIGH);
       String ButtonCode = buttonfromrfcode(rfcommand);
       sequence_index++;
       sequence_index = sequence_index % 256; // keep it in 1 byte

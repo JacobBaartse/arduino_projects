@@ -23,7 +23,7 @@ location SO148
 #include <RF24.h>
 #include <SPI.h>
 
-RF24 radio(8, 7);               // nRF24L01 (CE, CSN)
+RF24 radio(8, 7);                // nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
 const uint16_t node01 = 01;      // Address of the other node in Octal format
@@ -59,7 +59,6 @@ WiFiUDP Udp; // A UDP instance to let us send and receive packets over UDP
 NTPClient timeClient(Udp);
 
 void setup() {
-  digitalWrite(LED_BUILTIN, HIGH);
   Serial.begin(115200);
   RTC.begin();
   matrix.begin();
@@ -116,8 +115,7 @@ void setup() {
   Serial.println(" *************** ");  
   Serial.println(" ");  
   Serial.flush(); 
-
-  digitalWrite(LED_BUILTIN, LOW);
+  displayFull();
 }
 
 unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrappingcounter) {

@@ -195,7 +195,7 @@ void loop() {
     }
     //// Send same master message to all slaves - END
   }
-  // end of while network
+  // end of while network.available
 
 
 

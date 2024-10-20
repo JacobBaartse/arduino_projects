@@ -1,5 +1,5 @@
 
-int rfReceiverPin = 2; // should be a pin that supports interrupts
+const int rfReceiverPin = 2; // should be a pin that supports interrupts
 const int buffer_size = 1024;
 const int start_indicator_val = 6;
 const int one_bit_val = 3;
@@ -121,7 +121,6 @@ void setup() {
   for (int i=0;i<buffer_size;i++){
     trace_array[i] = 0;
   }
-  // pinMode(LED_BUILTIN, OUTPUT);
   pinMode(rfReceiverPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(rfReceiverPin), logRfTime, RISING);
   Serial.println("Started");
@@ -131,7 +130,6 @@ void loop() {
   unsigned long rfcommand = getRfCode();
   if (rfcommand > 0){
     if (prv_rfcommand != rfcommand){ // store rf code only once (TBD per 4 seconds)
-      // digitalWrite(LED_BUILTIN, HIGH);
       String ButtonCode = buttonfromrfcode(rfcommand);
       sequence_index++;
       sequence_index = sequence_index % 256; // keep it in 1 byte
@@ -142,9 +140,6 @@ void loop() {
     }
     prv_rfcommand = rfcommand;
   }
-
-  delay(1000);
-  // digitalWrite(LED_BUILTIN, LOW);
 }
 
 void logRfTime(){
