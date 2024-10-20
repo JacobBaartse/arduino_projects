@@ -11,6 +11,9 @@
 /** User Configuration per 'slave' node: nodeID **/
 #define slavenodeID 3
 #define masterNodeID 0
+#define LEDpin1 4
+#define LEDpin2 3
+#define LEDpin3 2
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -55,6 +58,11 @@ bool meshstartup(){
 }
 
 void setup() {
+  pinMode(LEDpin1, OUTPUT);
+  pinMode(LEDpin2, OUTPUT);
+  pinMode(LEDpin3, OUTPUT);
+  digitalWrite(LEDpin2, HIGH);
+
   Serial.begin(115200);
   while (!Serial) {
     // some boards need this because of native USB capability
@@ -74,9 +82,14 @@ void setup() {
   Serial.println(mesh.getNodeID());
   // Connect to the mesh
   meshrunning = meshstartup();
+
+  digitalWrite(LEDpin1, HIGH);
+  digitalWrite(LEDpin3, HIGH);
 }
  
 unsigned int mesherror = 0;
+uint8_t meshupdaterc = 0;
+uint8_t rem_meshupdaterc = 200;
 
 void loop() {
   if (mesherror > 8) {
@@ -84,8 +97,13 @@ void loop() {
     mesherror = 0;
   }
   // Call mesh.update to keep the network updated
-  mesh.update();
- 
+  meshupdaterc = mesh.update();
+  if (meshupdaterc != rem_meshupdaterc) {
+    Serial.print(F("meshupdaterc: "));
+    Serial.println(meshupdaterc);
+    rem_meshupdaterc = meshupdaterc;
+  }
+
   // In addition, keep the 'DHCP service' running 
   // on the master node so addresses will
   // be assigned to the sensor nodes
@@ -139,6 +157,7 @@ void loop() {
     }
     else{
       Serial.print(F(" ."));
+      digitalWrite(LEDpin1, LOW);
     }
     //// SHOW DHCP TABLE - END
 
@@ -157,6 +176,7 @@ void loop() {
           Serial.print(F("Send fail, Master to Slave, nodeID: "));
           Serial.print(mesh.addrList[i].nodeID);
           Serial.println(" ");
+          mesherror++;
         }
         else {
           Serial.print(F("Send to Slave Node "));
@@ -175,5 +195,8 @@ void loop() {
     }
     //// Send same master message to all slaves - END
   }
+  // end of while network
+
+
 
 }
