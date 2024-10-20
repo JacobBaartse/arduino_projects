@@ -1,3 +1,8 @@
+/*
+never exceed the measured input voltage of +/- 30 volt this could harm the arduino input.
+always use a powerbank that supplies a good 5V to the arduino for this project.
+*/
+
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define SCREEN_ADDRESS 0x3C
@@ -15,7 +20,7 @@ byte theMatrix[8][12] = {
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
 
@@ -30,25 +35,26 @@ void print_matrix(){
 }
 
 
-const int minus = 15;
+const int minus = 11;
 const int space_digit = 10;
-byte  Digits  [5][48]{                // 0 1 2 3 4 5 6 7 8 9 e0 e1 e2 e3 e4  -                                               
-{ 0, 1, 0,  0, 0, 1,  1, 1, 0,  1, 1, 0,  1, 0, 1,  1, 1, 1,  0, 1, 1,  1, 1, 1,  0, 1, 0,  0, 1, 1,   0, 0, 0,   0, 0, 0,   0, 0, 0,   0, 0, 0,   0, 0, 0,   0, 0, 0},
-{ 1, 0, 1,  0, 1, 1,  0, 0, 1,  0, 0, 1,  1, 0, 1,  1, 0, 0,  1, 0, 0,  0, 0, 1,  1, 0, 1,  1, 0, 1,   0, 0, 0,   0, 0, 0,   0, 0, 0,   0, 0, 0,   0, 0, 1,   0, 0, 0},
-{ 1, 0, 1,  0, 0, 1,  0, 1, 1,  1, 1, 0,  1, 1, 1,  1, 1, 0,  1, 1, 0,  0, 0, 1,  0, 1, 0,  0, 1, 1,   0, 0, 0,   0, 0, 0,   0, 0, 0,   0, 1, 0,   0, 1, 0,   1, 1, 1},
-{ 1, 0, 1,  0, 0, 1,  1, 0, 0,  0, 0, 1,  0, 0, 1,  0, 0, 1,  1, 0, 1,  0, 1, 0,  1, 0, 1,  0, 0, 1,   0, 0, 0,   0, 0, 0,   0, 0, 1,   0, 0, 1,   0, 0, 1,   0, 0, 0},
-{ 0, 1, 0,  0, 0, 1,  1, 1, 1,  1, 1, 0,  0, 0, 1,  1, 1, 0,  0, 1, 0,  1, 0, 0,  0, 1, 0,  1, 1, 0,   0, 0, 0,   0, 1, 0,   0, 1, 0,   0, 1, 0,   0, 1, 0,   0, 0, 0},
+byte  Digits  [5][36]{                // 0 1 2 3 4 5 6 7 8 9   -                                               
+{ 0, 1, 0,  0, 0, 1,  1, 1, 0,  1, 1, 0,  1, 0, 1,  1, 1, 1,  0, 1, 1,  1, 1, 1,  0, 1, 0,  0, 1, 1,    0, 0, 0,    0, 0, 0},
+{ 1, 0, 1,  0, 1, 1,  0, 0, 1,  0, 0, 1,  1, 0, 1,  1, 0, 0,  1, 0, 0,  0, 0, 1,  1, 0, 1,  1, 0, 1,    0, 0, 0,    0, 0, 0},
+{ 1, 0, 1,  0, 0, 1,  0, 1, 1,  1, 1, 0,  1, 1, 1,  1, 1, 0,  1, 1, 0,  0, 0, 1,  0, 1, 0,  0, 1, 1,    0, 0, 0,    1, 1, 1},
+{ 1, 0, 1,  0, 0, 1,  1, 0, 0,  0, 0, 1,  0, 0, 1,  0, 0, 1,  1, 0, 1,  0, 1, 0,  1, 0, 1,  0, 0, 1,    0, 0, 0,    0, 0, 0},
+{ 0, 1, 0,  0, 0, 1,  1, 1, 1,  1, 1, 0,  0, 0, 1,  1, 1, 0,  0, 1, 0,  1, 0, 0,  0, 1, 0,  1, 1, 0,    0, 0, 0,    0, 0, 0},
 };      
 
-const int k = 0;
-const int M = 1;
-const int space_letter = 2;
+const int k_ohm = 0;
+const int M_ohm = 1;
+const int space_ohm = 2;
 const int V_plus = 3;
 const int V_min = 4;
-byte Letters [3][30]{
-  { 0, 1, 0, 1, 0, 0,  0, 1, 0, 0, 0, 1,  0, 0, 0, 0, 0, 0,  0, 0, 0, 1, 0, 1,  0, 0, 0, 1, 0, 1, },
-  { 0, 1, 1, 0, 0, 0,  0, 1, 1, 0, 1, 1,  0, 0, 0, 0, 0, 0,  0, 0, 0, 1, 0, 1,  1, 1, 0, 1, 0, 1, },
-  { 0, 1, 0, 1, 0, 0,  0, 1, 0, 1, 0, 1,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 1, 0,  0, 0, 0, 0, 1, 0,},
+
+byte Letters [3][60]{  // k_ohm  m_ohm  ohm  +v  -v
+  { 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0,  0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0,  0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, },
+  { 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0,  0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,  0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1,  0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, },
+  { 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1,  0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1,  0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1,  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,},
 };
 
 
@@ -60,9 +66,9 @@ void displayDigit(int d, int s_x, int s_y){
 }
 
 void displayLetter(int d, int s_x, int s_y){
-  for (int x=0;x<6;x++)
+  for (int x=0;x<12;x++)
     for (int y=0;y<3;y++){
-      theMatrix[y+s_y][x+s_x] = Letters[y][x+ d*6];     
+      theMatrix[y+s_y][x+s_x] = Letters[y][x+ d*12];     
     }
 }
 
@@ -104,21 +110,21 @@ int letter = 0;
 float range_to_meg_kilo(float resistance){
   if (resistance > 5000000) resistance = 2000000000;  // above 5M is not possible to measure so show Max ohm  ---
   if (resistance<0) resistance=0;
-  letter = space_letter;
+  letter = space_ohm;
   int dot_pos = 3;
   if (resistance > 999.5){
-    letter = k;
+    letter = k_ohm;
     resistance /= 1000;
     }
   if (resistance > 999.5){
-    letter = M;
+    letter = M_ohm;
     resistance /= 1000;
   }
   return resistance;
 }
 
 void show_values_oled(float resistance, int letter, float voltage){
-    if (resistance >= 1000) oled_display("Max", space_letter, voltage);
+    if (resistance >= 1000) oled_display("Max", space_ohm, voltage);
     else                    oled_display(String(resistance), letter, voltage);
 }
 
@@ -126,7 +132,7 @@ void out_of_range(){
   displayDigit(minus,0,0);
   displayDigit(minus,4,0);
   displayDigit(minus,8,0);
-  displayLetter(space_letter, 6, 5);
+  displayLetter(space_ohm, 0, 5);
   matrix.renderBitmap(theMatrix, 8, 12);
   delay(200);
 }
@@ -144,8 +150,8 @@ void blink_dot(int dot_pos){
 
 void show_voltage_matrix(float voltage){
   int dot_pos = 2;
-  if (voltage > 0) displayLetter(V_plus, 6, 5);
-  else displayLetter(V_min, 6, 5);      
+  if (voltage > 0) displayLetter(V_plus, 0, 5);
+  else displayLetter(V_min, 0, 5);      
   if (voltage < 10){
     voltage *= 10;
     dot_pos = 1;
@@ -170,7 +176,7 @@ void show_resistance_matrix(float resistance, int letter){
   displayDigit((int)resistance/100 % 10,0,0 );
   displayDigit((int)resistance/10 % 10,4,0 );
   displayDigit((int)resistance % 10,8,0 );
-  displayLetter(letter, 6, 5);
+  displayLetter(letter, 0, 5);
   blink_dot(dot_pos);
 }
 
