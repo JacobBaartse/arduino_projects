@@ -22,6 +22,7 @@
 #include "rfzender.h"
 #define DHT22_PIN 12
 #define RF_PIN 8
+#define RELAY_PIN 9
 
 DHT dht22(DHT22_PIN, DHT22);
 
@@ -50,6 +51,8 @@ String lamp_state2 = "---";
 String lamp_state3 = "---";
 
 int status = WL_IDLE_STATUS;
+int charging = LOW;
+float temperature_start_battery=0.0;
 
 WiFiServer server(80);
 
@@ -101,6 +104,8 @@ void setup() {
   pinMode(GREEN_BUTTON_PIN, INPUT_PULLUP);
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(RED_BUTTON_PIN, INPUT_PULLUP);
+
+  pinMode(RELAY_PIN, OUTPUT);
 
   display.clearDisplay();
   display.setFont(&FreeSerif12pt7b);
@@ -225,6 +230,17 @@ void loop() {
       } else if (HTTP_req.indexOf("GET /lamp") > -1 ) {
         // Serial.println("lamp page");
         page_id = PAGE_LAMP;
+      } else if (HTTP_req.indexOf("GET /battery?1") > -1 ) {
+        // Serial.println("battery on page");
+        charging = HIGH;
+        temperature_start_battery = dht22.readTemperature();
+        digitalWrite(RELAY_PIN, HIGH);
+        page_id = PAGE_HOME;
+      } else if (HTTP_req.indexOf("GET /battery?0") > -1 ) {
+        // Serial.println("battery off page");
+        charging = LOW;
+        digitalWrite(RELAY_PIN, LOW);
+        page_id = PAGE_HOME;
       } else {  // 404 Not Found
         // Serial.println("404 Not Found");
         page_id = PAGE_ERROR_404;
@@ -291,7 +307,10 @@ void loop() {
     float tempC = dht22.readTemperature();
   
     display_oled(true, 0, 16,String(tempC, 1) + " }C ");  // } is converted to degrees in this font.
-    display_oled(false, 0, 40,String(humid, 0) + " %");
+
+    if (charging == HIGH) display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1));
+    else display_oled(false, 0, 40,String(humid, 0) + " %" );
+
     if (Minutes<10)    display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes));
     else display_oled(false, 0, 63, String(Hour) + ":" + String(Minutes));
     display_oled(false, 70, 63, getLight_value());
@@ -324,6 +343,14 @@ void loop() {
       send_code(RF_LIGHT_ALL_OFF);
     } 
     else digitalWrite(RED_LED_PIN, LOW);  
+
+    if (charging = HIGH){
+      if ( (dht22.readTemperature() - temperature_start_battery) > 2.0){
+        charging = LOW;
+        digitalWrite(RELAY_PIN, LOW);
+      }
+    }
+
   }
 
 void printWifiStatus() {
