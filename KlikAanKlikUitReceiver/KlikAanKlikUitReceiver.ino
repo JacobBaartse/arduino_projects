@@ -1,5 +1,5 @@
 
-int rfReceiverPin = 2; // should be a pin that supports interrupts
+const int rfReceiverPin = 2; // should be a pin that supports interrupts
 const int buffer_size = 1024;
 const int start_indicator_val = 6;
 const int one_bit_val = 3;
@@ -28,7 +28,7 @@ unsigned long getRfCode(){
       if (debug) Serial.print("trace_index");    Serial.println(trace_index);
       if (debug) Serial.print("prev_trace_index");    Serial.println(prev_trace_index);
     }
-    
+
     if (tmp_trace_index<prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped
     for (int index=prev_trace_index; index<tmp_trace_index; index++){
       if (debug) Serial.print(trace_array[index%buffer_size]);       Serial.print(" ");
@@ -60,24 +60,24 @@ unsigned long getRfCode(){
           if (debug) Serial.print(next_val);     Serial.print(" ");
           if (bitval == next_val){  // a wrong bit sequence has been detected so move forward
             if (debug) Serial.println("wrong sequence detected move forward");
-            prev_trace_index = (index + 1) % buffer_size;  
+            prev_trace_index = (index + 1) % buffer_size;
             break; 
           }
           if (bitval == start_indicator_val) {  // a new start indicator found so move forward
             if (debug) Serial.println("start indicator found go to next");
             prev_trace_index = (index + 1) % buffer_size;  
-            break; 
+            break;
           }
           if (next_val == start_indicator_val) {  // a new start indicator found so move forward
             if (debug) Serial.println("next_val start indicator found go to next");
-            prev_trace_index = (index + 2) % buffer_size;  
+            prev_trace_index = (index + 2) % buffer_size;
             break; 
           }
           decoded_value += (bitval << bit_num);
           if (bit_num == 0){
             Serial.print("0x");
             if (debug) Serial.println(decoded_value, HEX);
-            prev_trace_index = (index+2) % buffer_size;  
+            prev_trace_index = (index+2) % buffer_size;
             return decoded_value;
           }
         }
@@ -136,7 +136,6 @@ void setup() {
   for (int i=0;i<buffer_size;i++){
     trace_array[i] = 0;
   }
-  // pinMode(LED_BUILTIN, OUTPUT);
   pinMode(rfReceiverPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(rfReceiverPin), logRfTime, RISING);
   Serial.println("Started");
@@ -146,7 +145,6 @@ void loop() {
   unsigned long rfcommand = getRfCode();
   if (rfcommand > 0){
     if (prv_rfcommand != rfcommand){ // store rf code only once (TBD per 4 seconds)
-      // digitalWrite(LED_BUILTIN, HIGH);
       String ButtonCode = buttonfromrfcode(rfcommand);
       sequence_index++;
       sequence_index = sequence_index % 256; // keep it in 1 byte
@@ -158,7 +156,7 @@ void loop() {
     prv_rfcommand = rfcommand;
   }
 
-  delay(100);
+  delay(1000);
   // digitalWrite(LED_BUILTIN, LOW);
 }
 

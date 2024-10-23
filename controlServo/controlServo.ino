@@ -55,6 +55,8 @@ void loop() {
     if (valinput > -1) {
       set_servo(valinput);
     }
+    delay(2000);
+    set_servo(90);
   }
 
 }

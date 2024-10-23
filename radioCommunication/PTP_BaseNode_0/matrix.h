@@ -7,19 +7,17 @@
 
 ArduinoLEDMatrix matrix;
 
-/*
-const uint32_t happy[] = {
-    0x19819,
-    0x80000001,
-    0x81f8000
+const uint32_t full_on[] = {
+    0xffffffff,
+    0xffffffff,
+    0xffffffff
 };
 
-const uint32_t heart[] = {
-    0x3184a444,
-    0x44042081,
-    0x100a0040
+const uint32_t full_off[] = {
+    0x00,
+    0x00,
+    0x00
 };
-/* */
 
 #define PICT_HAPPY 1
 #define PICT_HEART_S 2
@@ -127,4 +125,9 @@ void displaystatictext(String statictext){
   matrix.endText();
 
   matrix.endDraw();
+}
+ 
+void displayFull(bool on=true){
+  if (on) matrix.loadFrame(full_on);
+  else matrix.loadFrame(full_off);
 }

@@ -85,9 +85,10 @@ String findNetwork() {
     Serial.print(WiFi.SSID(thisNet));
     Serial.print(" Signal: ");
     Serial.print(WiFi.RSSI(thisNet));
-    Serial.print(" dBm");
-    Serial.print(" Encryption: ");
-    printEncryptionType(WiFi.encryptionType(thisNet));
+    Serial.println(" dBm");
+    // Serial.print(" Encryption: ");
+    // printEncryptionType(WiFi.encryptionType(thisNet));
+    // Serial.println(" ");
   }
 
   String availSSID = "";

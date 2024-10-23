@@ -4,7 +4,7 @@
 
 https://howtomechatronics.com/tutorials/arduino/how-to-build-an-arduino-wireless-network-with-multiple-nrf24l01-modules/#h-node-01-source-code
 
-Target: NANO, with RF24 module Long Range
+Target: NANO (Atmel atmega328pb Xplained mini), with RF24 module Long Range
 nRF24L01 (CE,CSN) connected to pin 8, 7
 location JWF21
 */
@@ -13,8 +13,8 @@ location JWF21
 #include <RF24.h>
 #include <SPI.h>
 
-//RF24 radio(10, 9);               // nRF24L01 (CE, CSN)
-RF24 radio(8, 7);               // nRF24L01 (CE, CSN)
+//RF24 radio(10, 9);             // nRF24L01 (CE, CSN)
+RF24 radio(8, 7);                // nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 01;   // Address of our node in Octal format (04, 031, etc.)
 const uint16_t master00 = 00;    // Address of the other node in Octal format
