@@ -12,6 +12,7 @@ volatile unsigned long prev_micros = 0;
 
 int prev_trace_index = 0;
 unsigned long prv_rfcommand = 0;
+const bool debug = false;
 
 unsigned long getRfCode(){
   bool decoding = true;
@@ -23,48 +24,62 @@ unsigned long getRfCode(){
     // find start indicator
     tmp_trace_index = trace_index;
     start_indicator_found = false;
+    if (trace_index != prev_trace_index){
+      if (debug) Serial.print("trace_index");    Serial.println(trace_index);
+      if (debug) Serial.print("prev_trace_index");    Serial.println(prev_trace_index);
+    }
+    
     if (tmp_trace_index<prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped
     for (int index=prev_trace_index; index<tmp_trace_index; index++){
+      if (debug) Serial.print(trace_array[index%buffer_size]);       Serial.print(" ");
+      prev_trace_index = index % buffer_size;
       if (trace_array[index%buffer_size] == start_indicator_val){
         start_indicator_found = true; 
-        prev_trace_index = (index + 1) % buffer_size;  // skip to after the start indicator
+        if (debug) Serial.println();
+        if (debug) Serial.println("start_indicator_found");
         break;       
       }
     }
 
+
     // decode the data
-    bool all_decoded = true;
+    bool all_decoded = false;
     if (start_indicator_found){
-      // Serial.println("decode the data");
-      tmp_trace_index = trace_index;
+      if (debug) Serial.println("decode the data");
+      tmp_trace_index = trace_index;  // skip the start indicator
       if (tmp_trace_index < prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped.
       if (tmp_trace_index > prev_trace_index + 64){ // is there enough data to decode?
-        // Serial.println("enough data to decode");
+        if (debug) Serial.println("enough data to decode");
         unsigned long decoded_value = 0;
         int bit_num = 32;
-        for (int index = prev_trace_index; index < prev_trace_index + 64; index += 2){
+        for (int index = prev_trace_index+1; index < prev_trace_index + 64; index += 2){  // skip the start indicator
           bit_num --;
           unsigned long bitval = trace_array[index % buffer_size] / one_bit_val;
           int next_val = trace_array[(index + 1) % buffer_size] / one_bit_val;
+          if (debug) Serial.print(bitval);       Serial.print(" ");
+          if (debug) Serial.print(next_val);     Serial.print(" ");
           if (bitval == next_val){  // a wrong bit sequence has been detected so move forward
-            Serial.println("wrong sequence detected move forward");
+            if (debug) Serial.println("wrong sequence detected move forward");
             prev_trace_index = (index + 1) % buffer_size;  
-            all_decoded = false;
             break; 
           }
-
           if (bitval == start_indicator_val) {  // a new start indicator found so move forward
-              // Serial.println("start indicator found go to next");
+            if (debug) Serial.println("start indicator found go to next");
             prev_trace_index = (index + 1) % buffer_size;  
-            all_decoded = false;
+            break; 
+          }
+          if (next_val == start_indicator_val) {  // a new start indicator found so move forward
+            if (debug) Serial.println("next_val start indicator found go to next");
+            prev_trace_index = (index + 2) % buffer_size;  
             break; 
           }
           decoded_value += (bitval << bit_num);
-        }
-        if (all_decoded){
-          // Serial.print("0x");
-          // Serial.println(decoded_value, HEX);
-          return decoded_value;
+          if (bit_num == 0){
+            Serial.print("0x");
+            if (debug) Serial.println(decoded_value, HEX);
+            prev_trace_index = (index+2) % buffer_size;  
+            return decoded_value;
+          }
         }
       }
       else{
@@ -143,7 +158,7 @@ void loop() {
     prv_rfcommand = rfcommand;
   }
 
-  delay(1000);
+  delay(100);
   // digitalWrite(LED_BUILTIN, LOW);
 }
 
