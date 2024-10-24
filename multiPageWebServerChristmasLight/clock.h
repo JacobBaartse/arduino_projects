@@ -3,6 +3,7 @@
 unsigned long startup_unix_time_internet;
 unsigned long startup_unix_time_rtc;
 RTCTime currentTime;
+bool debug_clock = false;
 
 void set_clock(unsigned long unix_time){
   startup_unix_time_rtc = unix_time;
@@ -28,7 +29,8 @@ void get_time_form_worldtimeapi_org(){
   int counter = 0;
   while (!time_response_received){
     if (client.connect(server, 80)) {
-      //Serial.println("connected to server");
+      delay(200);
+      if (debug_clock) Serial.println("connected to server");
       // send the HTTP request:
       client.println("GET /api/timezone/Europe/Amsterdam HTTP/1.1");
       client.println("Host: worldtimeapi.org");
@@ -36,23 +38,26 @@ void get_time_form_worldtimeapi_org(){
       client.println();
       client.flush();
     };
-    delay(500);
+    delay(200);
     counter += 1;
     if (counter>60)  restart_uno();
     if (!client.connected()) continue;
     while (!client.available()){
-      //Serial.println("wait for response data");
+      if (debug_clock) Serial.println("wait for response data");
       counter += 1;
       if (counter>60)  restart_uno();
-      delay(100);
+      delay(10);
     }
 
     while (client.available()) {
-      //Serial.println("read response data");
+      if (debug_clock) 
+        if (!time_response_received) Serial.println("read response data");
       char c = client.read();
       readString += c;
+      if (debug_clock) Serial.print(c);
       time_response_received = true;
     }
+    if (debug_clock) Serial.println();
   }
 
   client.stop();
@@ -77,6 +82,7 @@ void get_time_form_worldtimeapi_org(){
   // correct startup value for clock for internet lag..
   startup_unix_time_internet += 1;
   set_clock(startup_unix_time_internet);   
+  Serial.println("Time retreived.");
 }
 
 

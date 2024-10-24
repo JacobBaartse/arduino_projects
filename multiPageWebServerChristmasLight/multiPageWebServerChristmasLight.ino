@@ -39,6 +39,7 @@ DHT dht22(DHT22_PIN, DHT22);
 
 const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
+const bool debug = false;
 
 int lightSensorPin = A0;   // select the input pin to be measured
 int sensorValue = 0;  // variable to store the value coming from the sensor
@@ -51,7 +52,7 @@ String lamp_state2 = "---";
 String lamp_state3 = "---";
 
 int status = WL_IDLE_STATUS;
-int charging = LOW;
+bool charging = true;
 float temperature_start_battery=0.0;
 
 WiFiServer server(80);
@@ -86,10 +87,15 @@ String getTemperature_humidity() {
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void display_oled( bool clear, int x, int y, String text){
-  if (clear) display.clearDisplay();
-  display.setCursor(x,y);
-  display.print(text);
-  display.display();
+  if (debug){
+      Serial.println(text);
+  }
+  else{
+    if (clear) display.clearDisplay();
+    display.setCursor(x,y);
+    display.print(text);
+    display.display();
+    }
 }
 
 
@@ -97,8 +103,10 @@ void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
       // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  display.begin(i2c_Address, true); // Address 0x3C default
-  display.setContrast (0); // dim display
+  if (!debug){
+    display.begin(i2c_Address, true); // Address 0x3C default
+    display.setContrast (0); // dim display
+  }
 
   pinMode(GREEN_LED_PIN, OUTPUT);
   pinMode(GREEN_BUTTON_PIN, INPUT_PULLUP);
@@ -107,11 +115,13 @@ void setup() {
 
   pinMode(RELAY_PIN, OUTPUT);
 
-  display.clearDisplay();
-  display.setFont(&FreeSerif12pt7b);
-  display.setTextSize(1);  // 2 lines of 11 chars
-  display.setTextColor(SH110X_WHITE);
-  display.display();
+  if (!debug){
+    display.clearDisplay();
+    display.setFont(&FreeSerif12pt7b);
+    display.setTextSize(1);  // 2 lines of 11 chars
+    display.setTextColor(SH110X_WHITE);
+    display.display();
+  }
 
   dht22.begin(); 
   rf_setup(RF_PIN);
@@ -231,14 +241,14 @@ void loop() {
         // Serial.println("lamp page");
         page_id = PAGE_LAMP;
       } else if (HTTP_req.indexOf("GET /battery?1") > -1 ) {
-        // Serial.println("battery on page");
-        charging = HIGH;
+        Serial.println("battery on page");
+        charging = true;
         temperature_start_battery = dht22.readTemperature();
         digitalWrite(RELAY_PIN, HIGH);
         page_id = PAGE_HOME;
       } else if (HTTP_req.indexOf("GET /battery?0") > -1 ) {
-        // Serial.println("battery off page");
-        charging = LOW;
+        Serial.println("battery off page");
+        charging = false;
         digitalWrite(RELAY_PIN, LOW);
         page_id = PAGE_HOME;
       } else {  // 404 Not Found
@@ -308,10 +318,14 @@ void loop() {
   
     display_oled(true, 0, 16,String(tempC, 1) + " }C ");  // } is converted to degrees in this font.
 
-    if (charging == HIGH) display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1));
-    else display_oled(false, 0, 40,String(humid, 0) + " %" );
+    if (charging) {
+      display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1));
+    }
+    else {
+      display_oled(false, 0, 40,String(humid, 0) + " %" );
+    }
 
-    if (Minutes<10)    display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes));
+    if (Minutes<10) display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes));
     else display_oled(false, 0, 63, String(Hour) + ":" + String(Minutes));
     display_oled(false, 70, 63, getLight_value());
 
@@ -344,9 +358,9 @@ void loop() {
     } 
     else digitalWrite(RED_LED_PIN, LOW);  
 
-    if (charging = HIGH){
-      if ( (dht22.readTemperature() - temperature_start_battery) > 2.0){
-        charging = LOW;
+    if (charging){
+      if ( (dht22.readTemperature() - temperature_start_battery) > 3.0){
+        charging = false;
         digitalWrite(RELAY_PIN, LOW);
       }
     }
