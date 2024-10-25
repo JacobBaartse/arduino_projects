@@ -115,7 +115,8 @@ void setup() {
   Serial.println(" *************** ");  
   Serial.println(" ");  
   Serial.flush(); 
-  displayFull();
+  // displayFull();
+  // delay(2000);
 }
 
 unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrappingcounter) {
@@ -138,9 +139,13 @@ unsigned long failedmsg = 0;
 bool messageStatus(unsigned long interval)
 {
   static unsigned long statustime = 0;
+  static unsigned long statussequence = 0;
   if (millis() < statustime) return false;
   statustime = millis() + interval;
-  Serial.print(F("Network messages "));
+  statussequence++;
+  Serial.print(F("Item: "));
+  Serial.print(statussequence);
+  Serial.print(F(", network messages "));
   Serial.print(F("received: "));
   Serial.print(receivedmsg);
   Serial.print(F(", send: "));
@@ -149,7 +154,7 @@ bool messageStatus(unsigned long interval)
   Serial.print(droppedmsg);
   Serial.print(F(", failed: "));
   Serial.print(failedmsg);
-  Serial.println(" ");  
+  Serial.println(F(" "));  
   // if (statustime > 0xf0000000){
   //   restart_arduino();
   // }
@@ -172,7 +177,7 @@ void loop() {
   network.update();
 
   bool statusprinted = messageStatus(60000);
-  if (statusprinted) {
+  if (statusprinted) { // request remote status when local status is printed
     commanding = command_status;
   }
 
@@ -232,7 +237,7 @@ void loop() {
       Serial.print(drops);
       Serial.print(F(", failed: "));
       Serial.println(fails);
-      Serial.println("-");  
+      Serial.println(F("-"));  
       responsefromremote = response_none;
     }
   }
