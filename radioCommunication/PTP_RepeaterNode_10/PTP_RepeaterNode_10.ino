@@ -3,6 +3,7 @@
 Form a repeater between the base node and the remote node.
 
 Base <---> Repeater <-----------> Remote
+ 00          010                    01
 
 Target: RF-NANO with additional RF24 module Long Range
 nRF24L01-PA (CE,CSN) connected to pin 8, 7
@@ -17,11 +18,10 @@ RF24 radio1(10, 9);              // onboard nRF24L01 (CE, CSN)
 RF24 radio2(8, 7);               // external nRF24L01 (CE, CSN)
 RF24Network network1(radio1);    // Include the radio in the network
 RF24Network network2(radio2);    // Include the radio in the network
-const uint16_t repeater_node = 012;   // Address of our node in Octal format (04, 031, etc.)
-const uint16_t base_node = 00;    // Address of the other node in Octal format
-const uint16_t remote_node = 01;    // Address of the other node in Octal format
 
-//unsigned long const keywordval = 0xabcdfedc; 
+const uint16_t base_node = 00;      // Address of the other node in Octal format
+const uint16_t repeater_node = 010; // Address of the repeater node in Octal format (04, 031, etc.)
+const uint16_t remote_node = 01;    // Address of the other node in Octal format
 
 void setup() {
   Serial.begin(115200);
@@ -35,11 +35,12 @@ void setup() {
   radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
   radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
+  Serial.println(" ");  
+  Serial.println(" *************** ");  
+  Serial.println(" "); 
+  Serial.flush();  
+
   delay(1000);
-  // Serial.println(" ");  
-  // Serial.println(" *************** ");  
-  // Serial.println(" "); 
-  // Serial.flush();  
 }
 
 net_payload nw1Data = EmptyData;
@@ -52,12 +53,12 @@ void loop() {
   network2.update();
 
   nw1Data = receiveRFnetwork(network1, base_node);
-  if (nw1Data.data1 > 0){ //data1 should be the keyword
+  if (nw1Data.data1 > 0xab000000) { //data1 should be the keyword
     transmit = transmitRFnetwork(network2, remote_node, nw1Data);
   }
 
   nw2Data = receiveRFnetwork(network2, remote_node);
-  if (nw2Data.data1 > 0){ //data1 should be the keyword
+  if (nw2Data.data1 > 0xab000000) { //data1 should be the keyword
     transmit = transmitRFnetwork(network1, base_node, nw2Data);
   }
 

@@ -20,21 +20,17 @@ net_payload EmptyData = {0, 0, 0, 0, 0, 0, 0, 0};
 
 //===== Receiving =====//
 net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node){
-  bool receiveddata = false;
   net_payload incomingData = EmptyData;
 
   while (netw.available()) { // Is there any incoming data?
     RF24NetworkHeader header;
     netw.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
     if (header.from_node != from_node) {
+      incomingData = EmptyData;
       Serial.print(F("received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
     }
-    receiveddata = true;
-  }
-  if (!receiveddata){
-    incomingData = EmptyData;
   }
   return incomingData;
 }
