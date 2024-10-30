@@ -23,6 +23,18 @@ const uint16_t base_node = 00;      // Address of the other node in Octal format
 const uint16_t repeater_node = 010; // Address of the repeater node in Octal format (04, 031, etc.)
 const uint16_t remote_node = 01;    // Address of the other node in Octal format
 
+bool knipperen(bool knip) {
+    static unsigned long knippertime = 0;
+    static bool action = false;
+    if (knip) action = true;
+    if (action) {
+      if (knippertime < millis() return knip;
+      knippertime = millis() + 500;
+
+    }
+    return action;
+}
+
 void setup() {
   Serial.begin(115200);
 
@@ -35,17 +47,22 @@ void setup() {
   radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
   radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
   Serial.println(" ");  
   Serial.println(" *************** ");  
   Serial.println(" "); 
   Serial.flush();  
 
   delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 net_payload nw1Data = EmptyData;
 net_payload nw2Data = EmptyData;
 bool transmit = false;
+bool blink = false;
 
 void loop() {
 
@@ -55,11 +72,19 @@ void loop() {
   nw1Data = receiveRFnetwork(network1, base_node);
   if (nw1Data.data1 > 0xab000000) { //data1 should be the keyword
     transmit = transmitRFnetwork(network2, remote_node, nw1Data);
+    if (transmit) {
+        blink = true;
+    }
   }
 
   nw2Data = receiveRFnetwork(network2, remote_node);
   if (nw2Data.data1 > 0xab000000) { //data1 should be the keyword
     transmit = transmitRFnetwork(network1, base_node, nw2Data);
+    if (transmit) {
+        blink = true;
+    }
   }
+
+  blink = knipperen(blink);
 
 }
