@@ -25,12 +25,20 @@ const uint16_t remote_node = 01;    // Address of the other node in Octal format
 
 bool knipperen(bool knip) {
     static unsigned long knippertime = 0;
+    static unsigned long knipperuntil = 0;
     static bool action = false;
-    if (knip) action = true;
+    if (knip) {
+      if (!action) knipperuntil = millis() + 5000;
+      action = true;
+    }
     if (action) {
-      if (knippertime < millis() return knip;
+      if (knipperuntil < millis()) {
+        action = false;
+        digitalWrite(LED_BUILTIN, LOW);
+      }
+      if (knippertime < millis()) return action;
       knippertime = millis() + 500;
-
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     }
     return action;
 }
