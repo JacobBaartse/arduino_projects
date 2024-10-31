@@ -98,7 +98,7 @@ void calculate_resistor(){
     }
   }
   if (cur_range == range_1k){
-    measured_resistor = (measured_resistor- 0.46)*1.03;
+    measured_resistor = (measured_resistor- 0.30)*1.03;
     if (debug) Serial.print("correction for 1k range");
   }
   if (debug) Serial.print("measured_resistor after correction");
@@ -117,7 +117,7 @@ void   measure_voltage(){
   }
   voltage =  (float) sensorValue /(float) num_measurements;
   if (debug) Serial.println(voltage);
-  voltage -= 8181;
+  voltage -= 8184;
   if (debug) Serial.println(voltage);
   voltage /= 224.8;
   if (debug) Serial.println(voltage);
