@@ -131,3 +131,15 @@ void displayFull(bool on=true){
   if (on) matrix.loadFrame(full_on);
   else matrix.loadFrame(full_off);
 }
+
+bool alarmingsequence(){
+  static long alarmtime = 0;
+  static int alarmcount = 0;
+  static bool fullred = false;
+  if(millis() < alarmtime) return true;
+  fullred = !fullred;
+  displayFull(fullred);
+  alarmcount++;
+  alarmtime = millis() + 500;
+  return alarmcount < 20; // flash maximum 10 times
+}

@@ -20,7 +20,7 @@ const uint16_t this_node = 01;   // Address of our node in Octal format (04, 031
 const uint16_t master00 = 00;    // Address of the other node in Octal format
 const uint16_t wrappingcounter = 255;
 
-unsigned long const keywordval= 0xabcdfedc; 
+unsigned long const keywordval = 0xabcdfedc; 
 unsigned long const command_none = 0x00; 
 unsigned long const command_clear_counters = 0x01; 
 unsigned long const command_status = 0x02; 
@@ -48,7 +48,7 @@ void setup() {
   SPI.begin();
   radio.begin();
   radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  network.begin(70, this_node); // (channel, node address)
+  network.begin(60, this_node); // (channel, node address)
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
   delay(1000);
   // Serial.println(" ");  
