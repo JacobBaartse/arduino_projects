@@ -86,7 +86,9 @@ String getTemperature_humidity() {
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+bool display_on = true;
 void display_oled( bool clear, int x, int y, String text){
+  if (!display_on) return;
   if (debug){
       Serial.println(text);
   }
@@ -96,6 +98,11 @@ void display_oled( bool clear, int x, int y, String text){
     display.print(text);
     display.display();
     }
+}
+
+void clear_display(){
+  display.clearDisplay();
+  display.display();
 }
 
 
@@ -312,6 +319,7 @@ void loop() {
     client.stop();
   }
   if (elapsed_seconds(5)){
+    if (!display_on) clear_display();
     update_clock();
     float humid  = dht22.readHumidity();
     float tempC = dht22.readTemperature();
@@ -345,14 +353,19 @@ void loop() {
           send_code(RF_LIGHT_ALL_ON);
           auto_lights_on = true;
         }
+      display_on = false;
     } // elapsed_seconds(5)   
 
     if (digitalRead(GREEN_BUTTON_PIN)==PUSHED){
+      display_on=true;
+      prev_seconds = 0;
       digitalWrite(GREEN_LED_PIN, HIGH);  
       send_code(RF_LIGHT_ALL_ON);
     } 
     else digitalWrite(GREEN_LED_PIN, LOW);  
     if (digitalRead(RED_BUTTON_PIN)==PUSHED){
+      display_on=true;
+      prev_seconds = 0;
       digitalWrite(RED_LED_PIN, HIGH);
       send_code(RF_LIGHT_ALL_OFF);
     } 
