@@ -70,7 +70,7 @@ bool knipperen(unsigned long milli_now, bool knip) {
     }
 
     if (action) {
-      if (milli_now - knipperuntil > knipper_duration) {
+      if ((unsigned long)(milli_now - knipperuntil) > knipper_duration) {
         action = false;
         digitalWrite(LED_BUILTIN, LOW);
       }
