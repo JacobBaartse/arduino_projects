@@ -11,7 +11,7 @@
 #include "error_405.h"
 #include <Adafruit_SH110X.h>
 #include <Adafruit_GFX.h>
-#include "FreeSerif12pt7b_special.h"
+#include "FreeSerif12pt7b_special.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -324,7 +324,7 @@ void loop() {
     float humid  = dht22.readHumidity();
     float tempC = dht22.readTemperature();
   
-    display_oled(true, 0, 16,String(tempC, 1) + " }C ");  // } is converted to degrees in this font.
+    display_oled(true, 0, 16,String(tempC, 1) + " \x7F C ");  // } \x7F is converted to degrees in this special font.
 
     if (charging) {
       display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1));
