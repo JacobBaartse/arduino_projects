@@ -55,13 +55,10 @@ void setup() {
   set_range(cur_range);
 }
 
-const int num_measurements = 400;  // num of measurements should result in a multiple of  about 0,060 ms ( 3 times 50 hz duration)
-int results [num_measurements];
-void get_avarage_measurement(){
+void get_resistor_measurement(int num_measurements){
   sensorValue = 0;
   for  (int i=0; i< num_measurements; i++){
-    results[i]= analogRead(sensorPinR);
-    sensorValue += results[i];
+    sensorValue += analogRead(sensorPinR);
     delay(1);
   }
   sensorValue /= num_measurements;
@@ -119,18 +116,20 @@ void   measure_voltage(){
   if (debug) Serial.println(voltage);
   voltage -= 8184;
   if (debug) Serial.println(voltage);
-  voltage /= 224.8;
+  voltage /= 240.0;
   if (debug) Serial.println(voltage);
 }
 
-int prev_range = range_1k;
 void loop() {
   set_range(cur_range);
-  get_avarage_measurement();
-  calculate_resistor(); 
-  measure_voltage();
+  get_resistor_measurement(50);
+  calculate_resistor();
   if (measured_resistor > 22000) cur_range = range_100k;
   if (measured_resistor < 15000) cur_range = range_1k;
-  if (prev_range == cur_range) show_value(measured_resistor, voltage);
-  prev_range = cur_range;
+  set_range(cur_range);
+  get_resistor_measurement(200);
+  calculate_resistor(); 
+  measure_voltage();
+
+  show_value(measured_resistor, voltage);
 }
