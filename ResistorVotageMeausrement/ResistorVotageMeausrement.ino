@@ -1,3 +1,7 @@
+/*
+Always run the arduino powered by an separate power bank.
+*/
+
 
 #include "Arduino_LED_Matrix.h"
 #include "display_3xdigit.h"
