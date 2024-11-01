@@ -1,13 +1,3 @@
-/* 
- *  This servo, SG90 360 degrees seems to be a motor:
- *
- *  position   0 means maximum speed right (clockwise)
- *  position  45 means medium speed right (clockwise)
- *  position  90 means still, not moving, idle position
- *  position 135 means medium speed left (counterclockwise)
- *  position 180 means maximum speed left (counterclockwise)
- */
-
 #include <Servo.h>
 
 Servo myservo;  // create Servo object to control a servo
