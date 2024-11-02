@@ -17,7 +17,7 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define i2c_Address 0x3c //initialize with the I2C addr 0x3C Typically eBay OLED's
 //#define i2c_Address 0x3d //initialize with the I2C addr 0x3D Typically Adafruit OLED's
-#define OLED_RESET -1
+#define OLED_RESET     -1
 #include "DHT.h"
 #include "rfzender.h"
 #define DHT22_PIN 12
@@ -105,13 +105,14 @@ void clear_display(){
   display.display();
 }
 
+
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
       // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if (!debug){
     display.begin(i2c_Address, true); // Address 0x3C default
-    display.setContrast(0); // dim display
+    display.setContrast (0); // dim display
   }
 
   pinMode(GREEN_LED_PIN, OUTPUT);
@@ -143,7 +144,7 @@ void setup() {
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid, pass);
     if (status == WL_CONNECTED){
-      delay(2000);
+          delay(2000);
       break;
     }
     // wait 10 seconds for re-connecting to the wifi network:
@@ -323,13 +324,13 @@ void loop() {
     float humid  = dht22.readHumidity();
     float tempC = dht22.readTemperature();
   
-    display_oled(true, 0, 16,String(tempC, 1) + " \x7FC");  // } \x7F is converted to degrees in this special font.
+    display_oled(true, 0, 16,String(tempC, 1) + " \x7F C ");  // } \x7F is converted to degrees in this special font.
 
     if (charging) {
       display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1));
     }
     else {
-      display_oled(false, 0, 40,String(humid, 0) + " %");
+      display_oled(false, 0, 40,String(humid, 0) + " %" );
     }
 
     if (Minutes<10) display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes));
@@ -378,7 +379,6 @@ void loop() {
     }
 
   }
-}
 
 void printWifiStatus() {
   // print your board's IP address:
