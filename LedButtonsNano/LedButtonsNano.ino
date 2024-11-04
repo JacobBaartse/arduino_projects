@@ -1,6 +1,7 @@
 /*
  *  Experiment with the buttons with LED included.
  *  Press button and the sequence is: flashing 10 seconds, on 10 seconds, off
+ *  Press button again: off directly
  *  
  */
 
@@ -15,18 +16,44 @@ enum LEDState {
     On = 2,
 };
 
+const unsigned long debounceDelay = 50;
+
 LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
   static LEDState ledstatus = LEDState::Off;
-  static int ledinterval = 500;
-  static int ledstateinterval = 5000;
+  static unsigned long ledinterval = 500;
+  static unsigned long ledstateinterval = 5000;
   static unsigned long ledtime = 0;
   static unsigned long leddurationtime = 0;
+  static unsigned long lastdebouncetime = 0;
+  static bool previousbutton = false;
+  int buttonloop = 0;
 
-  if (buttonpressed) {
-    pinMode(ledPinGreen, OUTPUT);
-    ledstatus = LEDState::Flashing;
-    ledtime = curtime - 2 * ledinterval; // make sure the blinking start directly
-    leddurationtime = curtime;
+  // de-bouncing
+  if (buttonpressed != previousbutton) {
+    lastdebouncetime = curtime;
+  }
+  if ((unsigned long)(curtime - lastdebouncetime) > debounceDelay) {
+    if (buttonpressed) 
+      if (buttonpressed != previousbutton)
+        buttonloop = 10;
+  }
+  previousbutton = buttonpressed;
+
+  // 
+  if (buttonloop > 0) {
+    Serial.println(F("button loop > 0"));
+    buttonloop = 0;
+    if (LEDState::Off) {
+      pinMode(ledPinGreen, OUTPUT);
+      ledstatus = LEDState::Flashing;
+      ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
+      leddurationtime = curtime;
+    }
+    else {
+      ledstatus = LEDState::Off;
+      digitalWrite(ledPinGreen, LOW);
+      pinMode(ledPinGreen, INPUT_PULLUP);
+    }
   }
 
   switch(ledstatus) {
@@ -50,6 +77,7 @@ LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
       case LEDState::Flashing:
         ledstatus = LEDState::On;
       break;
+      // case LEDState::Off:
       // case LEDState::On:
       default:
         ledstatus = LEDState::Off;
@@ -94,7 +122,9 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
       case LEDState::Flashing:
         ledstatus = LEDState::On;
       break;
-      case LEDState::On:
+      // case LEDState::Off:
+      // case LEDState::On:
+      default:
         ledstatus = LEDState::Off;
     }
     leddurationtime = curtime;
@@ -103,7 +133,7 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
 }
 
 void setup() {
-  // Serial.begin(115200);
+  Serial.begin(115200);
 
   pinMode(buttonPinGreen, INPUT_PULLUP);
   pinMode(buttonPinRed, INPUT_PULLUP);
@@ -126,16 +156,18 @@ LEDState GreenIndication = LEDState::Off;
 LEDState RedIndication = LEDState::Off;
 
 void loop() {
-  currentMillis = millis();   // capture the value of millis() only once in teh loop
+  currentMillis = millis();   // capture the value of millis() only once in the loop
 
   GreenIndication = greenledprocessing(currentMillis, buttonGreenPressed);
   RedIndication = redledprocessing(currentMillis, buttonRedPressed);
 
   if ((RedIndication == LEDState::Off)&&(GreenIndication == LEDState::Off)){
     digitalWrite(LED_BUILTIN, LOW);
+    //Serial.println(F("Builtin LED OFF"));
   }
   else {
     digitalWrite(LED_BUILTIN, HIGH);
+    //Serial.println(F("Builtin LED ON"));
   }
 
   buttonGreenPressed = digitalRead(buttonPinGreen) == LOW;

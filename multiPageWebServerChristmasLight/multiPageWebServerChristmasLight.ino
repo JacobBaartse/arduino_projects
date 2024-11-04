@@ -324,7 +324,7 @@ void loop() {
     float humid  = dht22.readHumidity();
     float tempC = dht22.readTemperature();
   
-    display_oled(true, 0, 16,String(tempC, 1) + " \x7F C ");  // } \x7F is converted to degrees in this special font.
+    display_oled(true, 0, 16,String(tempC, 1) + " \x7F"+"C ");  // } \x7F is converted to degrees in this special font.
 
     if (charging) {
       display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1));
@@ -379,6 +379,7 @@ void loop() {
     }
 
   }
+}
 
 void printWifiStatus() {
   // print your board's IP address:
