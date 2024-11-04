@@ -17,12 +17,13 @@ enum LEDState {
 
 LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
   static LEDState ledstatus = LEDState::Off;
-  static int ledinterval = 600;
+  static int ledinterval = 500;
   static int ledstateinterval = 5000;
   static unsigned long ledtime = 0;
   static unsigned long leddurationtime = 0;
 
   if (buttonpressed) {
+    pinMode(ledPinGreen, OUTPUT);
     ledstatus = LEDState::Flashing;
     ledtime = curtime - 2 * ledinterval; // make sure the blinking start directly
     leddurationtime = curtime;
@@ -38,8 +39,10 @@ LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
     case LEDState::On:
       digitalWrite(ledPinGreen, HIGH);
       break;
+    //case LEDState::Off:
     default:
       digitalWrite(ledPinGreen, LOW);
+      pinMode(ledPinGreen, INPUT_PULLUP);
   }
 
   if ((unsigned long)(curtime - leddurationtime) > ledstateinterval) {
@@ -58,12 +61,13 @@ LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
 
 LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
   static LEDState ledstatus = LEDState::Off;
-  static int ledinterval = 300;
+  static int ledinterval = 250;
   static int ledstateinterval = 10000;
   static unsigned long ledtime = 0;
   static unsigned long leddurationtime = 0;
 
   if (buttonpressed) {
+    pinMode(ledPinRed, OUTPUT);
     ledstatus = LEDState::Flashing;
     ledtime = curtime - 2 * ledinterval; // make sure the blinking start directly
     leddurationtime = curtime;
@@ -79,8 +83,10 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
     case LEDState::On:
       digitalWrite(ledPinRed, HIGH);
       break;
+    //case LEDState::Off:
     default:
       digitalWrite(ledPinRed, LOW);
+      pinMode(ledPinRed, INPUT_PULLUP);
   }
 
   if ((unsigned long)(curtime - leddurationtime) > ledstateinterval) {
@@ -102,8 +108,10 @@ void setup() {
   pinMode(buttonPinGreen, INPUT_PULLUP);
   pinMode(buttonPinRed, INPUT_PULLUP);
 
-  pinMode(ledPinGreen, OUTPUT);
-  pinMode(ledPinRed, OUTPUT);
+  pinMode(ledPinGreen, INPUT_PULLUP);
+  pinMode(ledPinRed, INPUT_PULLUP);
+  //pinMode(ledPinGreen, OUTPUT);
+  //pinMode(ledPinRed, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
   // digitalWrite(LED_BUILTIN, HIGH);
