@@ -37,25 +37,51 @@ bool greendebounce(bool pressedbutton, unsigned long curtime){
   return buttonstate;
 }
 
+bool reddebounce(bool pressedbutton, unsigned long curtime){
+  static bool buttonstate = false;
+  static unsigned long lastdebouncetime = 0;
+
+  if (pressedbutton != buttonstate) {
+    if ((unsigned long)(curtime - lastdebouncetime) > debounceDelay) {
+      buttonstate = pressedbutton;
+      // lastdebouncetime = curtime;
+    }
+    lastdebouncetime = curtime;
+  }
+  return buttonstate;
+}
+
 LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
   static LEDState ledstatus = LEDState::Off;
   static unsigned long ledinterval = 500;
   static unsigned long ledstateinterval = 5000;
   static unsigned long ledtime = 0;
   static unsigned long leddurationtime = 0;
+  static bool previousbuttonpressed = false;
 
-?????????????????
-  if (LEDState::Off) {
-    pinMode(ledPinGreen, OUTPUT);
-    ledstatus = LEDState::Flashing;
-    ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
-    leddurationtime = curtime;
+  if (buttonpressed) {
+    if (buttonpressed != previousbuttonpressed) { // only start once
+      if (ledstatus == LEDState::Off) {
+        pinMode(ledPinGreen, OUTPUT);
+        ledstatus = LEDState::Flashing;
+        ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
+        leddurationtime = curtime;
+      }
+      else { 
+        ledstatus = LEDState::Off;
+      }
+    }
   }
-  else {
-    ledstatus = LEDState::Off;
-    digitalWrite(ledPinGreen, LOW);
-    pinMode(ledPinGreen, INPUT_PULLUP);
-  }
+
+  // if (LEDState::Off) {
+  //   pinMode(ledPinGreen, OUTPUT);
+
+  // }
+  // else {
+  //   ledstatus = LEDState::Off;
+  //   digitalWrite(ledPinGreen, LOW);
+  //   pinMode(ledPinGreen, INPUT_PULLUP);
+  // }
 
   switch(ledstatus) {
     case LEDState::Flashing:
@@ -85,6 +111,8 @@ LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
     }
     leddurationtime = curtime;
   }
+
+  previousbuttonpressed = buttonpressed;
   return ledstatus;
 }
 
@@ -98,7 +126,7 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
   if (buttonpressed) {
     pinMode(ledPinRed, OUTPUT);
     ledstatus = LEDState::Flashing;
-    ledtime = curtime - 2 * ledinterval; // make sure the blinking start directly
+    ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
     leddurationtime = curtime;
   }
 
@@ -171,7 +199,7 @@ void loop() {
     //Serial.println(F("Builtin LED ON"));
   }
 
-  buttonGreenPressed = greendebounce(digitalRead(buttonPinGreen) == LOW), currentMillis);
-  buttonRedPressed = digitalRead(buttonPinRed) == LOW;
+  buttonGreenPressed = greendebounce((digitalRead(buttonPinGreen) == LOW), currentMillis);
+  buttonRedPressed = reddebounce((digitalRead(buttonPinRed) == LOW), currentMillis);
 
 }
