@@ -2,6 +2,11 @@
  *  Experiment with the buttons with LED included.
  *  Press button and the sequence is: flashing 10 seconds, on 10 seconds, off
  *  Press button again: off directly
+
+ https://forum.arduino.cc/t/external-antenna-of-rf-nano/1245897
+
+ https://www.instructables.com/Enhanced-NRF24L01/
+
  *  
  */
 
@@ -16,7 +21,21 @@ enum LEDState {
     On = 2,
 };
 
-const unsigned long debounceDelay = 50;
+const int debounceDelay = 50;
+
+bool greendebounce(bool pressedbutton, unsigned long curtime){
+  static bool buttonstate = false;
+  static unsigned long lastdebouncetime = 0;
+
+  if (pressedbutton != buttonstate) {
+    if ((unsigned long)(curtime - lastdebouncetime) > debounceDelay) {
+      buttonstate = pressedbutton;
+      // lastdebouncetime = curtime;
+    }
+    lastdebouncetime = curtime;
+  }
+  return buttonstate;
+}
 
 LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
   static LEDState ledstatus = LEDState::Off;
@@ -24,36 +43,18 @@ LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
   static unsigned long ledstateinterval = 5000;
   static unsigned long ledtime = 0;
   static unsigned long leddurationtime = 0;
-  static unsigned long lastdebouncetime = 0;
-  static bool previousbutton = false;
-  int buttonloop = 0;
 
-  // de-bouncing
-  if (buttonpressed != previousbutton) {
-    lastdebouncetime = curtime;
+?????????????????
+  if (LEDState::Off) {
+    pinMode(ledPinGreen, OUTPUT);
+    ledstatus = LEDState::Flashing;
+    ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
+    leddurationtime = curtime;
   }
-  if ((unsigned long)(curtime - lastdebouncetime) > debounceDelay) {
-    if (buttonpressed) 
-      if (buttonpressed != previousbutton)
-        buttonloop = 10;
-  }
-  previousbutton = buttonpressed;
-
-  // 
-  if (buttonloop > 0) {
-    Serial.println(F("button loop > 0"));
-    buttonloop = 0;
-    if (LEDState::Off) {
-      pinMode(ledPinGreen, OUTPUT);
-      ledstatus = LEDState::Flashing;
-      ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
-      leddurationtime = curtime;
-    }
-    else {
-      ledstatus = LEDState::Off;
-      digitalWrite(ledPinGreen, LOW);
-      pinMode(ledPinGreen, INPUT_PULLUP);
-    }
+  else {
+    ledstatus = LEDState::Off;
+    digitalWrite(ledPinGreen, LOW);
+    pinMode(ledPinGreen, INPUT_PULLUP);
   }
 
   switch(ledstatus) {
@@ -170,7 +171,7 @@ void loop() {
     //Serial.println(F("Builtin LED ON"));
   }
 
-  buttonGreenPressed = digitalRead(buttonPinGreen) == LOW;
+  buttonGreenPressed = greendebounce(digitalRead(buttonPinGreen) == LOW), currentMillis);
   buttonRedPressed = digitalRead(buttonPinRed) == LOW;
 
 }
