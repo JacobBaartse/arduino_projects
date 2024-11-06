@@ -40,7 +40,7 @@ DHT dht22(DHT22_PIN, DHT22);
 
 const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
-const bool debug = false;
+const bool debug = true;
 
 int lightSensorPin = A0;   // select the input pin to be measured
 int sensorValue = 0;  // variable to store the value coming from the sensor
@@ -151,21 +151,24 @@ void setup() {
 }
 
 bool auto_lights_on = false;
-void loop() {
-  // listen for incoming clients
+
+
+void webserver(){
+   // listen for incoming clients
   WiFiClient client = server.available();
   if (client) {
     // read the first line of HTTP request header
+    Serial.println("read first line of http request header");
     String HTTP_req = "";
     while (client.connected()) {
-      if (debug) Serial.println("client connected");
       if (client.available()) {
         if (debug) Serial.println("New HTTP Request");
         HTTP_req = client.readStringUntil('\n');  // read the first line of HTTP request
-        // Serial.print("<< ");
-        // Serial.println(HTTP_req);  // print HTTP request to Serial Monitor
+        Serial.print("<< ");
+        Serial.println(HTTP_req);  // print HTTP request to Serial Monitor
         break;
       }
+      businessLogic();
     }
 
     // read the remaining lines of HTTP request header
@@ -179,6 +182,7 @@ void loop() {
         //Serial.print("<< ");
         if (debug) Serial.println(HTTP_header);  // print HTTP request to Serial Monitor
       }
+      businessLogic();
     }
 
 
@@ -258,8 +262,8 @@ void loop() {
         page_id = PAGE_ERROR_404;
       }
     } else {  // 405 Method Not Allowed
-      // Serial.println("405 Method Not Allowed");
-      page_id = PAGE_ERROR_405;
+    // Serial.println("405 Method Not Allowed");
+    page_id = PAGE_ERROR_405;
     }    
 
     // send the HTTP response
@@ -280,6 +284,7 @@ void loop() {
     String lamp_state;
     switch (page_id) {
       case PAGE_HOME:
+        if (debug) Serial.println("return the hompeage");
         html = String(HTML_CONTENT_HOME);
         break;
       case PAGE_TEMPERATURE:
@@ -315,7 +320,10 @@ void loop() {
     client.stop();
     if (debug) Serial.println("client stop done");
   }
-  if (elapsed_seconds(5)){
+}
+
+void businessLogic(){
+     if (elapsed_seconds(5)){
     if (debug) Serial.println("elapsed seconds 5");
     if (!display_on) clear_display();
     update_clock();
@@ -352,36 +360,41 @@ void loop() {
           auto_lights_on = true;
         }
       display_on = false;
-    } // elapsed_seconds(5)   
+  } // elapsed_seconds(5)   
 
-    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED){
-      if (debug) Serial.println("geen button pressed");
-      display_on=true;
-      prev_seconds = 0;
-      pinMode(GREEN_LED_PIN, OUTPUT);
-      digitalWrite(GREEN_LED_PIN, HIGH);  
-      send_code(RF_LIGHT_ALL_ON);
-    } 
-    else{
-      pinMode(GREEN_LED_PIN, INPUT);
+  if (digitalRead(GREEN_BUTTON_PIN)==PUSHED){
+    if (debug) Serial.println("geen button pressed");
+    display_on=true;
+    prev_seconds = 0;
+    pinMode(GREEN_LED_PIN, OUTPUT);
+    digitalWrite(GREEN_LED_PIN, HIGH);  
+    send_code(RF_LIGHT_ALL_ON);
+  } 
+  else{
+    pinMode(GREEN_LED_PIN, INPUT);
+  }
+  if (digitalRead(RED_BUTTON_PIN)==PUSHED){
+    display_on=true;
+    prev_seconds = 0;
+    digitalWrite(RED_LED_PIN, HIGH);
+    send_code(RF_LIGHT_ALL_OFF);
+  } 
+  else digitalWrite(RED_LED_PIN, LOW);  
+
+  if (charging){
+    if ( (dht22.readTemperature() - temperature_start_battery) > 3.0){
+      charging = false;
+      digitalWrite(RELAY_PIN, LOW);
     }
-    if (digitalRead(RED_BUTTON_PIN)==PUSHED){
-      display_on=true;
-      prev_seconds = 0;
-      digitalWrite(RED_LED_PIN, HIGH);
-      send_code(RF_LIGHT_ALL_OFF);
-    } 
-    else digitalWrite(RED_LED_PIN, LOW);  
-
-    if (charging){
-      if ( (dht22.readTemperature() - temperature_start_battery) > 3.0){
-        charging = false;
-        digitalWrite(RELAY_PIN, LOW);
-      }
-    }
-
   }
 }
+
+
+void loop() {
+  webserver();
+  businessLogic();
+}
+
 
 void printWifiStatus() {
   // print your board's IP address:
