@@ -7,6 +7,15 @@ https://howtomechatronics.com/tutorials/arduino/how-to-build-an-arduino-wireless
 Target: NANO (Atmel atmega328pb Xplained mini), with RF24 module Long Range
 nRF24L01 (CE,CSN) connected to pin 8, 7
 location JWF21
+
+
+ Choice between internal and external antenna:
+
+ https://forum.arduino.cc/t/external-antenna-of-rf-nano/1245897
+
+ https://www.instructables.com/Enhanced-NRF24L01/
+
+
 */
 
 #include <RF24Network.h>
