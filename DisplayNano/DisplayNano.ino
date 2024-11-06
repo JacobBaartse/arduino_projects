@@ -31,7 +31,19 @@ bool displaystatus = DisplayState::Dim;
 void display_oled(bool clear, int x, int y, String text) {
   if (displaystatus == DisplayState::Off) return;
   if (clear) display.clearDisplay();
-  display.setCursor(x,y);
+  display.setCursor(x, y);
+  display.print(text);
+  display.display();
+}
+
+// move text, write old location in background color
+void display_move(int x, int y, int nx, int ny, String text) {
+  if (displaystatus == DisplayState::Off) return;
+  display.setCursor(x, y);
+  display.setTextColor(SH110X_BLACK);
+  display.print(text);
+  display.setCursor(nx, ny);
+  display.setTextColor(SH110X_WHITE);
   display.print(text);
   display.display();
 }
@@ -58,8 +70,21 @@ void clear_display(){
   display.display();
 }
 
+String leftrotate(String str, int d){
+   String ans = str.substring(d, str.length() - d) + str.substring(0, d);
+   return ans;
+}
+
+String Line1 = "Welcome"; 
+String Line2 = "George {!}"; 
+String Line3 = "Whats up? \x81";  
+
+int prevx, x, minX;
+int y1, y2, y3, minY;
+bool oncecompleted = false;
+
 void setup() {
-  Serial.begin(115200);
+  //Serial.begin(115200);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   display.begin(i2c_Address, true); // Address 0x3C default
@@ -70,24 +95,42 @@ void setup() {
   display.setFont(&FreeSerif12pt7b);
   display.setTextSize(1); // 2 lines of 11 chars
   display.setTextColor(SH110X_WHITE);
+  display.setTextWrap(false);
   display.display();
 
+  x = display.width();
+  y1 = 16;
+  y2 = 37;
+  y3 = 58;
+  minX = -128;
+  minY = -22;
+
+  display_oled(true, 0, y1, Line1); 
+  display_oled(false, x, y2, Line2); 
+  display_oled(false, x, y3, Line3);  
+  prevx = x;
 }
 
 void loop() {
 
-  float tempval = 24.56;
-  display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C ");  // } \x7F is converted to degrees in this special font.
+  // float tempval = 24.567;
+  // display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.
 
-    // if (charging) {
-    //   display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1));
-    // }
-    // else {
-    //   display_oled(false, 0, 40,String(humid, 0) + " %" );
-    // }
+  // delay(2000);
 
-    // if (Minutes<10) display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes));
-    // else display_oled(false, 0, 63, String(Hour) + ":" + String(Minutes));
-    // display_oled(false, 70, 63, getLight_value());
+  // display_oled(true, 0, 16, "Welcome"); 
+  // display_oled(false, x, 37, "George {!}"); 
+  // display_oled(false, x, 58, "Whats up? \x81");
+
+  display_move(prevx, y2, x, y2, Line2);
+  if (!oncecompleted){
+    display_move(prevx, y3, x, y3, Line3);
+  }
+
+  prevx = x;
+  x = x - 3;
+  if (x < minX) x = display.width();
+  if (x < 0) oncecompleted = true;
+  //if (--x < minX) x = display.width(); // this line is moving 1 pixel at the time, this can be too slow
 
 }
