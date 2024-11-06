@@ -1,5 +1,6 @@
 
 #include <WiFiS3.h>
+#include "WiFiSSLClient.h"
 #include "arduino_secrets.h"
 #include "index.h"
 #include "temperature.h"
@@ -88,16 +89,12 @@ Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, 
 
 bool display_on = true;
 void display_oled( bool clear, int x, int y, String text){
+  if (debug) Serial.println(text);
   if (!display_on) return;
-  if (debug){
-      Serial.println(text);
-  }
-  else{
-    if (clear) display.clearDisplay();
-    display.setCursor(x,y);
-    display.print(text);
-    display.display();
-    }
+  if (clear) display.clearDisplay();
+  display.setCursor(x,y);
+  display.print(text);
+  display.display();
 }
 
 void clear_display(){
@@ -109,26 +106,23 @@ void clear_display(){
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
-      // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if (!debug){
-    display.begin(i2c_Address, true); // Address 0x3C default
-    display.setContrast (0); // dim display
-  }
+    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  display.begin(i2c_Address, true); // Address 0x3C default
+  display.setContrast (0); // dim display
 
-  pinMode(GREEN_LED_PIN, OUTPUT);
+
+  pinMode(GREEN_LED_PIN, INPUT);
   pinMode(GREEN_BUTTON_PIN, INPUT_PULLUP);
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(RED_BUTTON_PIN, INPUT_PULLUP);
 
   pinMode(RELAY_PIN, OUTPUT);
 
-  if (!debug){
-    display.clearDisplay();
-    display.setFont(&FreeSerif12pt7b);
-    display.setTextSize(1);  // 2 lines of 11 chars
-    display.setTextColor(SH110X_WHITE);
-    display.display();
-  }
+  display.clearDisplay();
+  display.setFont(&FreeSerif12pt7b);
+  display.setTextSize(1);  // 2 lines of 11 chars
+  display.setTextColor(SH110X_WHITE);
+  display.display();
 
   dht22.begin(); 
   rf_setup(RF_PIN);
@@ -164,8 +158,9 @@ void loop() {
     // read the first line of HTTP request header
     String HTTP_req = "";
     while (client.connected()) {
+      if (debug) Serial.println("client connected");
       if (client.available()) {
-        // Serial.println("New HTTP Request");
+        if (debug) Serial.println("New HTTP Request");
         HTTP_req = client.readStringUntil('\n');  // read the first line of HTTP request
         // Serial.print("<< ");
         // Serial.println(HTTP_req);  // print HTTP request to Serial Monitor
@@ -182,7 +177,7 @@ void loop() {
           break;
 
         //Serial.print("<< ");
-        //Serial.println(HTTP_header);  // print HTTP request to Serial Monitor
+        if (debug) Serial.println(HTTP_header);  // print HTTP request to Serial Monitor
       }
     }
 
@@ -316,9 +311,12 @@ void loop() {
     delay(10);
 
     // close the connection:
+    if (debug) Serial.println("client stop");
     client.stop();
+    if (debug) Serial.println("client stop done");
   }
   if (elapsed_seconds(5)){
+    if (debug) Serial.println("elapsed seconds 5");
     if (!display_on) clear_display();
     update_clock();
     float humid  = dht22.readHumidity();
@@ -357,12 +355,16 @@ void loop() {
     } // elapsed_seconds(5)   
 
     if (digitalRead(GREEN_BUTTON_PIN)==PUSHED){
+      if (debug) Serial.println("geen button pressed");
       display_on=true;
       prev_seconds = 0;
+      pinMode(GREEN_LED_PIN, OUTPUT);
       digitalWrite(GREEN_LED_PIN, HIGH);  
       send_code(RF_LIGHT_ALL_ON);
     } 
-    else digitalWrite(GREEN_LED_PIN, LOW);  
+    else{
+      pinMode(GREEN_LED_PIN, INPUT);
+    }
     if (digitalRead(RED_BUTTON_PIN)==PUSHED){
       display_on=true;
       prev_seconds = 0;
