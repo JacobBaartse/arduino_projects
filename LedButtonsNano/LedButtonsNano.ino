@@ -1,12 +1,7 @@
 /*
  *  Experiment with the buttons with LED included.
- *  Press button and the sequence is: flashing 10 seconds, on 10 seconds, off
+ *  Press button and the sequence is: flashing interval Y milliseconds for X seconds, ON for X seconds, OFF
  *  Press button again: off directly
-
- https://forum.arduino.cc/t/external-antenna-of-rf-nano/1245897
-
- https://www.instructables.com/Enhanced-NRF24L01/
-
  *  
  */
 
@@ -73,16 +68,6 @@ LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
     }
   }
 
-  // if (LEDState::Off) {
-  //   pinMode(ledPinGreen, OUTPUT);
-
-  // }
-  // else {
-  //   ledstatus = LEDState::Off;
-  //   digitalWrite(ledPinGreen, LOW);
-  //   pinMode(ledPinGreen, INPUT_PULLUP);
-  // }
-
   switch(ledstatus) {
     case LEDState::Flashing:
       if ((unsigned long)(curtime - ledtime) > ledinterval) {
@@ -122,12 +107,20 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
   static int ledstateinterval = 10000;
   static unsigned long ledtime = 0;
   static unsigned long leddurationtime = 0;
+  static bool previousbuttonpressed = false;
 
   if (buttonpressed) {
-    pinMode(ledPinRed, OUTPUT);
-    ledstatus = LEDState::Flashing;
-    ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
-    leddurationtime = curtime;
+    if (buttonpressed != previousbuttonpressed) { // only start once
+      if (ledstatus == LEDState::Off) {
+        pinMode(ledPinRed, OUTPUT);
+        ledstatus = LEDState::Flashing;
+        ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
+        leddurationtime = curtime;
+      }
+      else { 
+        ledstatus = LEDState::Off;
+      }
+    }
   }
 
   switch(ledstatus) {
@@ -158,11 +151,13 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
     }
     leddurationtime = curtime;
   }
+
+  previousbuttonpressed = buttonpressed;
   return ledstatus;
 }
 
 void setup() {
-  Serial.begin(115200);
+  //Serial.begin(115200);
 
   pinMode(buttonPinGreen, INPUT_PULLUP);
   pinMode(buttonPinRed, INPUT_PULLUP);
@@ -172,10 +167,6 @@ void setup() {
   //pinMode(ledPinGreen, OUTPUT);
   //pinMode(ledPinRed, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-
-  // digitalWrite(LED_BUILTIN, HIGH);
-  // delay(3000);
-  // digitalWrite(LED_BUILTIN, LOW);
 }
 
 unsigned long currentMillis = 0;    // stores the value of millis() in each iteration of loop()
@@ -185,6 +176,7 @@ LEDState GreenIndication = LEDState::Off;
 LEDState RedIndication = LEDState::Off;
 
 void loop() {
+
   currentMillis = millis();   // capture the value of millis() only once in the loop
 
   GreenIndication = greenledprocessing(currentMillis, buttonGreenPressed);
