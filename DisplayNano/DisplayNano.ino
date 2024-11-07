@@ -13,6 +13,7 @@
 #include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SH110X.h>
 
+
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
@@ -27,7 +28,7 @@ enum DisplayState {
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-bool displaystatus = DisplayState::Dim;
+bool displaystatus = DisplayState::Off;
 void display_oled(bool clear, int x, int y, String text) {
   if (displaystatus == DisplayState::Off) return;
   if (clear) display.clearDisplay();
@@ -52,14 +53,17 @@ DisplayState setDisplay(DisplayState statustoset){
   static DisplayState displaystatus = DisplayState::Dim;
   switch(statustoset){
     case DisplayState::Dim:
+      display.oled_command(SH110X_DISPLAYON);
       display.setContrast(0); // dim display
       displaystatus = DisplayState::Dim;
       break;
     case DisplayState::On:
+      display.oled_command(SH110X_DISPLAYON);
       displaystatus = DisplayState::On;
       break;
     //case DisplayState::Off:
     default:
+      display.oled_command(SH110X_DISPLAYOFF);
       displaystatus = DisplayState::Off;
   }
   return displaystatus;
@@ -70,13 +74,13 @@ void clear_display(){
   display.display();
 }
 
-String leftrotate(String str, int d){
-   String ans = str.substring(d, str.length() - d) + str.substring(0, d);
-   return ans;
-}
+// String leftrotate(String str, int d){
+//    String ans = str.substring(d, str.length() - d) + str.substring(0, d);
+//    return ans;
+// }
 
-String Line1 = "Welcome"; 
-String Line2 = "George {!}"; 
+String Line1 = "Welcome \x81"; 
+String Line2 = "George {Munteanu} \x81"; 
 String Line3 = "Whats up? \x81";  
 
 int prevx, x, minX;
@@ -86,14 +90,11 @@ bool oncecompleted = false;
 void setup() {
   //Serial.begin(115200);
 
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   display.begin(i2c_Address, true); // Address 0x3C default
-  //display.setContrast(0); // dim display
   displaystatus = setDisplay(DisplayState::Dim);
-
   display.clearDisplay();
   display.setFont(&FreeSerif12pt7b);
-  display.setTextSize(1); // 2 lines of 11 chars
+  display.setTextSize(1); // 3 lines of 10-12 chars
   display.setTextColor(SH110X_WHITE);
   display.setTextWrap(false);
   display.display();
@@ -103,6 +104,7 @@ void setup() {
   y2 = 37;
   y3 = 58;
   minX = -128;
+  minX = -200; // depends on length of the text
   minY = -22;
 
   display_oled(true, 0, y1, Line1); 
@@ -115,12 +117,7 @@ void loop() {
 
   // float tempval = 24.567;
   // display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.
-
   // delay(2000);
-
-  // display_oled(true, 0, 16, "Welcome"); 
-  // display_oled(false, x, 37, "George {!}"); 
-  // display_oled(false, x, 58, "Whats up? \x81");
 
   display_move(prevx, y2, x, y2, Line2);
   if (!oncecompleted){
@@ -130,7 +127,7 @@ void loop() {
   prevx = x;
   x = x - 3;
   if (x < minX) x = display.width();
-  if (x < 0) oncecompleted = true;
+  if (x < 20) oncecompleted = true;
   //if (--x < minX) x = display.width(); // this line is moving 1 pixel at the time, this can be too slow
 
 }
