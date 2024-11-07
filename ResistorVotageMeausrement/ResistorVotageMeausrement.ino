@@ -7,7 +7,7 @@ Always run the arduino powered by an separate power bank.
 #include "display_3xdigit.h"
 
 #include "display_3xdigit.h"
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_SSD1306.h>  //Adafruit SSD 1306 by Adafruit
 #include <Adafruit_GFX.h>
 #include <Fonts/FreeMono9pt7b.h>
 

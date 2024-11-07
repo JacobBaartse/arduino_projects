@@ -10,7 +10,7 @@
 #include "clock.h"
 #include "error_404.h"
 #include "error_405.h"
-#include <Adafruit_SH110X.h>
+#include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
 #include <Adafruit_GFX.h>
 #include "FreeSerif12pt7b_special.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 
@@ -40,7 +40,7 @@ DHT dht22(DHT22_PIN, DHT22);
 
 const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
-const bool debug = true;
+const bool debug = false;
 
 int lightSensorPin = A0;   // select the input pin to be measured
 int sensorValue = 0;  // variable to store the value coming from the sensor
@@ -158,14 +158,14 @@ void webserver(){
   WiFiClient client = server.available();
   if (client) {
     // read the first line of HTTP request header
-    Serial.println("read first line of http request header");
+    if (debug) Serial.println("read first line of http request header");
     String HTTP_req = "";
     while (client.connected()) {
       if (client.available()) {
         if (debug) Serial.println("New HTTP Request");
         HTTP_req = client.readStringUntil('\n');  // read the first line of HTTP request
-        Serial.print("<< ");
-        Serial.println(HTTP_req);  // print HTTP request to Serial Monitor
+        if (debug) Serial.print("<< ");
+        if (debug) Serial.println(HTTP_req);  // print HTTP request to Serial Monitor
         break;
       }
       businessLogic();
@@ -368,7 +368,9 @@ void businessLogic(){
     prev_seconds = 0;
     pinMode(GREEN_LED_PIN, OUTPUT);
     digitalWrite(GREEN_LED_PIN, HIGH);  
-    send_code(RF_LIGHT_ALL_ON);
+    send_code(RF_LIGHT_ON1);
+    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) send_code(RF_LIGHT_ON2);
+    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) send_code(RF_LIGHT_ON3);
   } 
   else{
     pinMode(GREEN_LED_PIN, INPUT);
