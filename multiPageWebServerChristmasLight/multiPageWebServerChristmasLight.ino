@@ -88,13 +88,13 @@ String getTemperature_humidity() {
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 bool display_on = true;
-void display_oled( bool clear, int x, int y, String text){
+void display_oled( bool clear, int x, int y, String text, bool activate){
   if (debug) Serial.println(text);
   if (!display_on) return;
   if (clear) display.clearDisplay();
   display.setCursor(x,y);
   display.print(text);
-  display.display();
+  if (activate) display.display();
 }
 
 void clear_display(){
@@ -323,28 +323,28 @@ void webserver(){
 }
 
 void businessLogic(){
-     if (elapsed_seconds(5)){
+  if (elapsed_seconds(5)){
     if (debug) Serial.println("elapsed seconds 5");
     if (!display_on) clear_display();
     update_clock();
     float humid  = dht22.readHumidity();
     float tempC = dht22.readTemperature();
   
-    display_oled(true, 0, 16,String(tempC, 1) + " \x7F"+"C ");  // } \x7F is converted to degrees in this special font.
+    display_oled(true, 0, 16,String(tempC, 1) + " \x7F"+"C ", false);  // } \x7F is converted to degrees in this special font.
 
     if (charging) {
-      display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1));
+      display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1), false);
     }
     else {
-      display_oled(false, 0, 40,String(humid, 0) + " %" );
+      display_oled(false, 0, 40,String(humid, 0) + " %" , false);
     }
 
-    if (Minutes<10) display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes));
-    else display_oled(false, 0, 63, String(Hour) + ":" + String(Minutes));
-    display_oled(false, 70, 63, getLight_value());
+    if (Minutes<10) display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes), false);
+    else display_oled(false, 0, 63, String(Hour) + ":" + String(Minutes), false);
+    display_oled(false, 70, 63, getLight_value(), true);
 
     bool low_light = false;
-    if (analogRead(lightSensorPin) < 50) low_light = true;
+    if (analogRead(lightSensorPin) < 45) low_light = true;
     bool eavening = false;
     if (Hour>16 && Hour<23) eavening = true;
     if (Hour==22 && Minutes >=30) eavening = false;
@@ -405,7 +405,7 @@ void printWifiStatus() {
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
-  display_oled(false, 0, 18, WiFi.localIP().toString());
+  display_oled(false, 0, 18, WiFi.localIP().toString(), true);
 
   // print the received signal strength:
   Serial.print("signal strength (RSSI): ");
