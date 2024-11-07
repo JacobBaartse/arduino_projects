@@ -369,7 +369,9 @@ void businessLogic(){
     pinMode(GREEN_LED_PIN, OUTPUT);
     digitalWrite(GREEN_LED_PIN, HIGH);  
     send_code(RF_LIGHT_ON1);
+    delay(500);
     if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) send_code(RF_LIGHT_ON2);
+    delay(500);
     if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) send_code(RF_LIGHT_ON3);
   } 
   else{
