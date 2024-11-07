@@ -80,9 +80,24 @@ void loop(void)
     resistor = voltage_resitor / current;
   }
 
+  String range ="";
+  if (resistor >= 1000){
+    range="k";
+    resistor /= 1000;
+  }
+  if (resistor >= 1000){
+    range="M";
+    resistor /= 1000;
+  } 
+  if (resistor <0)
+  {
+    oled_display("Out of range", " ");
+  }
+  else{
+    oled_display("r " + String(resistor) + range, " " + String(""));
+  }
 
 
-  oled_display("r " + String(resistor), " " + String(""));
 
 }
 

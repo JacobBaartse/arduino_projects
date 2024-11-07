@@ -26,10 +26,7 @@ void display_setup() {
       display.setFont(&FreeMono9pt7b);
       display.setTextSize(1);
       display.setTextColor(WHITE);
-
-      // dim the display
-      display.ssd1306_command(SSD1306_SETCONTRAST);
-      display.ssd1306_command(1);
+      display.dim(true);
   }
 }
 
