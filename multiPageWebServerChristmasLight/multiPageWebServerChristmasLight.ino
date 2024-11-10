@@ -344,9 +344,9 @@ void businessLogic(){
     display_oled(false, 70, 63, getLight_value(), true);
 
     bool low_light = false;
-    if (analogRead(lightSensorPin) < 45) low_light = true;
+    if (analogRead(lightSensorPin) < 50) low_light = true;
     bool eavening = false;
-    if (Hour>16 && Hour<23) eavening = true;
+    if (Hour>15 && Hour<23) eavening = true;
     if (Hour==22 && Minutes >=30) eavening = false;
     if (auto_lights_on)
       if (!eavening){
