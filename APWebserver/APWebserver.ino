@@ -1,7 +1,7 @@
 /*
-  WiFi Web Server LED Blink
+  WiFi Web Server LED Control
 
-  A simple web server that lets you blink an LED via the web.
+  A simple web server that lets you control a LED via a local network.
   This sketch will create a new access point (with no password).
   It will then launch a new server and print out the IP address
   to the Serial Monitor. From there, you can open that address in a web browser
@@ -9,26 +9,21 @@
 
   If the IP address of your board is yourAddress:
     http://yourAddress/H turns the LED on
-    http://yourAddress/L turns it off
-
-  created 25 Nov 2012
-  by Tom Igoe
-  adapted to WiFi AP by Adafruit
+    http://yourAddress/L turns the LED off
 
   Find the full UNO R4 WiFi Network documentation here:
   https://docs.arduino.cc/tutorials/uno-r4-wifi/wifi-examples#access-point
 
-  192.168.4.1
-
+ */
+/*
+ *
+ * default ip address: 192.168.4.1
+ *
  */
 
 #include "WiFiS3.h"
-//#include "arduino_secrets.h" 
 
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = "UNO_R4_demo"; // SECRET_SSID;        // your network SSID (name)
-//char pass[] = SECRET_PASS;        // your network password (use for WPA, or use as key for WEP)
-//int keyIndex = 0;                 // your network key index number (needed only for WEP)
+char ssid[] = "UNO_R4_demo"; // your network SSID (name)
 
 char c;
 int led =  LED_BUILTIN;
