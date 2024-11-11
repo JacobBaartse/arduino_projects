@@ -17,16 +17,18 @@
 
   Find the full UNO R4 WiFi Network documentation here:
   https://docs.arduino.cc/tutorials/uno-r4-wifi/wifi-examples#access-point
+
+  192.168.4.1
+
  */
 
 #include "WiFiS3.h"
-
-#include "arduino_secrets.h" 
+//#include "arduino_secrets.h" 
 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;        // your network SSID (name)
-char pass[] = SECRET_PASS;        // your network password (use for WPA, or use as key for WEP)
-int keyIndex = 0;                 // your network key index number (needed only for WEP)
+char ssid[] = "UNO_R4_demo"; // SECRET_SSID;        // your network SSID (name)
+//char pass[] = SECRET_PASS;        // your network password (use for WPA, or use as key for WEP)
+//int keyIndex = 0;                 // your network key index number (needed only for WEP)
 
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
@@ -40,7 +42,7 @@ void setup() {
   }
   Serial.println("Access Point Web Server");
 
-  pinMode(led, OUTPUT);      // set the LED pin mode
+  pinMode(led, OUTPUT); // set the LED pin mode
 
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
@@ -56,14 +58,15 @@ void setup() {
 
   // by default the local IP address will be 192.168.4.1
   // you can override it with the following:
-  WiFi.config(IPAddress(192,48,56,2));
+  //WiFi.config(IPAddress(192,48,56,2));
 
   // print the network name (SSID);
   Serial.print("Creating access point named: ");
   Serial.println(ssid);
 
   // Create open network. Change this line if you want to create an WEP network:
-  status = WiFi.beginAP(ssid, pass);
+  //status = WiFi.beginAP(ssid, pass);
+  status = WiFi.beginAP(ssid); // no password needed
   if (status != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
     // don't continue
@@ -73,13 +76,14 @@ void setup() {
   // wait 10 seconds for connection:
   delay(10000);
 
+  Serial.println("Created access point available");
+
   // start the web server on port 80
   server.begin();
 
   // you're connected now, so print out the status
   printWiFiStatus();
 }
-
 
 void loop() {
   
@@ -163,5 +167,4 @@ void printWiFiStatus() {
   // print where to go in a browser:
   Serial.print("To see this page in action, open a browser to http://");
   Serial.println(ip);
-
 }
