@@ -30,8 +30,10 @@ char ssid[] = "UNO_R4_demo"; // SECRET_SSID;        // your network SSID (name)
 //char pass[] = SECRET_PASS;        // your network password (use for WPA, or use as key for WEP)
 //int keyIndex = 0;                 // your network key index number (needed only for WEP)
 
+char c;
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
+int newstatus = WL_IDLE_STATUS;
 WiFiServer server(80);
 
 void setup() {
@@ -75,23 +77,22 @@ void setup() {
 
   // wait 10 seconds for connection:
   delay(10000);
-
-  Serial.println("Created access point available");
-
   // start the web server on port 80
   server.begin();
-
   // you're connected now, so print out the status
   printWiFiStatus();
+
+  Serial.println("Created access point available");
 }
 
 void loop() {
   
   // compare the previous status to the current status
-  if (status != WiFi.status()) {
+  newstatus = WiFi.status();
+  if (status != newstatus) {
     // it has changed update the variable
-    status = WiFi.status();
-
+    status = newstatus;
+  
     if (status == WL_AP_CONNECTED) {
       // a device has connected to the AP
       Serial.println("Device connected to AP");
@@ -107,9 +108,9 @@ void loop() {
     Serial.println("new client");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
-      delayMicroseconds(10);                // This is required for the Arduino Nano RP2040 Connect - otherwise it will loop so fast that SPI will never be served.
+      // delayMicroseconds(10);                // This is required for the Arduino Nano RP2040 Connect - otherwise it will loop so fast that SPI will never be served.
       if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();             // read a byte, then
+        c = client.read();                  // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
         if (c == '\n') {                    // if the byte is a newline character
 
@@ -123,15 +124,15 @@ void loop() {
             client.println();
 
             // the content of the HTTP response follows the header:
-            client.print("<p style=\"font-size:7vw;\">Click <a href=\"/H\">here</a> turn the LED on<br></p>");
-            client.print("<p style=\"font-size:7vw;\">Click <a href=\"/L\">here</a> turn the LED off<br></p>");
+            client.print("<p style=\"font-size:7vw;\">Click <a href=\"/H\">here</a> to turn the LED on<br></p>");
+            client.print("<p style=\"font-size:7vw;\">Click <a href=\"/L\">here</a> to turn the LED off<br></p>");
 
             // The HTTP response ends with another blank line:
             client.println();
             // break out of the while loop:
             break;
           }
-          else {      // if you got a newline, then clear currentLine:
+          else { // if you got a newline, then clear currentLine:
             currentLine = "";
           }
         }
@@ -148,6 +149,7 @@ void loop() {
         }
       }
     }
+
     // close the connection:
     client.stop();
     Serial.println("client disconnected");
@@ -155,16 +157,16 @@ void loop() {
 }
 
 void printWiFiStatus() {
-  // print the SSID of the network you're attached to:
+  // print the SSID of the network you're hosting (Access Point mode)
   Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
+  Serial.print(WiFi.SSID());
 
-  // print your WiFi shield's IP address:
+  // print your AP IP address:
   IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
+  Serial.print(", IP address: ");
+  Serial.print(ip);
 
   // print where to go in a browser:
-  Serial.print("To see this page in action, open a browser to http://");
+  Serial.print(", browse to http://");
   Serial.println(ip);
 }
