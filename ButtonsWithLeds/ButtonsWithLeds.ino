@@ -12,7 +12,6 @@ void setup() {
   pinMode(RED_BUTTON_PIN, INPUT_PULLUP);
 }
 
-
 void loop() {
   if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) digitalWrite(GREEN_LED_PIN, HIGH);  
   else digitalWrite(GREEN_LED_PIN, LOW);  
