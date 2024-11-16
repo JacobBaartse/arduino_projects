@@ -21,7 +21,11 @@
  *
  */
 
+#include "ArduinoGraphics.h"
+#include "Arduino_LED_Matrix.h"
 #include "WiFiS3.h"
+
+ArduinoLEDMatrix matrix;
 
 char ssid[] = "UNO_R4_demo"; // your network SSID (name)
 
@@ -29,7 +33,39 @@ char c;
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
 int newstatus = WL_IDLE_STATUS;
+
 WiFiServer server(80);
+IPAddress IPhere;
+
+void startupscrollingtext(String starttext){
+  matrix.beginDraw();
+
+  matrix.stroke(0xFFFFFFFF);
+  matrix.textScrollSpeed(100);
+  matrix.textFont(Font_5x7);
+  matrix.beginText(0, 1, 0xFFFFFF);
+  matrix.println(starttext);
+  matrix.endText(SCROLL_LEFT);
+
+  matrix.endDraw();
+}
+
+IPAddress printWiFiStatus() {
+  // print the SSID of the network you're hosting (Access Point mode)
+  Serial.print("SSID: ");
+  Serial.print(WiFi.SSID());
+
+  // print your AP IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print(", IP address: ");
+  Serial.print(ip);
+
+  // print where to go in a browser:
+  Serial.print(", browse to http://");
+  Serial.println(ip);
+  
+  return ip;
+}
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -37,7 +73,7 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-  Serial.println("Access Point Web Server");
+  Serial.println(F("Access Point Web Server"));
 
   pinMode(led, OUTPUT); // set the LED pin mode
 
@@ -53,19 +89,24 @@ void setup() {
     Serial.println("Please upgrade the firmware");
   }
 
+  String timestamp = __TIMESTAMP__;
+  Serial.print(F("Creation/build time: "));
+  Serial.println(timestamp);
+  Serial.flush(); 
+
   // by default the local IP address will be 192.168.4.1
   // you can override it with the following:
   //WiFi.config(IPAddress(192,48,56,2));
 
   // print the network name (SSID);
-  Serial.print("Creating access point named: ");
+  Serial.print(F("Creating access point named: "));
   Serial.println(ssid);
 
   // Create open network. Change this line if you want to create an WEP network:
   //status = WiFi.beginAP(ssid, pass);
   status = WiFi.beginAP(ssid); // no password needed
   if (status != WL_AP_LISTENING) {
-    Serial.println("Creating access point failed");
+    Serial.println(F("Creating access point failed"));
     // don't continue
     while (true);
   }
@@ -75,9 +116,16 @@ void setup() {
   // start the web server on port 80
   server.begin();
   // you're connected now, so print out the status
-  printWiFiStatus();
+  IPhere = printWiFiStatus();
 
-  Serial.println("Created access point available");
+  Serial.println(F("Created access point available"));
+
+  startupscrollingtext(String("-->: ") + IPhere.toString());
+
+  Serial.println(F(" "));  
+  Serial.println(F(" *************** "));  
+  Serial.println(F(" "));  
+  Serial.flush(); 
 }
 
 void loop() {
@@ -103,7 +151,6 @@ void loop() {
     Serial.println("new client");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
-      // delayMicroseconds(10);                // This is required for the Arduino Nano RP2040 Connect - otherwise it will loop so fast that SPI will never be served.
       if (client.available()) {             // if there's bytes to read from the client,
         c = client.read();                  // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
@@ -149,19 +196,4 @@ void loop() {
     client.stop();
     Serial.println("client disconnected");
   }
-}
-
-void printWiFiStatus() {
-  // print the SSID of the network you're hosting (Access Point mode)
-  Serial.print("SSID: ");
-  Serial.print(WiFi.SSID());
-
-  // print your AP IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print(", IP address: ");
-  Serial.print(ip);
-
-  // print where to go in a browser:
-  Serial.print(", browse to http://");
-  Serial.println(ip);
 }

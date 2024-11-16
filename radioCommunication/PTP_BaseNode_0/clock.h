@@ -104,7 +104,7 @@ void get_time_from_hsdesign(){
   // correct startup value for clock for internet lag..
   startup_unix_time_internet += 1;
   set_clock(startup_unix_time_internet);   
-  Serial.println("Time retreived from internet and set locally.");
+  Serial.println("Time retrieved from the internet and set locally.");
 }
 
 // int prev_second;
