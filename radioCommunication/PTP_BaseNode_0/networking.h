@@ -2,16 +2,16 @@
  * 
  */
 
-#include <RF24Network.h>;
-#include <RF24.h>;
-#include "WiFiS3.h";
-#include "networkdata.h";
+#include <RF24Network.h>
+#include <RF24.h>
+#include "WiFiS3.h"
+#include "networkdata.h"
 
 int initWiFi(char* pssid, char* ppass, int timeout=10000) {
   long endTime = millis() + timeout;
   int WiFistatus = WL_IDLE_STATUS;
   WiFi.begin(pssid, ppass);
-  // Serial.print("Connecting to WiFi ..");
+  // Serial.print("Connecting to WiFi...");
   while ((WiFistatus != WL_CONNECTED) && (millis() < endTime)) {
     // Serial.print('.');
     delay(1000);

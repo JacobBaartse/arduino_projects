@@ -8,6 +8,9 @@ Base <---> Repeater <-----------> Remote
 Target: RF-NANO with additional RF24 module Long Range
 nRF24L01-PA (CE,CSN) connected to pin 8, 7
 location JWF21
+
+@todo, remove BUILTin LED, because this LED is on the SPI interface, so wil disturb communication
+
 */
 
 #include <RF24Network.h>;
@@ -51,17 +54,17 @@ net_payload nw1Data = EmptyData;
 net_payload nw2Data = EmptyData;
 bool transmit = false;
 bool blink = false;
-unsigned long currentMillis = 0;    // stores the value of millis() in each iteration of loop()
+//unsigned long currentMillis = 0; // stores the value of millis() in each iteration of loop()
 
 void loop() {
 
-  currentMillis = millis();   // capture the value of millis()
+  //currentMillis = millis(); // capture the value of millis()
 
   network1.update();
   network2.update();
 
   nw1Data = receiveRFnetwork(network1, base_node);
-  if (nw1Data.data1 > 0xab000000) { //data1 should be the keyword
+  if (nw1Data.data1 > 0xab000000) { // data1 should be the keyword
     transmit = transmitRFnetwork(network2, remote_node, nw1Data);
     if (transmit) {
         blink = true;
@@ -69,13 +72,13 @@ void loop() {
   }
 
   nw2Data = receiveRFnetwork(network2, remote_node);
-  if (nw2Data.data1 > 0xab000000) { //data1 should be the keyword
+  if (nw2Data.data1 > 0xab000000) { // data1 should be the keyword
     transmit = transmitRFnetwork(network1, base_node, nw2Data);
     if (transmit) {
         blink = true;
     }
   }
 
-  blink = knipperen(currentMillis, blink);
+  //blink = knipperen(currentMillis, blink);
 
 }

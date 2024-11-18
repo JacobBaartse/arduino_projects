@@ -12,20 +12,25 @@
 Target: UNO R4 Wifi, with RF24 module Long Range
 nRF24L01 (CE,CSN) connected to pin 8, 7
 location SO148
+
+@todo send message to repeater
+@todo define base channel
+
 */
 
-#include "matrix.h";
-#include "networking.h";
-// #include "WiFiS3.h"; // already included in networking.h
-#include "RTC.h";
-#include <NTPClient.h>;
-#include <SPI.h>;
+#include "matrix.h"
+#include "networking.h"
+// #include "WiFiS3.h" // already included in networking.h
+#include "RTC.h"
+#include "clock.h"
+// #include <NTPClient.h>
+#include <SPI.h>
 
 WiFiServer server(80);
 IPAddress IPhere;
 
-WiFiUDP Udp; // A UDP instance to let us send and receive packets over UDP
-NTPClient timeClient(Udp);
+// WiFiUDP Udp; // A UDP instance to let us send and receive packets over UDP
+// NTPClient timeClient(Udp);
 
 void setup() {
   Serial.begin(115200);
@@ -61,25 +66,28 @@ void setup() {
   }
   startupscrollingtext(String("-->: ") + IPhere.toString());
 
-  Serial.println(F("\nStarting connection to NTP server..."));
-  timeClient.begin();
-  unsigned long unixTime = 0;
-  const unsigned long unixmintime = 1729331495; // 19 October 2024
-  const unsigned long unixmaxtime = 2076393095; // 19 October 2035
-  while ((unixTime < unixmintime)||(unixTime > unixmaxtime)) {
-    delay(1000);
-    Serial.println(F("\nRetrieving UTC time"));
-    timeClient.update();
-    // Get the current date and time from an NTP server
-    unixTime = timeClient.getEpochTime();
-  }
-  // convert it to UTC +2 by passing the time zone offset in hours.
-  // You may change the time zone offset to your local one.  auto timeZoneOffsetHours = 2;
-  //unixTime = unixTime + (timeZoneOffsetHours * 3600);
-  Serial.print(F("Unix time = "));
-  Serial.println(unixTime);
-  RTCTime timeToSet = RTCTime(unixTime);
-  RTC.setTime(timeToSet);
+  // Serial.println(F("\nStarting connection to NTP server..."));
+  // timeClient.begin();
+  // unsigned long unixTime = 0;
+  // const unsigned long unixmintime = 1729331495; // 19 October 2024
+  // const unsigned long unixmaxtime = 2076393095; // 19 October 2035
+  // while ((unixTime < unixmintime)||(unixTime > unixmaxtime)) {
+  //   delay(1000);
+  //   Serial.println(F("\nRetrieving UTC time"));
+  //   timeClient.update();
+  //   // Get the current date and time from an NTP server
+  //   unixTime = timeClient.getEpochTime();
+  // }
+  // // convert it to UTC +2 by passing the time zone offset in hours.
+  // // You may change the time zone offset to your local one.  auto timeZoneOffsetHours = 2;
+  // //unixTime = unixTime + (timeZoneOffsetHours * 3600);
+  // Serial.print(F("Unix time = "));
+  // Serial.println(unixTime);
+  // RTCTime timeToSet = RTCTime(unixTime);
+  // RTC.setTime(timeToSet);
+
+  Serial.println(F("\nStarting connection to HS Design"));
+  get_time_from_hsdesign();
   // Retrieve the date and time from the RTC and print them
   RTCTime currentTime;
   RTC.getTime(currentTime); 
