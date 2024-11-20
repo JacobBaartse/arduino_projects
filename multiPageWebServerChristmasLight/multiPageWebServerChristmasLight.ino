@@ -24,6 +24,7 @@
 #define DHT22_PIN 12
 #define RF_PIN 8
 #define RELAY_PIN 9
+#define PIR_PIN 11
 
 DHT dht22(DHT22_PIN, DHT22);
 
@@ -48,26 +49,18 @@ int sensorValue = 0;  // variable to store the value coming from the sensor
 
 const char ssid[] = SECRET_SSID;  // change your network SSID (name)
 const char pass[] = SECRET_PASS;   // change your network password (use for WPA, or use as key for WEP)
-String lamp_state1 = "---";
-String lamp_state2 = "---";
-String lamp_state3 = "---";
+String lamp_state1 = "uit";
+String lamp_state2 = "uit";
+String lamp_state3 = "uit";
 
 int status = WL_IDLE_STATUS;
 bool charging = true;
 float temperature_start_battery=0.0;
+bool auto_lights_on = false;
+String wifi_state = "0";
+long prev_wifi_time =0;
 
 WiFiServer server(80);
-
-unsigned long prev_seconds = 0;
-bool elapsed_seconds(int seconds_delay){
-  unsigned long cur_seconds = millis() / 1000;
-  if (cur_seconds > (prev_seconds + seconds_delay)){
-    prev_seconds = cur_seconds;
-    return true;
-  }
-  return false;
-}
-
 
 String getLight_value(){
   sensorValue = analogRead(lightSensorPin);
@@ -87,21 +80,67 @@ String getTemperature_humidity() {
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-bool display_on = true;
 void display_oled( bool clear, int x, int y, String text, bool activate){
   if (debug) Serial.println(text);
-  if (!display_on) return;
   if (clear) display.clearDisplay();
   display.setCursor(x,y);
   display.print(text);
   if (activate) display.display();
 }
 
-void clear_display(){
-  display.clearDisplay();
-  display.display();
+int activate_display = 5;  // number of seconds the display will be active
+long last_update_time = 0;
+
+void update_display(){
+  long millis_now = millis();
+  if (activate_display > 0){
+    if ((millis_now -last_update_time) > 1000){  // only update the screen once a second
+      if (debug) Serial.println("update display");
+      last_update_time = millis_now;
+      activate_display -= 1;
+      update_clock();
+      float humid  = dht22.readHumidity();
+      float tempC = dht22.readTemperature();
+    
+      display_oled(true, 0, 16,String(tempC, 1) + " \x7F"+"C "+wifi_state, false);  // } \x7F is converted to degrees in this special font.
+
+      if (charging) {
+        display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1), false);
+      }
+      else {
+        display_oled(false, 0, 40,String(humid, 0) + " %" , false);
+      }
+
+      if (Minutes<10) display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes), false);
+      else display_oled(false, 0, 63, String(Hour) + ":" + String(Minutes), false);
+      display_oled(false, 70, 63, getLight_value(), true);
+    }
+  }
+  else
+  {
+    if ((millis_now -last_update_time) > 1000){ // only clear the screen once a second
+      last_update_time = millis_now;
+      if (debug) Serial.println("clear display");
+      display.clearDisplay();   
+      display.setCursor(0,0);
+      display.print("  "); 
+      display.display();
+    }  
+  }
 }
 
+void printWifiStatus() {
+  // print your board's IP address:
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+
+  display_oled(false, 0, 18, WiFi.localIP().toString(), true);
+
+  // print the received signal strength:
+  Serial.print("signal strength (RSSI): ");
+  Serial.print(WiFi.RSSI());
+  Serial.println(" dBm");
+}
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -117,6 +156,7 @@ void setup() {
   pinMode(RED_BUTTON_PIN, INPUT_PULLUP);
 
   pinMode(RELAY_PIN, OUTPUT);
+  pinMode(PIR_PIN, INPUT);
 
   display.clearDisplay();
   display.setFont(&FreeSerif12pt7b);
@@ -150,17 +190,19 @@ void setup() {
   get_time_form_worldtimeapi_org();
 }
 
-bool auto_lights_on = false;
-
 
 void webserver(){
    // listen for incoming clients
+  wifi_state = ".";
   WiFiClient client = server.available();
   if (client) {
+    wifi_state = "4";
     // read the first line of HTTP request header
     if (debug) Serial.println("read first line of http request header");
     String HTTP_req = "";
+    prev_wifi_time = millis();
     while (client.connected()) {
+      wifi_state = "1";
       if (client.available()) {
         if (debug) Serial.println("New HTTP Request");
         HTTP_req = client.readStringUntil('\n');  // read the first line of HTTP request
@@ -169,10 +211,16 @@ void webserver(){
         break;
       }
       businessLogic();
+      if ((millis() - prev_wifi_time) > 30000){
+        client.stop();
+        break;
+      }
     }
 
     // read the remaining lines of HTTP request header
+    prev_wifi_time = millis();
     while (client.connected()) {
+      wifi_state = "2";
       if (client.available()) {
         String HTTP_header = client.readStringUntil('\n');  // read the header line of HTTP request
 
@@ -183,7 +231,12 @@ void webserver(){
         if (debug) Serial.println(HTTP_header);  // print HTTP request to Serial Monitor
       }
       businessLogic();
+      if ((millis() - prev_wifi_time) > 30000){
+        client.stop();
+        break;
+      }
     }
+    wifi_state = "3";
 
 
     int page_id = 0;
@@ -319,78 +372,62 @@ void webserver(){
     if (debug) Serial.println("client stop");
     client.stop();
     if (debug) Serial.println("client stop done");
+    wifi_state = "5";
   }
 }
 
 void businessLogic(){
-  if (elapsed_seconds(5)){
-    if (debug) Serial.println("elapsed seconds 5");
-    if (!display_on) clear_display();
-    update_clock();
-    float humid  = dht22.readHumidity();
-    float tempC = dht22.readTemperature();
-  
-    display_oled(true, 0, 16,String(tempC, 1) + " \x7F"+"C ", false);  // } \x7F is converted to degrees in this special font.
-
-    if (charging) {
-      display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1), false);
+  bool low_light = false;
+  if (analogRead(lightSensorPin) < 50) low_light = true;
+  bool eavening = false;
+  if (Hour>15 && Hour<23) eavening = true;
+  if (Hour==22 && Minutes >=30) eavening = false;
+  if (auto_lights_on){
+    if (!eavening){
+      send_code(RF_LIGHT_ALL_OFF);
+      auto_lights_on = false;
     }
-    else {
-      display_oled(false, 0, 40,String(humid, 0) + " %" , false);
-    }
-
-    if (Minutes<10) display_oled(false, 0, 63, String(Hour) + ":0" + String(Minutes), false);
-    else display_oled(false, 0, 63, String(Hour) + ":" + String(Minutes), false);
-    display_oled(false, 70, 63, getLight_value(), true);
-
-    bool low_light = false;
-    if (analogRead(lightSensorPin) < 50) low_light = true;
-    bool eavening = false;
-    if (Hour>15 && Hour<23) eavening = true;
-    if (Hour==22 && Minutes >=30) eavening = false;
-    if (auto_lights_on)
-      if (!eavening){
-        send_code(RF_LIGHT_ALL_OFF);
-        auto_lights_on = false;
+  }
+  if (!auto_lights_on){
+    if (eavening){
+      if (low_light){
+        send_code(RF_LIGHT_ALL_ON);
+        auto_lights_on = true;
       }
-    if (!auto_lights_on)
-      if (eavening)
-        if (low_light){
-          send_code(RF_LIGHT_ALL_ON);
-          auto_lights_on = true;
-        }
-      display_on = false;
-  } // elapsed_seconds(5)   
-
+    }
+  }
   if (digitalRead(GREEN_BUTTON_PIN)==PUSHED){
-    if (debug) Serial.println("geen button pressed");
-    display_on=true;
-    prev_seconds = 0;
+    if (debug) Serial.println("green button pressed");
+    activate_display=6;
     pinMode(GREEN_LED_PIN, OUTPUT);
     digitalWrite(GREEN_LED_PIN, HIGH);  
     send_code(RF_LIGHT_ON1);
-    delay(500);
+    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) delay(500);
     if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) send_code(RF_LIGHT_ON2);
-    delay(500);
+    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) delay(500);
     if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) send_code(RF_LIGHT_ON3);
   } 
   else{
     pinMode(GREEN_LED_PIN, INPUT);
   }
+  if (digitalRead(PIR_PIN)==HIGH){
+    activate_display=5;
+  }
   if (digitalRead(RED_BUTTON_PIN)==PUSHED){
-    display_on=true;
-    prev_seconds = 0;
+    if (debug) Serial.println("red button pressed");
+    activate_display=5;
     digitalWrite(RED_LED_PIN, HIGH);
     send_code(RF_LIGHT_ALL_OFF);
   } 
   else digitalWrite(RED_LED_PIN, LOW);  
 
   if (charging){
-    if ( (dht22.readTemperature() - temperature_start_battery) > 3.0){
+    if ( (dht22.readTemperature() - temperature_start_battery) > 5.0){
       charging = false;
       digitalWrite(RELAY_PIN, LOW);
     }
   }
+  update_display();
 }
 
 
@@ -399,16 +436,3 @@ void loop() {
   businessLogic();
 }
 
-
-void printWifiStatus() {
-  // print your board's IP address:
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
-
-  display_oled(false, 0, 18, WiFi.localIP().toString(), true);
-
-  // print the received signal strength:
-  Serial.print("signal strength (RSSI): ");
-  Serial.print(WiFi.RSSI());
-  Serial.println(" dBm");
-}
