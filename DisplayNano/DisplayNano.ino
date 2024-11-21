@@ -81,7 +81,7 @@ void clear_display(){
 
 String Line1 = "Welcome \x81"; 
 String Line2 = "George {Munteanu} \x81"; 
-String Line3 = "Whats up? \x81";  
+String Line3 = "Whats \x81 up?";  
 
 int prevx, x, minX;
 int y1, y2, y3, minY;
@@ -127,7 +127,7 @@ void loop() {
   prevx = x;
   x = x - 3;
   if (x < minX) x = display.width();
-  if (x < 20) oncecompleted = true;
+  if (x < 12) oncecompleted = true;
   //if (--x < minX) x = display.width(); // this line is moving 1 pixel at the time, this can be too slow
 
 }
