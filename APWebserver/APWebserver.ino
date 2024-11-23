@@ -50,6 +50,16 @@ void startupscrollingtext(String starttext){
   matrix.endDraw();
 }
 
+void LEDstatustext(bool LEDon){
+  matrix.beginText(0, 1, 0xFFFFFF);
+  String TextHere = "_--  ";
+  if (LEDon) TextHere = "oO0  ";
+  Serial.println("");
+  Serial.println(TextHere);
+  matrix.println(TextHere);
+  matrix.endText();
+}
+
 IPAddress printWiFiStatus() {
   // print the SSID of the network you're hosting (Access Point mode)
   Serial.print("SSID: ");
@@ -69,11 +79,12 @@ IPAddress printWiFiStatus() {
 
 void setup() {
   //Initialize serial and wait for port to open:
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
   Serial.println(F("Access Point Web Server"));
+  matrix.begin();
 
   pinMode(led, OUTPUT); // set the LED pin mode
 
@@ -166,8 +177,9 @@ void loop() {
             client.println();
 
             // the content of the HTTP response follows the header:
-            client.print("<p style=\"font-size:7vw;\">Click <a href=\"/H\">here</a> to turn the LED on<br></p>");
-            client.print("<p style=\"font-size:7vw;\">Click <a href=\"/L\">here</a> to turn the LED off<br></p>");
+            client.print("<p style=\"font-size:7vw;\">LED<br></p>");
+            client.print("<p style=\"font-size:7vw;\"><a href=\"/H\">ON</a><br></p>");
+            client.print("<p style=\"font-size:7vw;\"><a href=\"/L\">off</a><br></p>");
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -185,9 +197,11 @@ void loop() {
         // Check to see if the client request was "GET /H" or "GET /L":
         if (currentLine.endsWith("GET /H")) {
           digitalWrite(led, HIGH);               // GET /H turns the LED on
+          LEDstatustext(true);
         }
         if (currentLine.endsWith("GET /L")) {
           digitalWrite(led, LOW);                // GET /L turns the LED off
+          LEDstatustext(false);
         }
       }
     }
