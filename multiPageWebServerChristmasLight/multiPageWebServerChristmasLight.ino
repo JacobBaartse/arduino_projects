@@ -98,7 +98,6 @@ void update_display(){
       if (debug) Serial.println("update display");
       last_update_time = millis_now;
       activate_display -= 1;
-      update_clock();
       float humid  = dht22.readHumidity();
       float tempC = dht22.readTemperature();
     
@@ -377,6 +376,7 @@ void webserver(){
 }
 
 void businessLogic(){
+  update_clock();
   bool low_light = false;
   if (analogRead(lightSensorPin) < 50) low_light = true;
   bool eavening = false;
