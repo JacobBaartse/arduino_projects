@@ -245,11 +245,7 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
 }
 
 RF24 radio(10, 9);               // onboard nRF24L01 (CE, CSN)
-<<<<<<< HEAD
 // RF24 radio(8, 7);             // external nRF24L01 (CE, CSN)
-=======
-//RF24 radio(8, 7);              // external nRF24L01 (CE, CSN)
->>>>>>> 6125f9cb6e3cb8d5c3d18356dcaf27a1706480f1
 RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 01;   // Address of our node in Octal format (04, 031, etc.)
 const uint16_t master00 = 00;    // Address of the other node in Octal format

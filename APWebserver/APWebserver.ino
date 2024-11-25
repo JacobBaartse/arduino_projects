@@ -53,11 +53,12 @@ void startupscrollingtext(String starttext){
 }
 
 void LEDstatustext(bool LEDon){
-  matrix.beginText(0, 1, 0xFFFFFF);
-  String TextHere = "_--  ";
-  if (LEDon) TextHere = "oO0  ";
+  String TextHere = "F"; // "_--  ";
+  if (LEDon) TextHere = "N"; // "oO0  ";
   Serial.println("");
   Serial.println(TextHere);
+
+  matrix.beginText(0, 1, 0xFFFFFF);
   matrix.println(TextHere);
   matrix.endText();
 }
@@ -114,6 +115,8 @@ void setup() {
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
   Serial.println(ssid);
+
+  WiFi.config(IPAddress(192,168,12,2));
 
   // Create open network. Change this line if you want to create an WEP network:
   //status = WiFi.beginAP(ssid, pass);
