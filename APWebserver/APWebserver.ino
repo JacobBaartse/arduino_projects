@@ -53,8 +53,8 @@ void startupscrollingtext(String starttext){
 }
 
 void LEDstatustext(bool LEDon){
-  String TextHere = "F"; // "_--  ";
-  if (LEDon) TextHere = "N"; // "oO0  ";
+  String TextHere = " F "; // "_--  ";
+  if (LEDon) TextHere = " N "; // "oO0  ";
   Serial.println("");
   Serial.println(TextHere);
 
