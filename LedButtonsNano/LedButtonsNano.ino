@@ -59,6 +59,7 @@ LEDState greenledprocessing(unsigned long curtime, bool buttonpressed) {
     if (buttonpressed != previousbuttonpressed) { // only start once
       if (ledstatus == LEDState::Off) {
         pinMode(ledPinGreen, OUTPUT);
+        digitalWrite(ledPinGreen, LOW);
         ledstatus = LEDState::Flashing;
         ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
         leddurationtime = curtime;
@@ -114,6 +115,7 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
     if (buttonpressed != previousbuttonpressed) { // only start once
       if (ledstatus == LEDState::Off) {
         pinMode(ledPinRed, OUTPUT);
+        digitalWrite(ledPinRed, LOW);
         ledstatus = LEDState::Flashing;
         ledtime = (unsigned long)(curtime - 2 * ledinterval); // make sure the blinking start directly
         leddurationtime = curtime;
