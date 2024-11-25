@@ -242,8 +242,8 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
   return ledstatus;
 }
 
-RF24 radio(10, 9);             // nRF24L01 (CE, CSN)
-//RF24 radio(8, 7);                // nRF24L01 (CE, CSN)
+RF24 radio(10, 9);               // onboard nRF24L01 (CE, CSN)
+// RF24 radio(8, 7);             // external nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
 const uint16_t this_node = 01;   // Address of our node in Octal format (04, 031, etc.)
 const uint16_t master00 = 00;    // Address of the other node in Octal format
@@ -288,7 +288,6 @@ void setup() {
   pinMode(buttonPinRed, INPUT_PULLUP);
   pinMode(ledPinGreen, INPUT_PULLUP);
   pinMode(ledPinRed, INPUT_PULLUP);
-  pinMode(LED_BUILTIN, OUTPUT);
 
   SPI.begin();
   radio.begin();
@@ -296,6 +295,7 @@ void setup() {
   network.begin(60, this_node); // (channel, node address)
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
+  /*
   display.begin(i2c_Address, true); // Address 0x3C default
   displaystatus = setDisplay(DisplayState::Dim);
   display.clearDisplay();
@@ -317,12 +317,13 @@ void setup() {
   display_oled(false, x, y2, Line2); 
   display_oled(false, x, y3, Line3);  
   prevx = x;
+  /* */
 
   //delay(1000);
-  // Serial.println(" ");  
-  // Serial.println(" *************** ");  
-  // Serial.println(" "); 
-  // Serial.flush();  
+  Serial.println(" ");  
+  Serial.println(" *************** ");  
+  Serial.println(" "); 
+  Serial.flush();  
 }
 
 unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrappingcounter) {
@@ -384,19 +385,20 @@ void loop() {
   GreenIndication = greenledprocessing(currentMillis, buttonGreenPressed);
   RedIndication = redledprocessing(currentMillis, buttonRedPressed);
 
-  if ((RedIndication == LEDState::LEDOff)&&(GreenIndication == LEDState::LEDOff)){
-    digitalWrite(LED_BUILTIN, LOW);
-    //Serial.println(F("Builtin LED OFF"));
-  }
-  else {
-    digitalWrite(LED_BUILTIN, HIGH);
-    //Serial.println(F("Builtin LED ON"));
-  }
+  // if ((RedIndication == LEDState::LEDOff)&&(GreenIndication == LEDState::LEDOff)){
+  //   digitalWrite(LED_BUILTIN, LOW);
+  //   //Serial.println(F("Builtin LED OFF"));
+  // }
+  // else {
+  //   digitalWrite(LED_BUILTIN, HIGH);
+  //   //Serial.println(F("Builtin LED ON"));
+  // }
 
   buttonGreenPressed = greendebounce((digitalRead(buttonPinGreen) == LOW), currentMillis);
   buttonRedPressed = reddebounce((digitalRead(buttonPinRed) == LOW), currentMillis);
 
 
+  /*
   display_move(prevx, y2, x, y2, Line2);
   if (!oncecompleted){
     display_move(prevx, y3, x, y3, Line3);
@@ -406,6 +408,7 @@ void loop() {
   x = x - 3;
   if (x < minX) x = display.width();
   if (x < 12) oncecompleted = true;
+  /* */
 
 
   if (printstatus) {
