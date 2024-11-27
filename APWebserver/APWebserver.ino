@@ -31,7 +31,6 @@ ArduinoLEDMatrix matrix;
 
 char ssid[] = "UNO_R4_demo"; // your network SSID (name)
 
-char c;
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
 int newstatus = WL_IDLE_STATUS;
@@ -188,7 +187,8 @@ WiFiClient client;
 //   client.stop();
 // }
 
-String currentLine = "";
+//char c = '\n';
+//String currentLine = "";
 
 void loop() {
   
@@ -211,10 +211,10 @@ void loop() {
 
   if (client) {                             // if you get a client,
     Serial.println("new client");           // print a message out the serial port
-    currentLine = "";                       // make a String to hold incoming data from the client
+    String currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
-        c = client.read();                  // read a byte, then
+        char c = client.read();                  // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
         if (c == '\n') {                    // if the byte is a newline character
 
@@ -234,7 +234,7 @@ void loop() {
 
             client.print("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>");
             client.print("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>");  
-            client.print("<BODY TEXT=\"#203067\" LINK=\"#EA7F2A\" VLINK=\"#EA7F2A\" ALINK=\"#EA7F2A\" BGCOLOR=\"#FFFFCC\">");
+            client.print("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">");
             client.print("<TABLE><TR><TH colspan=2>LED</TH></TR>");
             client.print("<TR><TD><a href=\"/H\">ON</a></TD><TD><a href=\"/L\">off</a></TD></TR>");
             client.print("</TABLE>");
