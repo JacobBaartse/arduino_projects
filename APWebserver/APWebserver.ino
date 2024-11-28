@@ -29,7 +29,7 @@
 
 ArduinoLEDMatrix matrix;
 
-char ssid[] = "UNO_R4_demo"; // your network SSID (name)
+char ssid[] = "UNO_R4_AP"; // your network SSID (name)
 
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
@@ -99,7 +99,7 @@ void setup() {
 
   String fv = WiFi.firmwareVersion();
   if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the firmware");
+    Serial.println("Please upgrade the WiFi firmware");
   }
 
   String timestamp = __TIMESTAMP__;
@@ -232,12 +232,23 @@ void loop() {
             // client.print("<p style=\"font-size:7vw;\"><a href=\"/H\">ON</a><br></p>");
             // client.print("<p style=\"font-size:7vw;\"><a href=\"/L\">off</a><br></p>");
 
+            // client.print("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>");
+            // client.print("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>");  
+            // client.print("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">");
+            // client.print("<TABLE><TR><TH colspan=2>LED</TH></TR>");
+            // client.print("<TR><TD><a href=\"/H\">ON</a></TD><TD><a href=\"/L\">off</a></TD></TR>");
+            // client.print("</TABLE>");
+            // client.print("</BODY></HTML>");
+
             client.print("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>");
-            client.print("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>");  
+            client.print("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"><style>");
+            client.print("wrapper {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 100px 100px;  gap: 10px; } ");
+            client.print("box1 { grid-row: 1; } ");
+            client.print("box2 { grid-row: 2; grid-column: 1 / 2; } ");
+            client.print("box3 { grid-row: 2; grid-column: 2 / 2; } ");
+            client.print("</style></HEAD>");  
             client.print("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">");
-            client.print("<TABLE><TR><TH colspan=2>LED</TH></TR>");
-            client.print("<TR><TD><a href=\"/H\">ON</a></TD><TD><a href=\"/L\">off</a></TD></TR>");
-            client.print("</TABLE>");
+            client.print("<div class=\"wrapper\"><div class=\"box1\">LED</div><div class=\"box2\"><a href=\"/H\">ON</a></div><div class=\"box3\"><a href=\"/L\">off</a></div></div>");
             client.print("</BODY></HTML>");
 
             // The HTTP response ends with another blank line:
