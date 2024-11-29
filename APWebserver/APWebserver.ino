@@ -51,15 +51,20 @@ void startupscrollingtext(String starttext){
   matrix.endDraw();
 }
 
-void LEDstatustext(bool LEDon){
-  String TextHere = " F "; // "_--  ";
-  if (LEDon) TextHere = " N "; // "oO0  ";
-  Serial.println("");
-  Serial.println(TextHere);
+void LEDstatustext(bool LEDon, unsigned long count){
+  static unsigned long bcount = 0;
+  if (count != bcount){ // update display only once
+    String TextHere = "-"; // "_--  ";
+    if (LEDon) TextHere = "^"; // "oO0  ";
+    TextHere = TextHere + count;
+    Serial.println(F(""));
+    Serial.print(TextHere);
 
-  matrix.beginText(0, 1, 0xFFFFFF);
-  matrix.println(TextHere);
-  matrix.endText();
+    matrix.beginText(0, 1, 0xFFFFFF);
+    matrix.println(TextHere);
+    matrix.endText();
+    bcount = count;
+  }
 }
 
 IPAddress printWiFiStatus() {
@@ -119,7 +124,7 @@ void setup() {
   //status = WiFi.beginAP(ssid, pass);
   status = WiFi.beginAP(ssid); // no password needed
   if (status != WL_AP_LISTENING) {
-    Serial.println(F("Creating access point failed"));
+    Serial.println("Creating access point failed");
     // don't continue
     while (true);
   }
@@ -187,8 +192,9 @@ WiFiClient client;
 //   client.stop();
 // }
 
-//char c = '\n';
-//String currentLine = "";
+char c = '\n';
+String currentLine = "";
+unsigned long acounter = 0;
 
 void loop() {
   
@@ -210,11 +216,11 @@ void loop() {
   client = server.available();   // listen for incoming clients
 
   if (client) {                             // if you get a client,
-    Serial.println("new client");           // print a message out the serial port
-    String currentLine = "";                       // make a String to hold incoming data from the client
+    Serial.println(F("new client"));           // print a message out the serial port
+    currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();                  // read a byte, then
+        c = client.read();                  // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
         if (c == '\n') {                    // if the byte is a newline character
 
@@ -223,8 +229,8 @@ void loop() {
           if (currentLine.length() == 0) {
             // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
             // and a content-type so the client knows what's coming, then a blank line:
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html");
+            client.println(F("HTTP/1.1 200 OK"));
+            client.println(F("Content-type:text/html"));
             client.println();
 
             // the content of the HTTP response follows the header:
@@ -232,24 +238,12 @@ void loop() {
             // client.print("<p style=\"font-size:7vw;\"><a href=\"/H\">ON</a><br></p>");
             // client.print("<p style=\"font-size:7vw;\"><a href=\"/L\">off</a><br></p>");
 
-            client.print("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>");
-            client.print("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>");  
-            client.print("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">");
-            client.print("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>");
-            client.print("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>");
-            client.print("</TABLE>");
-            client.print("</BODY></HTML>");
-
-            // client.print("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>");
-            // client.print("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"><style>");
-            // client.print("wrapper {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 100px 100px;  gap: 10px; } ");
-            // client.print("box1 { grid-row: 1; } ");
-            // client.print("box2 { grid-row: 2; grid-column: 1 / 2; } ");
-            // client.print("box3 { grid-row: 2; grid-column: 2 / 2; } ");
-            // client.print("</style></HEAD>");  
-            // client.print("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">");
-            // client.print("<div class=\"wrapper\"><div class=\"box1\">LED</div><div class=\"box2\"><a href=\"/H\">ON</a></div><div class=\"box3\"><a href=\"/L\">off</a></div></div>");
-            // client.print("</BODY></HTML>");
+            client.print(F("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>"));
+            client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
+            client.print(F("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
+            client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>"));
+            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>"));
+            client.print(F("</TABLE></BODY></HTML>"));
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -267,14 +261,17 @@ void loop() {
         // Check to see if the client request was "GET /H" or "GET /L":
         if (currentLine.endsWith("GET /H")) {
           digitalWrite(led, HIGH);               // GET /H turns the LED on
+          acounter += 1;
         }
         if (currentLine.endsWith("GET /L")) {
           digitalWrite(led, LOW);                // GET /L turns the LED off
+          acounter += 1;
         }
         if (currentLine.endsWith("GET /T")) {
           digitalWrite(led, !digitalRead(led));  // GET /T toggles the LED
+          acounter += 1;
         }
-        LEDstatustext(digitalRead(led));
+        LEDstatustext(digitalRead(led), acounter);
 
         if (currentLine.endsWith("GET /favicon.ico")) {
           // sendFavicon();
@@ -285,6 +282,6 @@ void loop() {
 
     // close the connection:
     client.stop();
-    Serial.println("client disconnected");
+    Serial.println(F("client disconnected"));
   }
 }
