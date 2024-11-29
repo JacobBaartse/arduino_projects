@@ -56,7 +56,7 @@ void LEDstatustext(bool LEDon, unsigned long count){
   if (count != bcount){ // update display only once
     String TextHere = "-"; // "_--  ";
     if (LEDon) TextHere = "^"; // "oO0  ";
-    TextHere = TextHere + count;
+    TextHere = TextHere + (count % 10);
     Serial.println(F(""));
     Serial.print(TextHere);
 
@@ -207,6 +207,8 @@ void loop() {
     if (status == WL_AP_CONNECTED) {
       // a device has connected to the AP
       Serial.println("Device connected to AP");
+      // close the connection:
+      client.stop();
     } else {
       // a device has disconnected from the AP, and we are back in listening mode
       Serial.println("Device disconnected from AP");
