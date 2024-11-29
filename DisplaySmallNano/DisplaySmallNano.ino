@@ -84,7 +84,7 @@ void clear_display(){
 // }
 
 String Line1 = "Welcome \x81"; 
-String Line2 = "George {Munteanu} \x81"; 
+String Line2 = "George \x81{Munteanu} \x81"; 
 String Line3 = "Whats \x81 up?";  
 
 int prevx, x, minX;

@@ -24,12 +24,13 @@
 #include "ArduinoGraphics.h"
 #include "Arduino_LED_Matrix.h"
 #include "WiFiS3.h"
+// #include <Ethernet.h>
+// #include <StreamLib.h>  
 
 ArduinoLEDMatrix matrix;
 
-char ssid[] = "UNO_R4_demo"; // your network SSID (name)
+char ssid[] = "UNO_R4_AP"; // your network SSID (name)
 
-char c;
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
 int newstatus = WL_IDLE_STATUS;
@@ -48,6 +49,17 @@ void startupscrollingtext(String starttext){
   matrix.endText(SCROLL_LEFT);
 
   matrix.endDraw();
+}
+
+void LEDstatustext(bool LEDon){
+  String TextHere = " F "; // "_--  ";
+  if (LEDon) TextHere = " N "; // "oO0  ";
+  Serial.println("");
+  Serial.println(TextHere);
+
+  matrix.beginText(0, 1, 0xFFFFFF);
+  matrix.println(TextHere);
+  matrix.endText();
 }
 
 IPAddress printWiFiStatus() {
@@ -69,11 +81,12 @@ IPAddress printWiFiStatus() {
 
 void setup() {
   //Initialize serial and wait for port to open:
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
   Serial.println(F("Access Point Web Server"));
+  matrix.begin();
 
   pinMode(led, OUTPUT); // set the LED pin mode
 
@@ -86,7 +99,7 @@ void setup() {
 
   String fv = WiFi.firmwareVersion();
   if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the firmware");
+    Serial.println("Please upgrade the WiFi firmware");
   }
 
   String timestamp = __TIMESTAMP__;
@@ -94,13 +107,13 @@ void setup() {
   Serial.println(timestamp);
   Serial.flush(); 
 
-  // by default the local IP address will be 192.168.4.1
-  // you can override it with the following:
-  //WiFi.config(IPAddress(192,48,56,2));
-
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
   Serial.println(ssid);
+
+  // by default the local IP address will be 192.168.4.1
+  // you can override it with the following:
+  WiFi.config(IPAddress(192,168,12,2));
 
   // Create open network. Change this line if you want to create an WEP network:
   //status = WiFi.beginAP(ssid, pass);
@@ -128,6 +141,55 @@ void setup() {
   Serial.flush(); 
 }
 
+WiFiClient client;
+
+// void sendFavicon()
+// {
+//   // create a favion: https://www.favicon.cc/
+//   // convert to hex: http://tomeko.net/online_tools/file_to_hex.php?lang=en or https://www.onlinehexeditor.com/
+//   // Please note that if PROGMEM variables are not globally defined, 
+//   // you have to define them locally with static keyword, in order to work with PROGMEM.
+//   const static byte tblFavicon[] PROGMEM = {0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10, 0x10, 0x00, 0x01, 0x00, 0x04, 0x00, 0x28, 0x01, 
+//                                             0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x20, 0x00, 
+//                                             0x00, 0x00, 0x01, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x00, 0x82, 0x7E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x11, 0x11, 0x10, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x11, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x10, 0x01, 0x00, 0x01, 0x00, 0x10, 0x00, 0x10, 0x10, 
+//                                             0x01, 0x00, 0x01, 0x00, 0x10, 0x00, 0x11, 0x10, 0x01, 0x00, 0x01, 0x00, 0x11, 0x10, 0x10, 0x10, 
+//                                             0x01, 0x00, 0x01, 0x00, 0x10, 0x10, 0x10, 0x10, 0x11, 0x10, 0x11, 0x10, 0x11, 0x10, 0xFF, 0xFF, 
+//                                             0x00, 0x00, 0xF0, 0x1F, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0xFE, 0xFF, 
+//                                             0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0xFA, 0xBF, 0x00, 0x00, 0xFC, 0x7F, 
+//                                             0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x5B, 0xB7, 0x00, 0x00, 0x5B, 0xB7, 
+//                                             0x00, 0x00, 0x1B, 0xB1, 0x00, 0x00, 0x5B, 0xB5, 0x00, 0x00, 0x51, 0x11, 0x00, 0x00 
+//                                            };
+
+//   const size_t MESSAGE_BUFFER_SIZE = 64;
+//   char buffer[MESSAGE_BUFFER_SIZE];  // a buffer needed for the StreamLib
+//   BufferedPrint message(client, buffer, sizeof(buffer));
+//   message.print(F("HTTP/1.0 200 OK\r\n"
+//                  "Content-Type: image/x-icon\r\n"
+//                  "\r\n"));
+
+//   for (uint16_t i = 0; i < sizeof(tblFavicon); i++)
+//   {
+//     byte p = pgm_read_byte_near(tblFavicon + i);
+//     message.write(p);
+//   }
+//   message.flush();
+//   client.stop();
+// }
+
+//char c = '\n';
+//String currentLine = "";
+
 void loop() {
   
   // compare the previous status to the current status
@@ -145,14 +207,14 @@ void loop() {
     }
   }
   
-  WiFiClient client = server.available();   // listen for incoming clients
+  client = server.available();   // listen for incoming clients
 
   if (client) {                             // if you get a client,
     Serial.println("new client");           // print a message out the serial port
-    String currentLine = "";                // make a String to hold incoming data from the client
+    String currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
-        c = client.read();                  // read a byte, then
+        char c = client.read();                  // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
         if (c == '\n') {                    // if the byte is a newline character
 
@@ -166,8 +228,28 @@ void loop() {
             client.println();
 
             // the content of the HTTP response follows the header:
-            client.print("<p style=\"font-size:7vw;\">Click <a href=\"/H\">here</a> to turn the LED on<br></p>");
-            client.print("<p style=\"font-size:7vw;\">Click <a href=\"/L\">here</a> to turn the LED off<br></p>");
+            // client.print("<p style=\"font-size:7vw;\">LED<br></p>");
+            // client.print("<p style=\"font-size:7vw;\"><a href=\"/H\">ON</a><br></p>");
+            // client.print("<p style=\"font-size:7vw;\"><a href=\"/L\">off</a><br></p>");
+
+            client.print("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>");
+            client.print("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>");  
+            client.print("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">");
+            client.print("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>");
+            client.print("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>");
+            client.print("</TABLE>");
+            client.print("</BODY></HTML>");
+
+            // client.print("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>");
+            // client.print("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"><style>");
+            // client.print("wrapper {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 100px 100px;  gap: 10px; } ");
+            // client.print("box1 { grid-row: 1; } ");
+            // client.print("box2 { grid-row: 2; grid-column: 1 / 2; } ");
+            // client.print("box3 { grid-row: 2; grid-column: 2 / 2; } ");
+            // client.print("</style></HEAD>");  
+            // client.print("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">");
+            // client.print("<div class=\"wrapper\"><div class=\"box1\">LED</div><div class=\"box2\"><a href=\"/H\">ON</a></div><div class=\"box3\"><a href=\"/L\">off</a></div></div>");
+            // client.print("</BODY></HTML>");
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -189,6 +271,15 @@ void loop() {
         if (currentLine.endsWith("GET /L")) {
           digitalWrite(led, LOW);                // GET /L turns the LED off
         }
+        if (currentLine.endsWith("GET /T")) {
+          digitalWrite(led, !digitalRead(led));  // GET /T toggles the LED
+        }
+        LEDstatustext(digitalRead(led));
+
+        if (currentLine.endsWith("GET /favicon.ico")) {
+          // sendFavicon();
+          client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
+        }      
       }
     }
 
