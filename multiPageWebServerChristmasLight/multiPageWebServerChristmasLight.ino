@@ -412,14 +412,21 @@ void businessLogic(){
   }
   if (digitalRead(PIR_PIN)==HIGH){
     activate_display=5;
+    pinMode(GREEN_LED_PIN, INPUT_PULLUP);
+    pinMode(RED_LED_PIN, INPUT_PULLUP);
+  }
+  else{
+    pinMode(GREEN_LED_PIN, INPUT);
+    pinMode(RED_LED_PIN, OUTPUT);   
+    digitalWrite(RED_LED_PIN, LOW); 
   }
   if (digitalRead(RED_BUTTON_PIN)==PUSHED){
     if (debug) Serial.println("red button pressed");
     activate_display=5;
+    pinMode(RED_LED_PIN, OUTPUT);  
     digitalWrite(RED_LED_PIN, HIGH);
     send_code(RF_LIGHT_ALL_OFF);
   } 
-  else digitalWrite(RED_LED_PIN, LOW);  
 
   if (charging){
     if ( (dht22.readTemperature() - temperature_start_battery) > 5.0){
