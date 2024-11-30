@@ -54,7 +54,7 @@ void startupscrollingtext(String starttext){
 void LEDstatustext(bool LEDon, unsigned long count){
   static unsigned long bcount = 0;
   if (count != bcount){ // update display only once
-    String TextHere = "-"; // "_--  ";
+    String TextHere = "_"; // "_--  ";
     if (LEDon) TextHere = "^"; // "oO0  ";
     TextHere = TextHere + (count % 10);
     Serial.println(F(""));
@@ -206,12 +206,10 @@ void loop() {
   
     if (status == WL_AP_CONNECTED) {
       // a device has connected to the AP
-      Serial.println("Device connected to AP");
-      // close the connection:
-      client.stop();
+      Serial.println(F("Device connected to AP"));
     } else {
       // a device has disconnected from the AP, and we are back in listening mode
-      Serial.println("Device disconnected from AP");
+      Serial.println(F("Device disconnected from AP"));
     }
   }
   
@@ -273,6 +271,9 @@ void loop() {
           digitalWrite(led, !digitalRead(led));  // GET /T toggles the LED
           acounter += 1;
         }
+        if (currentLine.endsWith("GET /")) {
+          acounter += 1;
+        }
         LEDstatustext(digitalRead(led), acounter);
 
         if (currentLine.endsWith("GET /favicon.ico")) {
@@ -280,10 +281,16 @@ void loop() {
           client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
         }      
       }
+      else {
+        //delay(1000); 
+        Serial.println(F("breaking from loop"));
+        break; // break from loop and disconnect client
+      }
     }
 
     // close the connection:
     client.stop();
     Serial.println(F("client disconnected"));
+    //delay(1000); // make sure the disconnection is detected
   }
 }
