@@ -271,9 +271,9 @@ void loop() {
           digitalWrite(led, !digitalRead(led));  // GET /T toggles the LED
           acounter += 1;
         }
-        if (currentLine.endsWith("GET /")) {
-          acounter += 1;
-        }
+        // if (currentLine.endsWith("GET /")) {
+        //   acounter += 1;
+        // }
         LEDstatustext(digitalRead(led), acounter);
 
         if (currentLine.endsWith("GET /favicon.ico")) {
