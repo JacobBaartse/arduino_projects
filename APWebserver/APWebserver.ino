@@ -84,6 +84,8 @@ IPAddress printWiFiStatus() {
   return ip;
 }
 
+int channel = 6;
+
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
@@ -122,7 +124,8 @@ void setup() {
 
   // Create open network. Change this line if you want to create an WEP network:
   //status = WiFi.beginAP(ssid, pass);
-  status = WiFi.beginAP(ssid); // no password needed
+  //status = WiFi.beginAP(ssid); // no password needed
+  status = WiFi.beginAP(ssid, channel);
   if (status != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
     // don't continue
