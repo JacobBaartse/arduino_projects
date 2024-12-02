@@ -30,6 +30,7 @@
 ArduinoLEDMatrix matrix;
 
 char ssid[] = "UNO_R4_AP"; // your network SSID (name)
+uint8_t WiFichannel = 6; // WiFi channel
 
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
@@ -84,8 +85,6 @@ IPAddress printWiFiStatus() {
   return ip;
 }
 
-int channel = 6;
-
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
@@ -125,7 +124,7 @@ void setup() {
   // Create open network. Change this line if you want to create an WEP network:
   //status = WiFi.beginAP(ssid, pass);
   //status = WiFi.beginAP(ssid); // no password needed
-  status = WiFi.beginAP(ssid, channel);
+  status = WiFi.beginAP(ssid, WiFichannel);
   if (status != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
     // don't continue
