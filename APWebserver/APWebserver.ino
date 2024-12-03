@@ -30,7 +30,7 @@
 ArduinoLEDMatrix matrix;
 
 char ssid[] = "UNO_R4_AP"; // your network SSID (name)
-uint8_t WiFichannel = 6; // WiFi channel
+uint8_t WiFichannel = 6; // WiFi channel (1-13)
 
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
@@ -273,7 +273,7 @@ void loop() {
           digitalWrite(led, !digitalRead(led));  // GET /T toggles the LED
           acounter += 1;
         }
-        // if (currentLine.endsWith("GET /")) {
+        // if (currentLine.endsWith("GET /")) {  // home page gets triggered as well
         //   acounter += 1;
         // }
         LEDstatustext(digitalRead(led), acounter);
