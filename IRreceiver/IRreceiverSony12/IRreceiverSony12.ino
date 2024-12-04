@@ -58,9 +58,8 @@ unsigned long getIrCode(){
       if (tmp_trace_index > prev_trace_index + 12){ // is there enough data to decode?
         if (debug) Serial.println("enough data to decode");
         unsigned long decoded_value = 0;
-        int bit_num = 12;
+        int bit_num = 0;
         for (int index = prev_trace_index+1; index < prev_trace_index + 13; index ++){  // skip the start indicator
-          bit_num --;
           unsigned long bitval = trace_array[index % buffer_size] / one_bit_val;
           if (debug) Serial.print(bitval);
 
@@ -70,7 +69,8 @@ unsigned long getIrCode(){
             break;
           }
           decoded_value += (bitval << bit_num);
-          if (bit_num == 0){
+          bit_num ++;
+          if (bit_num == 11){
             
             if (debug) { Serial.print("0x"); Serial.println(decoded_value, HEX); }
             prev_trace_index = (index + 1) % buffer_size;
