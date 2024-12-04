@@ -297,10 +297,11 @@ void setup() {
   network.begin(60, this_node); // (channel, node address)
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
-  /*
+  /* 
   display.begin(i2c_Address, true); // Address 0x3C default
   displaystatus = setDisplay(DisplayState::Dim);
   display.clearDisplay();
+  
   display.setFont(&FreeSerif12pt7b);
   display.setTextSize(1); // 3 lines of 10-12 chars
   display.setTextColor(SH110X_WHITE);
@@ -400,7 +401,7 @@ void loop() {
   buttonRedPressed = reddebounce((digitalRead(buttonPinRed) == LOW), currentMillis);
 
 
-  /*
+  /* 
   display_move(prevx, y2, x, y2, Line2);
   if (!oncecompleted){
     display_move(prevx, y3, x, y3, Line3);
