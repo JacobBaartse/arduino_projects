@@ -30,7 +30,7 @@
 ArduinoLEDMatrix matrix;
 
 char ssid[] = "UNO_R4_AP"; // your network SSID (name)
-uint8_t WiFichannel = 6; // WiFi channel (1-13)
+uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
 
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
