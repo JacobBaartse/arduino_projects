@@ -84,11 +84,11 @@ void clear_display(){
 // }
 
 String Line1 = "Welcome \x81"; 
-String Line2 = "George \x81{Munteanu} \x81"; 
+String Line2 = "Demo \x81{small display} \x81"; 
 String Line3 = "Whats \x81 up?";  
 
 int prevx, x, minX;
-int y1, y2, y3, minY;
+int y4, y2, y3, minY;
 bool oncecompleted = false;
 
 void setup() {
@@ -104,14 +104,14 @@ void setup() {
   display.display();
 
   x = display.width();
-  y1 = 16;
+  y4 = 16;
   y2 = 38;
   y3 = 60;
   // minX = -128;
   minX = -200; // depends on length of the text
   minY = -22;
 
-  display_oled(true, 0, y1, Line1); 
+  display_oled(true, 0, y4, Line1); 
   display_oled(false, x, y2, Line2); 
   display_oled(false, x, y3, Line3);  
   prevx = x;
