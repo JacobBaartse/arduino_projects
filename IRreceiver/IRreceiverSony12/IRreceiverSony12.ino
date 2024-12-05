@@ -105,30 +105,31 @@ void setup() {
 
 
 int trace_index_read = 0;
+int prev_ir_command = 0;
+unsigned int last_recieved_time = 0;
+int ir_command_count = 0;
 void loop() {
-  unsigned long rfcommand = getIrCode();
-  if (rfcommand>0)  {
-    Serial.print("0x");
-    Serial.println(rfcommand, HEX);
+  unsigned long ir_command = getIrCode();
+  if (ir_command>0)  {
+    if ((millis() - last_recieved_time) > 1000){
+      prev_ir_command = 0;
+      ir_command_count = 0;
+    }
+    last_recieved_time = millis();
+    if (ir_command == prev_ir_command){ // check at least 2 codes to prevent read errors
+      ir_command_count ++;
+      if (ir_command_count ==1){
+        Serial.print("0x");
+        Serial.println(ir_command, HEX);
+      }
+    }
+    else{
+      ir_command_count = 0;
+    }
+    prev_ir_command = ir_command;
   }
-  // if (rfcommand > 0){
-  //   if (prv_rfcommand != rfcommand){ // store rf code only once (TBD per 4 seconds)
-  //     // String ButtonCode = buttonfromrfcode(rfcommand);
-  //     sequence_index++;
-  //     sequence_index = sequence_index % 256; // keep it in 1 byte
-  //     Serial.print("Sequence: ");
-  //     Serial.print(sequence_index);
-  //     Serial.print(", control button: ");
-  //     Serial.println(ButtonCode);
-  //   }
-  //   prv_rfcommand = rfcommand;
-  // }
-  // while (trace_index_read < trace_index){
-  //   Serial.print(trace_array[trace_index_read]);
-  //   Serial.print(",");
-  //   trace_index_read+=1;
-  // }
-  // Serial.println();
+
+
 
   delay(100);
   // digitalWrite(LED_BUILTIN, LOW);
