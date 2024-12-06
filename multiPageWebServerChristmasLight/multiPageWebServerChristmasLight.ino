@@ -13,6 +13,7 @@
 #include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
 #include <Adafruit_GFX.h>
 #include "FreeSerif12pt7b_special.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+#include "IR_receiver.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -187,6 +188,7 @@ void setup() {
   // you're connected now, so print out the status:
   printWifiStatus();
   get_time_form_worldtimeapi_org();
+  setup_ir_receiver();
 }
 
 
@@ -375,6 +377,52 @@ void webserver(){
   }
 }
 
+void light(bool turn_on, int light_id){
+  if (turn_on){
+    switch(light_id){
+      case 1: send_code(RF_LIGHT_ON1);lamp_state1 = "aan"; break;
+      case 2: send_code(RF_LIGHT_ON2);lamp_state2 = "aan"; break;
+      case 3: send_code(RF_LIGHT_ON3);lamp_state3 = "aan"; break;
+    }
+  }
+  else{
+    switch(light_id){
+    case 1: send_code(RF_LIGHT_OFF1);lamp_state1 = "uit"; break;
+    case 2: send_code(RF_LIGHT_OFF2);lamp_state2 = "uit"; break;
+    case 3: send_code(RF_LIGHT_OFF3);lamp_state3 = "uit"; break;
+    }
+  }
+}
+
+bool get_light_state(int light_id){
+  switch(light_id){
+    case 1: if (lamp_state1 == "uit") return false; break;
+    case 2: if (lamp_state2 == "uit") return false; break;
+    case 3: if (lamp_state3 == "uit") return false; break;
+  }
+  return true;
+}
+
+void toggle_light(int light_id){
+  if (get_light_state(light_id)) light(false, light_id);
+  else light(true, light_id);
+}
+
+void all_lights(bool turn_on){
+  if (turn_on){
+    send_code(RF_LIGHT_ALL_ON);
+    lamp_state1 = "aan";
+    lamp_state2 = "aan";
+    lamp_state3 = "aan";
+  }
+  else{
+    send_code(RF_LIGHT_ALL_OFF);
+    lamp_state1 = "uit";
+    lamp_state2 = "uit";
+    lamp_state3 = "uit";
+  }
+}
+
 void businessLogic(){
   update_clock();
   bool low_light = false;
@@ -435,6 +483,16 @@ void businessLogic(){
     }
   }
   update_display();
+  int ir_value = one_loop_irreceiver();
+  if (ir_value>0){
+      if (debug) Serial.print("0x");
+      if (debug) Serial.println(ir_value, HEX);
+      if (ir_value == 0x1cc) all_lights(false);
+      if (ir_value == 0x1cd) all_lights(true);      
+      if (ir_value == 0x80) toggle_light(1);
+      if (ir_value == 0x81) toggle_light(2);
+      if (ir_value == 0x82) toggle_light(3);
+  }
 }
 
 
