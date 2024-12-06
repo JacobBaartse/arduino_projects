@@ -7,9 +7,7 @@ Base <---> Repeater <-----------> Remote
 
 Target: RF-NANO with additional RF24 module Long Range
 nRF24L01-PA (CE,CSN) connected to pin 8, 7
-location JWF21
-
-@todo, remove BUILTin LED, because this LED is on the SPI interface, so wil disturb communication
+location schuur SO 148
 
 */
 
@@ -27,7 +25,7 @@ const uint16_t repeater_node = 010; // Address of the repeater node in Octal for
 const uint16_t remote_node = 01;    // Address of the other node in Octal format
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(230400); // actual baudrate in IDE 57600 (RF-NANO), there is somewhere a mismatch in clock factor of 4
 
   radio1.begin();
   radio2.begin();
@@ -38,27 +36,18 @@ void setup() {
   radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
   radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
-
   Serial.println(" ");  
   Serial.println(" *************** ");  
   Serial.println(" "); 
   Serial.flush();  
-
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
 }
 
 net_payload nw1Data = EmptyData;
 net_payload nw2Data = EmptyData;
 bool transmit = false;
-bool blink = false;
-//unsigned long currentMillis = 0; // stores the value of millis() in each iteration of loop()
+//bool blink = false;
 
 void loop() {
-
-  //currentMillis = millis(); // capture the value of millis()
 
   network1.update();
   network2.update();
@@ -67,7 +56,7 @@ void loop() {
   if (nw1Data.data1 > 0xab000000) { // data1 should be the keyword
     transmit = transmitRFnetwork(network2, remote_node, nw1Data);
     if (transmit) {
-        blink = true;
+      Serial.println("nw1 -> nw2"); 
     }
   }
 
@@ -75,10 +64,8 @@ void loop() {
   if (nw2Data.data1 > 0xab000000) { // data1 should be the keyword
     transmit = transmitRFnetwork(network1, base_node, nw2Data);
     if (transmit) {
-        blink = true;
+      Serial.println("nw2 -> nw1"); 
     }
   }
-
-  //blink = knipperen(currentMillis, blink);
 
 }
