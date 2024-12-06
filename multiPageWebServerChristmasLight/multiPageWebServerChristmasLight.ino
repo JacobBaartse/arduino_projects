@@ -1,4 +1,3 @@
-
 #include <WiFiS3.h>
 #include "WiFiSSLClient.h"
 #include "arduino_secrets.h"
@@ -192,6 +191,18 @@ void setup() {
 }
 
 
+void  battery_charge(boolean activate){
+  if (activate){
+    charging = true;
+    temperature_start_battery = dht22.readTemperature();
+    digitalWrite(RELAY_PIN, HIGH);
+  }
+  else{
+    charging = false;
+    digitalWrite(RELAY_PIN, LOW);
+  }
+}
+
 void webserver(){
    // listen for incoming clients
   wifi_state = ".";
@@ -242,92 +253,28 @@ void webserver(){
 
     int page_id = 0;
 
-    if (HTTP_req.indexOf("GET") == 0) {  // check if request method is GET
-      if (HTTP_req.indexOf("GET / ") > -1 || HTTP_req.indexOf("GET /index") > -1) {
-        // Serial.println("home page");
-        page_id = PAGE_HOME;
-      } else if (HTTP_req.indexOf("GET /temperature") > -1) {
-        // Serial.println("temperature page");
-        page_id = PAGE_TEMPERATURE;
-      } else if (HTTP_req.indexOf("GET /light") > -1) {
-        // Serial.println("light page");
-        page_id = PAGE_LIGHT;
-      }else if (HTTP_req.indexOf("GET /lamp?1") > -1) {
-          //Serial.println("lamp on page");
-          // digitalWrite(relay, HIGH);
-          send_code(RF_LIGHT_ON1);
-          lamp_state1 = "aan";
-          page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /lamp?2") > -1) {
-          //Serial.println("lamp off page");
-          send_code(RF_LIGHT_OFF1);
-          lamp_state1 = "uit";
-          page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /lamp?3") > -1) {
-          //Serial.println("lamp off page");
-          send_code(RF_LIGHT_ON2);
-          lamp_state2 = "aan";
-          page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /lamp?4") > -1) {
-          //Serial.println("lamp off page");
-          send_code(RF_LIGHT_OFF2);
-          lamp_state2 = "uit";
-          page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /lamp?5") > -1) {
-          //Serial.println("lamp off page");
-          send_code(RF_LIGHT_ON3);
-          lamp_state3 = "aan";
-          page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /lamp?6") > -1) {
-          //Serial.println("lamp off page");
-          send_code(RF_LIGHT_OFF3);
-          lamp_state3 = "uit";
-          page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /lamp?7") > -1) {
-          //Serial.println("lamp off page");
-          send_code(RF_LIGHT_ALL_ON);
-          lamp_state1 = "aan";
-          lamp_state2 = "aan";
-          lamp_state3 = "aan";
-          page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /lamp?8") > -1) {
-          //Serial.println("lamp off page");
-          send_code(RF_LIGHT_ALL_OFF);
-          lamp_state1 = "uit";
-          lamp_state2 = "uit";
-          lamp_state3 = "uit";
-          page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /lamp") > -1 ) {
-        // Serial.println("lamp page");
-        page_id = PAGE_LAMP;
-      } else if (HTTP_req.indexOf("GET /battery?1") > -1 ) {
-        Serial.println("battery on page");
-        charging = true;
-        temperature_start_battery = dht22.readTemperature();
-        digitalWrite(RELAY_PIN, HIGH);
-        page_id = PAGE_HOME;
-      } else if (HTTP_req.indexOf("GET /battery?0") > -1 ) {
-        Serial.println("battery off page");
-        charging = false;
-        digitalWrite(RELAY_PIN, LOW);
-        page_id = PAGE_HOME;
-      } else {  // 404 Not Found
-        // Serial.println("404 Not Found");
-        page_id = PAGE_ERROR_404;
-      }
-    } else {  // 405 Method Not Allowed
-    // Serial.println("405 Method Not Allowed");
     page_id = PAGE_ERROR_405;
-    }    
-
-    // send the HTTP response
-    // send the HTTP response header
-    if (page_id == PAGE_ERROR_404)
-      client.println("HTTP/1.1 404 Not Found");
-    else if (page_id == PAGE_ERROR_405)
-      client.println("HTTP/1.1 405 Method Not Allowed");
-    else
-      client.println("HTTP/1.1 200 OK");
+    if (HTTP_req.indexOf("GET") == 0) {  // check if request method is GET
+      page_id = PAGE_ERROR_404;
+      if (HTTP_req.indexOf("GET / ") > -1 || HTTP_req.indexOf("GET /index") > -1) page_id = PAGE_HOME;
+      if (HTTP_req.indexOf("GET /temperature") > -1)                              page_id = PAGE_TEMPERATURE;
+      if (HTTP_req.indexOf("GET /light") > -1)                                    page_id = PAGE_LIGHT;
+      if (HTTP_req.indexOf("GET /lamp?1") > -1) light(true, 1);
+      if (HTTP_req.indexOf("GET /lamp?2") > -1) light(false, 1);
+      if (HTTP_req.indexOf("GET /lamp?3") > -1) light(true, 2);
+      if (HTTP_req.indexOf("GET /lamp?4") > -1) light(false, 2);
+      if (HTTP_req.indexOf("GET /lamp?5") > -1) light(true, 3);
+      if (HTTP_req.indexOf("GET /lamp?6") > -1) light(false, 3);
+      if (HTTP_req.indexOf("GET /lamp?7") > -1) all_lights(true);
+      if (HTTP_req.indexOf("GET /lamp?8") > -1) all_lights(false);
+      if (HTTP_req.indexOf("GET /lamp") > -1 )                                   page_id = PAGE_LAMP;
+      if (HTTP_req.indexOf("GET /battery?1") > -1 ) battery_charge(true);
+      if (HTTP_req.indexOf("GET /battery?0") > -1 ) battery_charge(false);
+      if (HTTP_req.indexOf("GET /battery") > -1 )                                page_id = PAGE_HOME;
+    }
+    if (page_id == PAGE_ERROR_404) client.println("HTTP/1.1 404 Not Found");
+    else if (page_id == PAGE_ERROR_405) client.println("HTTP/1.1 405 Method Not Allowed");
+    else client.println("HTTP/1.1 200 OK");
 
     client.println("Content-Type: text/html");
     client.println("Connection: close");  // the connection will be closed after completion of the response
@@ -351,7 +298,6 @@ void webserver(){
         break;
       case PAGE_LAMP:
         html = String(HTML_CONTENT_LAMP);
-
         lamp_state = String(" "+lamp_state1 + " " + lamp_state2 + " " + lamp_state3);
         html.replace("LAMP_STATE_MARKER", lamp_state);  // replace the marker by a real value
         break;
@@ -432,14 +378,14 @@ void businessLogic(){
   if (Hour==22 && Minutes >=30) eavening = false;
   if (auto_lights_on){
     if (!eavening){
-      send_code(RF_LIGHT_ALL_OFF);
+      all_lights(false);
       auto_lights_on = false;
     }
   }
   if (!auto_lights_on){
     if (eavening){
       if (low_light){
-        send_code(RF_LIGHT_ALL_ON);
+        all_lights(true);
         auto_lights_on = true;
       }
     }
@@ -449,11 +395,11 @@ void businessLogic(){
     activate_display=6;
     pinMode(GREEN_LED_PIN, OUTPUT);
     digitalWrite(GREEN_LED_PIN, HIGH);  
-    send_code(RF_LIGHT_ON1);
+    light(true, 1);
     if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) delay(500);
-    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) send_code(RF_LIGHT_ON2);
+    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) light(true, 2);
     if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) delay(500);
-    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) send_code(RF_LIGHT_ON3);
+    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) light(true, 3);
   } 
   else{
     pinMode(GREEN_LED_PIN, INPUT);
@@ -473,7 +419,7 @@ void businessLogic(){
     activate_display=5;
     pinMode(RED_LED_PIN, OUTPUT);  
     digitalWrite(RED_LED_PIN, HIGH);
-    send_code(RF_LIGHT_ALL_OFF);
+    all_lights(false);
   } 
 
   if (charging){
