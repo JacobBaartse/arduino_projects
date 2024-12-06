@@ -284,7 +284,7 @@ bool oncecompleted = false;
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(230400); // actual baudrate in IDE 57600 (RF-NANO), there is somewhere a mismatch in clock factor of 4
   
   pinMode(buttonPinGreen, INPUT_PULLUP);
   pinMode(buttonPinRed, INPUT_PULLUP);
