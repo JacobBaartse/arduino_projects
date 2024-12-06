@@ -16,8 +16,8 @@
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define i2c_Address 0x3c //initialize with the I2C addr 0x3C Typically eBay OLED's
-//#define i2c_Address 0x3d //initialize with the I2C addr 0x3D Typically Adafruit OLED's
+#define display_i2c_Address 0x3c //initialize with the I2C addr 0x3C Typically eBay OLED's
+//#define display_i2c_Address 0x3d //initialize with the I2C addr 0x3D Typically Adafruit OLED's
 #define OLED_RESET     -1
 #include "DHT.h"
 #include "rfzender.h"
@@ -43,7 +43,7 @@ const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
 const bool debug = false;
 
-int lightSensorPin = A0;   // select the input pin to be measured
+const int lightSensorPin = A0;   // select the input pin of the light sensor.
 int sensorValue = 0;  // variable to store the value coming from the sensor
 
 
@@ -54,17 +54,15 @@ String lamp_state2 = "uit";
 String lamp_state3 = "uit";
 
 int status = WL_IDLE_STATUS;
-bool charging = true;
-float temperature_start_battery=0.0;
+bool charging = false;
+float temperature_start_battery = 0.0;
 bool auto_lights_on = false;
-String wifi_state = "0";
-long prev_wifi_time =0;
+long prev_wifi_time = 0;
 
 WiFiServer server(80);
 
 String getLight_value(){
   sensorValue = analogRead(lightSensorPin);
-  //Serial.println(sensorValue);
   return String(sensorValue);
 }
 
@@ -101,7 +99,7 @@ void update_display(){
       float humid  = dht22.readHumidity();
       float tempC = dht22.readTemperature();
     
-      display_oled(true, 0, 16,String(tempC, 1) + " \x7F"+"C "+wifi_state, false);  // } \x7F is converted to degrees in this special font.
+      display_oled(true, 0, 16,String(tempC, 1) + " \x7F"+"C", false);  // } \x7F is converted to degrees in this special font.
 
       if (charging) {
         display_oled(false, 0, 40,String(humid, 0) + " % " + String(temperature_start_battery, 1), false);
@@ -122,32 +120,27 @@ void update_display(){
       if (debug) Serial.println("clear display");
       display.clearDisplay();   
       display.setCursor(0,0);
-      display.print("  "); 
+      display.print("  "); // always send some data to the screen to keep it alive.
       display.display();
     }  
   }
 }
 
 void printWifiStatus() {
-  // print your board's IP address:
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
   display_oled(false, 0, 18, WiFi.localIP().toString(), true);
 
-  // print the received signal strength:
   Serial.print("signal strength (RSSI): ");
   Serial.print(WiFi.RSSI());
   Serial.println(" dBm");
 }
 
 void setup() {
-  //Initialize serial and wait for port to open:
   Serial.begin(115200);
-    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  display.begin(i2c_Address, true); // Address 0x3C default
+  display.begin(display_i2c_Address, true);
   display.setContrast (0); // dim display
-
 
   pinMode(GREEN_LED_PIN, INPUT);
   pinMode(GREEN_BUTTON_PIN, INPUT_PULLUP);
@@ -159,7 +152,7 @@ void setup() {
 
   display.clearDisplay();
   display.setFont(&FreeSerif12pt7b);
-  display.setTextSize(1);  // 2 lines of 11 chars
+  display.setTextSize(1);  // 3 lines of 11 chars
   display.setTextColor(SH110X_WHITE);
   display.display();
 
@@ -205,16 +198,11 @@ void  battery_charge(boolean activate){
 
 void webserver(){
    // listen for incoming clients
-  wifi_state = ".";
   WiFiClient client = server.available();
   if (client) {
-    wifi_state = "4";
-    // read the first line of HTTP request header
-    if (debug) Serial.println("read first line of http request header");
     String HTTP_req = "";
     prev_wifi_time = millis();
     while (client.connected()) {
-      wifi_state = "1";
       if (client.available()) {
         if (debug) Serial.println("New HTTP Request");
         HTTP_req = client.readStringUntil('\n');  // read the first line of HTTP request
@@ -232,7 +220,6 @@ void webserver(){
     // read the remaining lines of HTTP request header
     prev_wifi_time = millis();
     while (client.connected()) {
-      wifi_state = "2";
       if (client.available()) {
         String HTTP_header = client.readStringUntil('\n');  // read the header line of HTTP request
 
@@ -248,8 +235,6 @@ void webserver(){
         break;
       }
     }
-    wifi_state = "3";
-
 
     int page_id = 0;
 
@@ -259,6 +244,7 @@ void webserver(){
       if (HTTP_req.indexOf("GET / ") > -1 || HTTP_req.indexOf("GET /index") > -1) page_id = PAGE_HOME;
       if (HTTP_req.indexOf("GET /temperature") > -1)                              page_id = PAGE_TEMPERATURE;
       if (HTTP_req.indexOf("GET /light") > -1)                                    page_id = PAGE_LIGHT;
+
       if (HTTP_req.indexOf("GET /lamp?1") > -1) light(true, 1);
       if (HTTP_req.indexOf("GET /lamp?2") > -1) light(false, 1);
       if (HTTP_req.indexOf("GET /lamp?3") > -1) light(true, 2);
@@ -268,6 +254,7 @@ void webserver(){
       if (HTTP_req.indexOf("GET /lamp?7") > -1) all_lights(true);
       if (HTTP_req.indexOf("GET /lamp?8") > -1) all_lights(false);
       if (HTTP_req.indexOf("GET /lamp") > -1 )                                   page_id = PAGE_LAMP;
+
       if (HTTP_req.indexOf("GET /battery?1") > -1 ) battery_charge(true);
       if (HTTP_req.indexOf("GET /battery?0") > -1 ) battery_charge(false);
       if (HTTP_req.indexOf("GET /battery") > -1 )                                page_id = PAGE_HOME;
@@ -319,7 +306,6 @@ void webserver(){
     if (debug) Serial.println("client stop");
     client.stop();
     if (debug) Serial.println("client stop done");
-    wifi_state = "5";
   }
 }
 
@@ -422,12 +408,9 @@ void businessLogic(){
     all_lights(false);
   } 
 
-  if (charging){
-    if ( (dht22.readTemperature() - temperature_start_battery) > 5.0){
-      charging = false;
-      digitalWrite(RELAY_PIN, LOW);
-    }
-  }
+  if (charging)
+    if ( (dht22.readTemperature() - temperature_start_battery) > 5.0) battery_charge(false)
+
   update_display();
   int ir_value = one_loop_irreceiver();
   if (ir_value>0){
