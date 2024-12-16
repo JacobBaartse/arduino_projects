@@ -409,7 +409,7 @@ void businessLogic(){
   } 
 
   if (charging)
-    if ( (dht22.readTemperature() - temperature_start_battery) > 5.0) battery_charge(false)
+    if ( (dht22.readTemperature() - temperature_start_battery) > 5.0) battery_charge(false);
 
   update_display();
   int ir_value = one_loop_irreceiver();
@@ -417,10 +417,11 @@ void businessLogic(){
       if (debug) Serial.print("0x");
       if (debug) Serial.println(ir_value, HEX);
       if (ir_value == 0x1cc) all_lights(false);
-      if (ir_value == 0x1cd) all_lights(true);      
-      if (ir_value == 0x80) toggle_light(1);
-      if (ir_value == 0x81) toggle_light(2);
-      if (ir_value == 0x82) toggle_light(3);
+      else if (ir_value == 0x1cd) all_lights(true);      
+      else if (ir_value == 0x80) toggle_light(1);
+      else if (ir_value == 0x81) toggle_light(2);
+      else if (ir_value == 0x82) toggle_light(3);
+      else light(true, 1);
   }
 }
 
