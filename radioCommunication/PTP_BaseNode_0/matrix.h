@@ -7,13 +7,13 @@
 
 ArduinoLEDMatrix matrix;
 
-const uint32_t full_on[] = {
+const PROGMEM uint32_t full_on[] = {
     0xffffffff,
     0xffffffff,
     0xffffffff
 };
 
-const uint32_t full_off[] = {
+const PROGMEM uint32_t full_off[] = {
     0x00,
     0x00,
     0x00
@@ -43,7 +43,7 @@ void loadstaticpicture(int item_id){
   }
 }
 
-const int sequencing[][2] = {
+const PROGMEM int sequencing[][2] = {
   {
     PICT_HEART_S,
     600
