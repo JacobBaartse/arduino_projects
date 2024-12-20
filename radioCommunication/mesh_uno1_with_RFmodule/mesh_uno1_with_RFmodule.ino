@@ -222,7 +222,8 @@ void loop() {
     }
     else{
       Serial.print(F(" ."));
-      digitalWrite(LEDpin1, LOW);
+      digitalWrite(LEDpin2, LOW);
+      digitalWrite(LEDpin3, LOW);
     }
     //// SHOW DHCP TABLE - END
 

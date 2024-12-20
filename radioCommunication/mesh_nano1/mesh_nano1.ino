@@ -12,6 +12,9 @@
 #define slaveNodeID 3
 #define masterNodeID 0
 
+#define releayPin1 5  
+#define releayPin2 6  
+
 const int rfReceiverPin = 2; // should be a pin that supports interrupts
 const int buffer_size = 1024;
 const int start_indicator_val = 6;
@@ -191,6 +194,11 @@ void setup() {
   while (!Serial) {
     // some boards need this because of native USB capability
   }
+  pinMode(releayPin1, OUTPUT);
+  pinMode(releayPin2, OUTPUT);
+  digitalWrite(releayPin1, HIGH);
+  digitalWrite(releayPin2, HIGH);
+
   for (int i=0;i<buffer_size;i++){
     trace_array[i] = 0;
   }
@@ -215,6 +223,10 @@ void setup() {
 
   Serial.print(F("Starting the mesh, nodeID: "));
   Serial.println(mesh.getNodeID());
+  Serial.println(" ");  
+  Serial.println(" *************** ");  
+  Serial.println(" "); 
+  Serial.flush(); 
 }
  
 unsigned int mesherror = 0;
