@@ -2,6 +2,12 @@
  *
  */
 
+#include "matrix.h"
+#include "networking.h"
+// #include "WiFiS3.h" // already included in networking.h
+#include "RTC.h"
+#include "clock.h"
+
 #include "RF24Network.h"
 #include "RF24.h"
 #include "RF24Mesh.h"
@@ -12,13 +18,12 @@
 #define slavenodeID 3
 #define masterNodeID 0
 #define LEDpin1 4
-#define LEDpin2 3
-#define LEDpin3 2
+#define LEDpin2 5
+#define LEDpin3 6
 
+WiFiServer server(80);
+IPAddress IPhere;
 
-/**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(8, 7);
-RF24Network network(radio);
 RF24Mesh mesh(radio, network);
  
 unsigned long const keywordvalM = 0xfeebbeef; 
@@ -57,6 +62,22 @@ bool meshstartup(){
   return mesh.begin(radioChannel);
 }
 
+void LEDstatustext(bool LEDon, unsigned long count){
+  static unsigned long bcount = 0;
+  if (count != bcount){ // update display only once
+    String TextHere = "_"; // "_--  ";
+    if (LEDon) TextHere = "^"; // "oO0  ";
+    TextHere = TextHere + (count % 10);
+    Serial.println(F(""));
+    Serial.print(TextHere);
+
+    matrix.beginText(0, 1, 0xFFFFFF);
+    matrix.println(TextHere);
+    matrix.endText();
+    bcount = count;
+  }
+}
+
 void setup() {
   pinMode(LEDpin1, OUTPUT);
   pinMode(LEDpin2, OUTPUT);
@@ -67,7 +88,10 @@ void setup() {
   while (!Serial) {
     // some boards need this because of native USB capability
   }
-
+  
+  RTC.begin();
+  matrix.begin();
+  SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware not responding."));
     while (1) {
@@ -84,12 +108,53 @@ void setup() {
   meshrunning = meshstartup();
 
   digitalWrite(LEDpin1, HIGH);
+  Serial.print(F("Starting up UNO R4 WiFi"));
+  Serial.flush();
+
+  String timestamp = __TIMESTAMP__;
+  Serial.print(F("Creation/build time: "));
+  Serial.println(timestamp);
+  Serial.flush(); 
+
+  String fv = WiFi.firmwareVersion();
+  if (fv < WIFI_FIRMWARE_LATEST_VERSION){
+    Serial.println("Please upgrade the firmware for the WiFi module");
+  }
+
+  // attempt to connect to WiFi network:
+  int wifistatus = WifiConnect();
+  if (wifistatus == WL_CONNECTED){
+    server.begin();
+    IPhere = printWifiStatus(connection);
+  }
+  else{ // stop the wifi connection
+    WiFi.disconnect();
+  }
+  startupscrollingtext(String("-->: ") + IPhere.toString());
+
+  Serial.println(F("\nStarting connection to HS Design"));
+  get_time_from_hsdesign();
+  // Retrieve the date and time from the RTC and print them
+  RTCTime currentTime;
+  RTC.getTime(currentTime); 
   digitalWrite(LEDpin3, HIGH);
+  Serial.println(F("The RTC was just set to: "));
+  Serial.println(currentTime);
+
+  Serial.println(F(" "));  
+  Serial.println(F(" *************** "));  
+  Serial.println(F(" "));  
+  Serial.flush(); 
 }
  
 unsigned int mesherror = 0;
 uint8_t meshupdaterc = 0;
 uint8_t rem_meshupdaterc = 200;
+
+WiFiClient client;
+char c = '\n';
+String currentLine = "";
+unsigned long acounter = 0;
 
 void loop() {
   if (mesherror > 8) {
@@ -197,6 +262,86 @@ void loop() {
   }
   // end of while network.available
 
+  client = server.available();   // listen for incoming clients
 
+  if (client) {                             // if you get a client,
+    Serial.println(F("new client"));           // print a message out the serial port
+    currentLine = "";                       // make a String to hold incoming data from the client
+    while (client.connected()) {            // loop while the client's connected
+      if (client.available()) {             // if there's bytes to read from the client,
+        c = client.read();                  // read a byte, then
+        Serial.write(c);                    // print it out to the serial monitor
+        if (c == '\n') {                    // if the byte is a newline character
+
+          // if the current line is blank, you got two newline characters in a row.
+          // that's the end of the client HTTP request, so send a response:
+          if (currentLine.length() == 0) {
+            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+            // and a content-type so the client knows what's coming, then a blank line:
+            client.println(F("HTTP/1.1 200 OK"));
+            client.println(F("Content-type:text/html"));
+            client.println();
+
+            // the content of the HTTP response follows the header:
+            // client.print("<p style=\"font-size:7vw;\">LED<br></p>");
+            // client.print("<p style=\"font-size:7vw;\"><a href=\"/H\">ON</a><br></p>");
+            // client.print("<p style=\"font-size:7vw;\"><a href=\"/L\">off</a><br></p>");
+
+            client.print(F("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>"));
+            client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
+            client.print(F("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
+            client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>"));
+            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>"));
+            client.print(F("</TABLE></BODY></HTML>"));
+
+            // The HTTP response ends with another blank line:
+            client.println();
+            // break out of the while loop:
+            break;
+          }
+          else { // if you got a newline, then clear currentLine:
+            currentLine = "";
+          }
+        }
+        else if (c != '\r') {    // if you got anything else but a carriage return character,
+          currentLine += c;      // add it to the end of the currentLine
+        }
+
+        // Check to see if the client request was "GET /H" or "GET /L":
+        if (currentLine.endsWith("GET /H")) {
+          digitalWrite(LEDpin1, HIGH);               // GET /H turns the LED on
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /L")) {
+          digitalWrite(LEDpin1, LOW);                // GET /L turns the LED off
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /T")) {
+          digitalWrite(LEDpin1, !digitalRead(LEDpin1));  // GET /T toggles the LED
+          acounter += 1;
+        }
+        // if (currentLine.endsWith("GET /")) {  // home page gets triggered as well
+        //   acounter += 1;
+        // }
+        LEDstatustext(digitalRead(LEDpin1), acounter);
+
+        if (currentLine.endsWith("GET /favicon.ico")) {
+          // sendFavicon();
+          client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
+        }      
+      }
+      else {
+        //delay(1000); 
+        Serial.println(F("breaking from loop"));
+        break; // break from loop and disconnect client
+      }
+    }
+
+    // close the connection:
+    client.stop();
+    Serial.println(F("client disconnected"));
+    //delay(1000); // make sure the disconnection is detected
+  
+  }
 
 }
