@@ -7,7 +7,7 @@
 #include "RF24Mesh.h"
 #include <SPI.h>
  
-#define radioChannel 78
+#define radioChannel 96
 /** User Configuration per 'slave' node: nodeID **/
 #define slaveNodeID 3
 #define masterNodeID 0
@@ -47,12 +47,12 @@ unsigned long getRfCode(){
 
     if (tmp_trace_index<prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped
     for (int index=prev_trace_index; index<tmp_trace_index; index++){
-      if (debug) Serial.print(trace_array[index%buffer_size]);       Serial.print(" ");
+      if (debug) Serial.print(trace_array[index%buffer_size]);       Serial.print(F(" "));
       prev_trace_index = index % buffer_size;
       if (trace_array[index%buffer_size] == start_indicator_val){
         start_indicator_found = true; 
         if (debug) Serial.println();
-        if (debug) Serial.println("start_indicator_found");
+        if (debug) Serial.println(F("start_indicator_found"));
         break;       
       }
     }
@@ -60,37 +60,37 @@ unsigned long getRfCode(){
     // decode the data
     bool all_decoded = false;
     if (start_indicator_found){
-      if (debug) Serial.println("decode the data");
+      if (debug) Serial.println(F("decode the data"));
       tmp_trace_index = trace_index;  // skip the start indicator
       if (tmp_trace_index < prev_trace_index) tmp_trace_index += buffer_size; // trace index wrapped.
       if (tmp_trace_index > prev_trace_index + 64){ // is there enough data to decode?
-        if (debug) Serial.println("enough data to decode");
+        if (debug) Serial.println(F("enough data to decode"));
         unsigned long decoded_value = 0;
         int bit_num = 32;
         for (int index = prev_trace_index+1; index < prev_trace_index + 64; index += 2){  // skip the start indicator
           bit_num --;
           unsigned long bitval = trace_array[index % buffer_size] / one_bit_val;
           int next_val = trace_array[(index + 1) % buffer_size] / one_bit_val;
-          if (debug) Serial.print(bitval);       Serial.print(" ");
-          if (debug) Serial.print(next_val);     Serial.print(" ");
+          if (debug) Serial.print(bitval);       Serial.print(F(" "));
+          if (debug) Serial.print(next_val);     Serial.print(F(" "));
           if (bitval == next_val){  // a wrong bit sequence has been detected so move forward
-            if (debug) Serial.println("wrong sequence detected move forward");
+            if (debug) Serial.println(F("wrong sequence detected move forward"));
             prev_trace_index = (index + 1) % buffer_size;
             break; 
           }
           if (bitval == start_indicator_val) {  // a new start indicator found so move forward
-            if (debug) Serial.println("start indicator found go to next");
+            if (debug) Serial.println(F("start indicator found go to next"));
             prev_trace_index = (index + 1) % buffer_size;  
             break;
           }
           if (next_val == start_indicator_val) {  // a new start indicator found so move forward
-            if (debug) Serial.println("next_val start indicator found go to next");
+            if (debug) Serial.println(F("next_val start indicator found go to next"));
             prev_trace_index = (index + 2) % buffer_size;
             break; 
           }
           decoded_value += (bitval << bit_num);
           if (bit_num == 0){
-            Serial.print("0x");
+            Serial.print(F("0x"));
             if (debug) Serial.println(decoded_value, HEX);
             prev_trace_index = (index+2) % buffer_size;
             return decoded_value;
@@ -133,12 +133,12 @@ String buttonfromrfcode(unsigned long rfcode){
       ButtonId = "R1B7";
       break;
     default:
-      Serial.print("Found RF code: ");
+      Serial.print(F("Found RF code: "));
       Serial.println(rfcode);
   }
 
-  Serial.println(" ");
-  Serial.print("Remote control button: ");
+  Serial.println();
+  Serial.print(F("Remote control button: "));
   Serial.println(ButtonId);
   return ButtonId;
 }
@@ -159,23 +159,26 @@ unsigned long const keywordvalS = 0xbeeffeeb;
 struct payload_from_master {
   unsigned long keyword;
   uint32_t counter;
-  bool showLed;
+  bool relay1;
+  bool relay2;
 };
  
 // Payload from/for SLAVE
 struct payload_from_slave {
   unsigned long keyword;
   uint32_t timing;
-  bool ledShown;
+  bool relayActive;
   uint8_t nodeId;
 };
  
 uint32_t sleepTimer = 0;
-bool showLed = false;
+bool relay1 = false;
+bool relay2 = false;
+bool relayActive = false;
 bool meshrunning = false;
 
 void restart_arduino(){
-  Serial.println("Restart the Arduino board...");
+  Serial.println(F("Restart the Arduino board..."));
   delay(2000);
   //NVIC_SystemReset(); // TBD
 }
@@ -223,9 +226,9 @@ void setup() {
 
   Serial.print(F("Starting the mesh, nodeID: "));
   Serial.println(mesh.getNodeID());
-  Serial.println(" ");  
-  Serial.println(" *************** ");  
-  Serial.println(" "); 
+  Serial.println();  
+  Serial.println(F(" ***************"));  
+  Serial.println(); 
   Serial.flush(); 
 }
  
@@ -253,34 +256,40 @@ void loop() {
     network.read(header, &payload, sizeof(payload));
     Serial.print(F("Received packet #"));
     Serial.print(payload.counter);
-    Serial.print(F(", show led="));
-    Serial.println(payload.showLed);
+    Serial.print(F(", relay1="));
+    Serial.print(payload.relay1);
+    Serial.print(F(", relay2="));
+    Serial.println(payload.relay2);
     if (payload.keyword == keywordvalM) {
 
     }
     else{
       Serial.println("Wrong keyword"); 
     }
+
+    relay1 = payload.relay1;
+    relay2 = payload.relay2;
+    relayActive = relay1 || relay2;
  
-    /*
-    // this LED is not connected, this example uses the serial output to confirm the mesh is working
-    showLed = payload.showLed;
- 
-    if (payload.showLed) {
-      digitalWrite(5, HIGH);
+    if (relay1) {
+      digitalWrite(releayPin1, HIGH);
     }
     else {
-      digitalWrite(5, LOW);
+      digitalWrite(releayPin1, LOW);
     }
-    /* */
+    if (relay2) {
+      digitalWrite(releayPin2, HIGH);
+    }
+    else {
+      digitalWrite(releayPin2, LOW);
+    }
   }
   //// Receive a message from master if available - END
 
   //// Send to the master node every x seconds - BEGIN
   if (millis() - sleepTimer > 10000) {
     sleepTimer = millis();
-    showLed = !showLed;
-    payload_from_slave payloadM = {keywordvalS, sleepTimer, showLed, slaveNodeID};
+    payload_from_slave payloadM = {keywordvalS, sleepTimer, relayActive, slaveNodeID};
  
     // Send an 'M' type message containing the current millis()
     if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {

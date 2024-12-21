@@ -13,10 +13,11 @@
 #include "RF24Mesh.h"
 #include <SPI.h>
  
-#define radioChannel 78
+#define radioChannel 96
 /** User Configuration per 'slave' node: nodeID **/
 #define slavenodeID 3
 #define masterNodeID 0
+
 #define LEDpin1 4
 #define LEDpin2 5
 #define LEDpin3 6
@@ -33,24 +34,26 @@ unsigned long const keywordvalS = 0xbeeffeeb;
 struct payload_from_master {
   unsigned long keyword;
   uint32_t counter;
-  bool showLed;
+  bool relay1;
+  bool relay2;
 };
  
 // Payload from/for SLAVES
 struct payload_from_slave {
   unsigned long keyword;
   uint32_t timing;
-  bool ledShown;
+  bool relayActive;
   uint8_t nodeId;
 };
  
 uint32_t displayTimer = 0;
 uint32_t counter = 0;
-bool showLed = false;
+bool relay1 = false;
+bool relay2 = false;
 bool meshrunning = false;
 
 void restart_arduino(){
-  Serial.println("Restart the arduino UNO board...");
+  Serial.println(F("Restart the arduino UNO board..."));
   delay(2000);
   NVIC_SystemReset();
 }
@@ -68,7 +71,7 @@ void LEDstatustext(bool LEDon, unsigned long count){
     String TextHere = "_"; // "_--  ";
     if (LEDon) TextHere = "^"; // "oO0  ";
     TextHere = TextHere + (count % 10);
-    Serial.println(F(""));
+    Serial.println();
     Serial.print(TextHere);
 
     matrix.beginText(0, 1, 0xFFFFFF);
@@ -118,7 +121,7 @@ void setup() {
 
   String fv = WiFi.firmwareVersion();
   if (fv < WIFI_FIRMWARE_LATEST_VERSION){
-    Serial.println("Please upgrade the firmware for the WiFi module");
+    Serial.println(F("Please upgrade the firmware for the WiFi module"));
   }
 
   // attempt to connect to WiFi network:
@@ -141,9 +144,9 @@ void setup() {
   Serial.println(F("The RTC was just set to: "));
   Serial.println(currentTime);
 
-  Serial.println(F(" "));  
-  Serial.println(F(" *************** "));  
-  Serial.println(F(" "));  
+  Serial.println();  
+  Serial.println(F(" ***************"));  
+  Serial.println();  
   Serial.flush(); 
 }
  
@@ -188,8 +191,8 @@ void loop() {
         Serial.print(payload.nodeId);
         Serial.print(F(", timing: "));
         Serial.print(payload.timing);
-        Serial.print(F(", Led shown: "));
-        Serial.println(payload.ledShown);
+        Serial.print(F(", relayActive: "));
+        Serial.println(payload.relayActive);
         if (payload.keyword == keywordvalS) {
 
         }
@@ -210,8 +213,8 @@ void loop() {
 
     //// SHOW DHCP TABLE - BEGIN
     if (mesh.addrListTop > 0) {
-      Serial.println(F(" "));
-      Serial.println(F("********Assigned Addresses********"));
+      Serial.println();
+      Serial.println(F("******* Assigned Addresses *******"));
       for(int i=0; i<mesh.addrListTop; i++){
         Serial.print(F("NodeID: "));
         Serial.print(mesh.addrList[i].nodeID);
@@ -222,17 +225,14 @@ void loop() {
     }
     else{
       Serial.print(F(" ."));
-      digitalWrite(LEDpin2, LOW);
-      digitalWrite(LEDpin3, LOW);
     }
     //// SHOW DHCP TABLE - END
 
     //// Send same master message to all slaves - BEGIN
     if (mesh.addrListTop > 0) {
-      showLed = !showLed;
       for(int i=0; i<mesh.addrListTop; i++){
         counter += 1;
-        payload_from_master payloadS = {keywordvalM, counter, showLed};        
+        payload_from_master payloadS = {keywordvalM, counter, relay1, relay2};        
         
         // RF24NetworkHeader header(mesh.addrList[i].address, OCT);
         // // int x = network.write(header, &payload, sizeof(payload));
@@ -241,7 +241,7 @@ void loop() {
         if (!mesh.write(&payloadS, 'S', sizeof(payloadS), mesh.addrList[i].nodeID)) {
           Serial.print(F("Send fail, Master to Slave, nodeID: "));
           Serial.print(mesh.addrList[i].nodeID);
-          Serial.println(" ");
+          Serial.println();
           mesherror++;
         }
         else {
@@ -290,9 +290,15 @@ void loop() {
 
             client.print(F("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>"));
             client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
-            client.print(F("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
-            client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>"));
-            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>"));
+            client.print(F("<BODY TEXT=\"#873e23\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
+            client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=3 style=\"text-align: center\"><a href=\"/T\">LEDs</a></TH></TR>"));
+            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">1</TD><TD style=\"text-align: center\"><a href=\"/1H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/1L\">off</a></TD></TR>"));
+            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">2</TD><TD style=\"text-align: center\"><a href=\"/2H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/2L\">off</a></TD></TR>"));
+            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">3</TD><TD style=\"text-align: center\"><a href=\"/3H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/3L\">off</a></TD></TR>"));
+            client.print(F("</TABLE><TABLE>"));
+            client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=3 style=\"text-align: center\"><a href=\"/Z\">RELAYs</a></TH></TR>"));
+            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">1</TD><TD style=\"text-align: center\"><a href=\"/1R\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/1K\">off</a></TD></TR>"));
+            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">2</TD><TD style=\"text-align: center\"><a href=\"/2R\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/2K\">off</a></TD></TR>"));
             client.print(F("</TABLE></BODY></HTML>"));
 
             // The HTTP response ends with another blank line:
@@ -309,18 +315,59 @@ void loop() {
         }
 
         // Check to see if the client request was "GET /H" or "GET /L":
-        if (currentLine.endsWith("GET /H")) {
+        if (currentLine.endsWith("GET /1H")) {
           digitalWrite(LEDpin1, HIGH);               // GET /H turns the LED on
           acounter += 1;
         }
-        if (currentLine.endsWith("GET /L")) {
+        if (currentLine.endsWith("GET /1L")) {
           digitalWrite(LEDpin1, LOW);                // GET /L turns the LED off
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /2H")) {
+          digitalWrite(LEDpin2, HIGH);               // GET /H turns the LED on
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /2L")) {
+          digitalWrite(LEDpin2, LOW);                // GET /L turns the LED off
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /3H")) {
+          digitalWrite(LEDpin3, HIGH);               // GET /H turns the LED on
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /3L")) {
+          digitalWrite(LEDpin3, LOW);                // GET /L turns the LED off
           acounter += 1;
         }
         if (currentLine.endsWith("GET /T")) {
           digitalWrite(LEDpin1, !digitalRead(LEDpin1));  // GET /T toggles the LED
+          digitalWrite(LEDpin2, !digitalRead(LEDpin2));  // GET /T toggles the LED
+          digitalWrite(LEDpin3, !digitalRead(LEDpin3));  // GET /T toggles the LED
           acounter += 1;
         }
+
+        if (currentLine.endsWith("GET /1R")) {
+          relay1 = true;  
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /1K")) {
+          relay1 = false;  
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /2R")) {
+          relay2 = true;  
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /2K")) {
+          relay2 = false;  
+          acounter += 1;
+        }
+        if (currentLine.endsWith("GET /Z")) {
+          relay1 = !relay1;  // GET /Z toggles the relays
+          relay2 = !relay2;  // GET /Z toggles the relays
+          acounter += 1;
+        }
+
         // if (currentLine.endsWith("GET /")) {  // home page gets triggered as well
         //   acounter += 1;
         // }
