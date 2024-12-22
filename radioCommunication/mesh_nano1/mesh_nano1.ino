@@ -146,7 +146,7 @@ String buttonfromrfcode(unsigned long rfcode){
 /**** Configure the nrf24l01 CE and CSN pins ****/
 // for the NANO with onboard RF24 module:
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
-// for the NANO with external RF24 module:
+// for the UNO/NANO with external RF24 module:
 //RF24 radio(8, 7); // nRF24L01 (CE, CSN)
 
 RF24Network network(radio);
@@ -187,7 +187,7 @@ bool meshstartup(){
   if (meshrunning){
     Serial.println(F("Radio issue, turn op PA level?"));
   }
-  return mesh.begin(radioChannel);
+  return mesh.begin(radioChannel, RF24_250KBPS);
 }
 
 unsigned long rfcommand = 0;
@@ -212,6 +212,7 @@ void setup() {
     }
   }
   radio.setPALevel(RF24_PA_MIN, 0);
+  // radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
   // Set the nodeID manually
   mesh.setNodeID(slaveNodeID);
@@ -264,7 +265,7 @@ void loop() {
 
     }
     else{
-      Serial.println("Wrong keyword"); 
+      Serial.println(F("Wrong keyword")); 
     }
 
     relay1 = payload.relay1;
@@ -272,16 +273,16 @@ void loop() {
     relayActive = relay1 || relay2;
  
     if (relay1) {
-      digitalWrite(releayPin1, HIGH);
-    }
-    else {
       digitalWrite(releayPin1, LOW);
     }
+    else {
+      digitalWrite(releayPin1, HIGH);
+    }
     if (relay2) {
-      digitalWrite(releayPin2, HIGH);
+      digitalWrite(releayPin2, LOW);
     }
     else {
-      digitalWrite(releayPin2, LOW);
+      digitalWrite(releayPin2, HIGH);
     }
   }
   //// Receive a message from master if available - END
@@ -297,8 +298,13 @@ void loop() {
       if (!mesh.checkConnection()) {
         //refresh the network address
         Serial.println(F("Renewing Address"));
-        mesh.renewAddress();
-      } else {
+        if (mesh.renewAddress() == MESH_DEFAULT_ADDRESS) {
+          // If address renewal fails, reconfigure the radio and restart the mesh
+          // This allows recovery from most, if not all radio errors
+          meshstartup();
+        }
+      }
+      else {
         Serial.println(F("Send fail, Test OK"));
         mesherror++;
       }
@@ -317,9 +323,9 @@ void loop() {
       String ButtonCode = buttonfromrfcode(rfcommand);
       sequence_index++;
       sequence_index = sequence_index % 256; // keep it in 1 byte
-      Serial.print("Sequence: ");
+      Serial.print(F("Sequence: "));
       Serial.print(sequence_index);
-      Serial.print(", control button: ");
+      Serial.print(F(", control button: "));
       Serial.println(ButtonCode);
     }
     prv_rfcommand = rfcommand;

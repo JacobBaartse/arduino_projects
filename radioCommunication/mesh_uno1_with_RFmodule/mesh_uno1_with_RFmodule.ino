@@ -46,7 +46,7 @@ struct payload_from_slave {
   uint8_t nodeId;
 };
  
-uint32_t displayTimer = 0;
+unsigned long displayTimer = 0;
 uint32_t counter = 0;
 bool relay1 = false;
 bool relay2 = false;
@@ -62,7 +62,7 @@ bool meshstartup(){
   if (meshrunning){
     Serial.println(F("Radio issue, turn up PA level?"));
   }
-  return mesh.begin(radioChannel);
+  return mesh.begin(radioChannel, RF24_250KBPS);
 }
 
 void LEDstatustext(bool LEDon, unsigned long count){
@@ -102,6 +102,7 @@ void setup() {
     }
   }
   radio.setPALevel(RF24_PA_MIN, 0);
+  // radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
   // Set the nodeID to 0 for the master node
   mesh.setNodeID(masterNodeID);
@@ -158,6 +159,9 @@ WiFiClient client;
 char c = '\n';
 String currentLine = "";
 unsigned long acounter = 0;
+unsigned long remacounter = 0;
+bool sendDirect = false;
+
 
 void loop() {
   if (mesherror > 8) {
@@ -208,8 +212,9 @@ void loop() {
   }
   
   // Meanwhile, every x seconds...
-  if(millis() - displayTimer > 15000) {
+  if ((sendDirect) || (millis() - displayTimer > 15000)) {
     displayTimer = millis();
+    sendDirect = false;
 
     //// SHOW DHCP TABLE - BEGIN
     if (mesh.addrListTop > 0) {
@@ -314,6 +319,7 @@ void loop() {
           currentLine += c;      // add it to the end of the currentLine
         }
 
+        remacounter = acounter;
         // Check to see if the client request was "GET /H" or "GET /L":
         if (currentLine.endsWith("GET /1H")) {
           digitalWrite(LEDpin1, HIGH);               // GET /H turns the LED on
@@ -371,7 +377,8 @@ void loop() {
         // if (currentLine.endsWith("GET /")) {  // home page gets triggered as well
         //   acounter += 1;
         // }
-        LEDstatustext(digitalRead(LEDpin1), acounter);
+        sendDirect = (remacounter != acounter);
+        LEDstatustext(sendDirect, acounter);
 
         if (currentLine.endsWith("GET /favicon.ico")) {
           // sendFavicon();

@@ -166,8 +166,11 @@ const uint16_t this_node = 00;   // Address of this node in Octal format (04, 03
 const uint16_t node01 = 01;      // Address of the other node in Octal format
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(8, 7);                // nRF24L01 (CE, CSN)
-RF24Network network(radio);      // Include the radio in the network
+// for the NANO with onboard RF24 module:
+// RF24 radio(10, 9); // nRF24L01 (CE, CSN)
+// for the UNO/NANO with external RF24 module:
+RF24 radio(8, 7); // nRF24L01 (CE, CSN)
+RF24Network network(radio); // Include the radio in the network
 
 const uint16_t wrappingcounter = 255;
 
