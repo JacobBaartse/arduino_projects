@@ -217,7 +217,7 @@ void setup() {
   // Set the nodeID manually
   mesh.setNodeID(slaveNodeID);
   // Serial.print(F("Setup node: "));
-  // Serial.print(slavenodeID);
+  // Serial.print(slaveNodeID);
   Serial.println(F(", connecting to the mesh..."));
   // Connect to the mesh
   meshrunning = meshstartup();

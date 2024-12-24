@@ -73,6 +73,7 @@ void LEDstatustext(bool LEDon, unsigned long count){
     TextHere = TextHere + (count % 10);
     Serial.println();
     Serial.print(TextHere);
+    Serial.println();
 
     matrix.beginText(0, 1, 0xFFFFFF);
     matrix.println(TextHere);
@@ -136,7 +137,7 @@ void setup() {
   }
   startupscrollingtext(String("-->: ") + IPhere.toString());
 
-  Serial.println(F("\nStarting connection to HS Design"));
+  Serial.println(F("\nStart connection to time reference"));
   get_time_from_hsdesign();
   // Retrieve the date and time from the RTC and print them
   RTCTime currentTime;
@@ -161,7 +162,6 @@ String currentLine = "";
 unsigned long acounter = 0;
 unsigned long remacounter = 0;
 bool sendDirect = false;
-
 
 void loop() {
   if (mesherror > 8) {
@@ -211,6 +211,11 @@ void loop() {
     }
   }
   
+  
+  if(sendDirect){
+    Serial.print(F(" send direct about to happen ")); 
+    Serial.println(millis());
+  }
   // Meanwhile, every x seconds...
   if ((sendDirect) || (millis() - displayTimer > 15000)) {
     displayTimer = millis();
@@ -271,7 +276,7 @@ void loop() {
   client = server.available();   // listen for incoming clients
 
   if (client) {                             // if you get a client,
-    Serial.println(F("new client"));           // print a message out the serial port
+    Serial.println(F("new client"));        // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
@@ -288,22 +293,19 @@ void loop() {
             client.println(F("Content-type:text/html"));
             client.println();
 
-            // the content of the HTTP response follows the header:
-            // client.print("<p style=\"font-size:7vw;\">LED<br></p>");
-            // client.print("<p style=\"font-size:7vw;\"><a href=\"/H\">ON</a><br></p>");
-            // client.print("<p style=\"font-size:7vw;\"><a href=\"/L\">off</a><br></p>");
-
             client.print(F("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>"));
-            client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
-            client.print(F("<BODY TEXT=\"#873e23\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
-            client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=3 style=\"text-align: center\"><a href=\"/T\">LEDs</a></TH></TR>"));
-            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">1</TD><TD style=\"text-align: center\"><a href=\"/1H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/1L\">off</a></TD></TR>"));
-            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">2</TD><TD style=\"text-align: center\"><a href=\"/2H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/2L\">off</a></TD></TR>"));
-            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">3</TD><TD style=\"text-align: center\"><a href=\"/3H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/3L\">off</a></TD></TR>"));
-            client.print(F("</TABLE><TABLE>"));
-            client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=3 style=\"text-align: center\"><a href=\"/Z\">RELAYs</a></TH></TR>"));
-            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">1</TD><TD style=\"text-align: center\"><a href=\"/1R\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/1K\">off</a></TD></TR>"));
-            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\">2</TD><TD style=\"text-align: center\"><a href=\"/2R\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/2K\">off</a></TD></TR>"));
+            client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\">")); 
+            client.print(F("<style> table {width:100%;} tr {height:200px; font-size:4em;} th, td {text-align:center;} </style>")); 
+            client.print(F("</HEAD><BODY TEXT=\"#873e23\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
+
+            client.print(F("<TABLE><TR><TH colspan=3><a href=\"/T\">LEDs</a></TH></TR>"));
+            client.print(F("<TR><TD>1</TD><TD><a href=\"/1H\">ON</a></TD><TD><a href=\"/1L\">off</a></TD></TR>"));
+            client.print(F("<TR><TD>2</TD><TD><a href=\"/2H\">ON</a></TD><TD><a href=\"/2L\">off</a></TD></TR>"));
+            client.print(F("<TR><TD>3</TD><TD><a href=\"/3H\">ON</a></TD><TD><a href=\"/3L\">off</a></TD></TR>"));
+
+            client.print(F("</TABLE><TABLE><TR><TH colspan=3><a href=\"/Z\">RELAYs</a></TH></TR>"));
+            client.print(F("<TR><TD>1</TD><TD><a href=\"/1R\">ON</a></TD><TD><a href=\"/1K\">off</a></TD></TR>"));
+            client.print(F("<TR><TD>2</TD><TD><a href=\"/2R\">ON</a></TD><TD><a href=\"/2K\">off</a></TD></TR>"));
             client.print(F("</TABLE></BODY></HTML>"));
 
             // The HTTP response ends with another blank line:
@@ -345,10 +347,10 @@ void loop() {
           digitalWrite(LEDpin3, LOW);                // GET /L turns the LED off
           acounter += 1;
         }
-        if (currentLine.endsWith("GET /T")) {
-          digitalWrite(LEDpin1, !digitalRead(LEDpin1));  // GET /T toggles the LED
-          digitalWrite(LEDpin2, !digitalRead(LEDpin2));  // GET /T toggles the LED
-          digitalWrite(LEDpin3, !digitalRead(LEDpin3));  // GET /T toggles the LED
+        if (currentLine.endsWith("GET /T")) { // GET /T toggles the LEDs
+          digitalWrite(LEDpin1, !digitalRead(LEDpin1));  
+          digitalWrite(LEDpin2, !digitalRead(LEDpin2));  
+          digitalWrite(LEDpin3, !digitalRead(LEDpin3)); 
           acounter += 1;
         }
 
@@ -368,16 +370,22 @@ void loop() {
           relay2 = false;  
           acounter += 1;
         }
-        if (currentLine.endsWith("GET /Z")) {
-          relay1 = !relay1;  // GET /Z toggles the relays
-          relay2 = !relay2;  // GET /Z toggles the relays
+        if (currentLine.endsWith("GET /Z")) { // GET /Z toggles the relays
+          relay1 = !relay1;  
+          relay2 = !relay2;
           acounter += 1;
         }
 
-        // if (currentLine.endsWith("GET /")) {  // home page gets triggered as well
+        // if (currentLine.endsWith("GET /")) { // home page gets triggered as well
         //   acounter += 1;
         // }
-        sendDirect = (remacounter != acounter);
+        if(!sendDirect){ // make sure it is not set to false during this loop
+          sendDirect = (remacounter != acounter);
+          if(sendDirect){
+            Serial.print(F(" sendDirect var set "));
+            Serial.println(millis());
+          }
+        }
         LEDstatustext(sendDirect, acounter);
 
         if (currentLine.endsWith("GET /favicon.ico")) {
