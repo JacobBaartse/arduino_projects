@@ -5,7 +5,7 @@
 #include <Wire.h>
 //#include <Adafruit_GFX.h> // already included from font file
 #include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
-#include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
+#include <Adafruit_SSD1306.h> // Adafruit SSD 1306 by Adafruit
 
 #include "RF24Network.h"
 #include "RF24.h"
@@ -74,7 +74,7 @@ bool meshstartup(){
 //#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
 #define OLED_RESET -1
 
-Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 bool displaystatus = DisplayState::Off;
 void display_oled(bool clear, int x, int y, String text) {
@@ -89,10 +89,10 @@ void display_oled(bool clear, int x, int y, String text) {
 void display_move(int x, int y, int nx, int ny, String text) {
   if (displaystatus == DisplayState::Off) return;
   display.setCursor(x, y);
-  display.setTextColor(SH110X_BLACK);
+  display.setTextColor(SSD1306_BLACK);
   display.print(text);
   display.setCursor(nx, ny);
-  display.setTextColor(SH110X_WHITE);
+  display.setTextColor(SSD1306_WHITE);
   display.print(text);
   display.display();
 }
@@ -101,17 +101,22 @@ DisplayState setDisplay(DisplayState statustoset){
   static DisplayState displaystatus = DisplayState::Dim;
   switch(statustoset){
     case DisplayState::Dim:
-      display.oled_command(SH110X_DISPLAYON);
-      display.setContrast(0); // dim display
-      displaystatus = DisplayState::Dim;
+      display.ssd1306_command(SSD1306_DISPLAYON);
+      //display.dim(true); // dim display
+      //displaystatus = DisplayState::Dim; // this display does not support dim
+      //displaystatus = DisplayState::On;
+      display.ssd1306_command(SSD1306_SETCONTRAST);
+      display.ssd1306_command(1);
+      displaystatus = DisplayState::Dim; // this display does not support dim ??
       break;
     case DisplayState::On:
-      display.oled_command(SH110X_DISPLAYON);
+      display.ssd1306_command(SSD1306_DISPLAYON);
+      display.dim(false);
       displaystatus = DisplayState::On;
       break;
     //case DisplayState::Off:
     default:
-      display.oled_command(SH110X_DISPLAYOFF);
+      display.ssd1306_command(SSD1306_DISPLAYOFF);
       displaystatus = DisplayState::Off;
   }
   return displaystatus;
@@ -152,27 +157,27 @@ void setup() {
   // Connect to the mesh
   meshrunning = meshstartup();
 
-  // display.begin(i2c_Address, true); // Address 0x3C default
-  // displaystatus = setDisplay(DisplayState::Dim);
-  // display.clearDisplay();
-  // display.setFont(&FreeSerif12pt7b);
-  // display.setTextSize(1); // 3 lines of 10-12 chars
-  // display.setTextColor(SH110X_WHITE);
-  // display.setTextWrap(false);
-  // display.display();
+  display.begin(SSD1306_SWITCHCAPVCC, i2c_Address);
+  displaystatus = setDisplay(DisplayState::Dim);
+  display.clearDisplay();
+  display.setFont(&FreeSerif12pt7b);
+  display.setTextSize(1); // 3 lines of 10-12 chars
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextWrap(false);
+  display.display();
 
-  // x = display.width();
-  // y1 = 16;
-  // y2 = 38;
-  // y3 = 60;
-  // // minX = -128;
-  // minX = -200; // depends on length of the text
-  // minY = -22;
+  x = display.width();
+  y1 = 16;
+  y2 = 38;
+  y3 = 60;
+  // minX = -128;
+  minX = -200; // depends on length of the text
+  minY = -22;
 
-  // display_oled(true, 0, y1, Line1); 
-  // display_oled(false, 2, y2, Line2); 
-  // display_oled(false, 4, y3, Line3);  
-  // prevx = x;
+  display_oled(true, 0, y1, Line1); 
+  display_oled(false, 2, y2, Line2); 
+  display_oled(false, 4, y3, Line3);  
+  prevx = x;
 
 }
  
