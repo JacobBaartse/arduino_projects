@@ -100,7 +100,7 @@ void setup() {
   display.setFont(&FreeSerif12pt7b);
   display.setTextSize(1); // 3 lines of 10-12 chars
   display.setTextColor(SSD1306_WHITE);
-  display.setTextWrap(false);
+  display.setTextWrap(false); 
   display.display();
 
   x = display.width();

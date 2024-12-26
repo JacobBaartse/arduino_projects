@@ -243,8 +243,8 @@ void loop() {
   // }
   // //// Send to the master node every x seconds - END
 
-  // float tempval = 24.567;
-  // display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.
-  // delay(2000);
+  float tempval = 24.567;
+  display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.
+  delay(2000);
 
 }
