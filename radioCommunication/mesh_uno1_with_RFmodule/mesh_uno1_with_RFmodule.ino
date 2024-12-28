@@ -106,23 +106,23 @@ void LEDstatustext(bool LEDon, unsigned long count){
 bool displaystatus = DisplayState::Off;
 void display_oled(bool clear, int x, int y, String text) {
   if (displaystatus == DisplayState::Off) return;
-  if (clear) display.clearDisplay();
+  if (clear) clear_display();
   display.setCursor(x, y);
   display.print(text);
   display.display();
 }
 
-// move text, write old location in background color
-void display_move(int x, int y, int nx, int ny, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  display.setCursor(x, y);
-  display.setTextColor(SH110X_BLACK);
-  display.print(text);
-  display.setCursor(nx, ny);
-  display.setTextColor(SH110X_WHITE);
-  display.print(text);
-  display.display();
-}
+// // move text, write old location in background color
+// void display_move(int x, int y, int nx, int ny, String text) {
+//   if (displaystatus == DisplayState::Off) return;
+//   display.setCursor(x, y);
+//   display.setTextColor(SH110X_BLACK);
+//   display.print(text);
+//   display.setCursor(nx, ny);
+//   display.setTextColor(SH110X_WHITE);
+//   display.print(text);
+//   display.display();
+// }
 
 DisplayState setDisplay(DisplayState statustoset){
   static DisplayState displaystatus = DisplayState::Dim;
@@ -193,6 +193,7 @@ void setup() {
   display_oled(true, 0, dy1, Line1); 
   display_oled(false, 2, dy2, Line2); 
   display_oled(false, 4, dy3, Line3);  
+  //display.display();
   prevx = x;
 
   RTC.begin();
@@ -249,9 +250,11 @@ void setup() {
   Serial.println(currentTime);
 
   display.setTextWrap(true);
-  display.clearDisplay();
   display_oled(true, 0, dy1, currentTime); 
+  //display.display();
+  delay(2000);
   display.setTextWrap(false);
+  clear_display();
 
   Serial.println();  
   Serial.println(F(" ***************"));  

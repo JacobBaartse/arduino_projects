@@ -1,5 +1,5 @@
 /*
- *
+ * RF-Nano with 1.3 inch Display (big display)
  */
 
 #include <Wire.h>

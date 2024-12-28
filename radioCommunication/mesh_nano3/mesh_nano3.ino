@@ -1,16 +1,22 @@
 /*
- *
+ * RF-Nano with 0,96 inch Display (small Display)
  */
+
+#include "RF24Network.h"
+#include "RF24.h"
+#include "RF24Mesh.h"
+#include <SPI.h>
 
 #include <Wire.h>
 //#include <Adafruit_GFX.h> // already included from font file
 #include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SSD1306.h> // Adafruit SSD 1306 by Adafruit
 
-#include "RF24Network.h"
-#include "RF24.h"
-#include "RF24Mesh.h"
-#include <SPI.h>
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
+//#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
+#define OLED_RESET -1
 
 enum DisplayState {
     Off = 0,
@@ -18,18 +24,20 @@ enum DisplayState {
     On = 2,
 };
 
+Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 // #########################################################
 
 #define radioChannel 96
 /** User Configuration per 'slave' node: nodeID **/
-#define slaveNodeID 5
+#define slaveNodeID 7
 #define masterNodeID 0
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-// for the NANO with onboard RF24 module:
-RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 // for the UNO/NANO with external RF24 module:
 // RF24 radio(8, 7); // nRF24L01 (CE, CSN)
+// for the NANO with onboard RF24 module:
+RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
@@ -53,12 +61,6 @@ struct payload_from_slave {
 uint32_t sleepTimer = 0;
 bool meshrunning = false;
 
-void restart_arduino(){
-  Serial.println(F("Restart the Arduino board..."));
-  delay(2000);
-  //NVIC_SystemReset(); // TBD
-}
-
 bool meshstartup(){
   if (meshrunning){
     Serial.println(F("Radio issue, turn op PA level?"));
@@ -68,31 +70,12 @@ bool meshstartup(){
 
 // #########################################################
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
-//#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
-#define OLED_RESET -1
-
-Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 bool displaystatus = DisplayState::Off;
 void display_oled(bool clear, int x, int y, String text) {
   if (displaystatus == DisplayState::Off) return;
   if (clear) display.clearDisplay();
   display.setCursor(x, y);
-  display.print(text);
-  display.display();
-}
-
-// move text, write old location in background color
-void display_move(int x, int y, int nx, int ny, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  display.setCursor(x, y);
-  display.setTextColor(SSD1306_BLACK);
-  display.print(text);
-  display.setCursor(nx, ny);
-  display.setTextColor(SSD1306_WHITE);
   display.print(text);
   display.display();
 }
@@ -138,24 +121,8 @@ int y1, y2, y3, minY;
 bool oncecompleted = false;
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println(F(" ***************"));  
-
-  if (!radio.begin()){
-    Serial.println(F("Radio hardware error."));
-    while (1) {
-      // hold in an infinite loop
-    }
-  }
-  radio.setPALevel(RF24_PA_MIN, 0);
-
-  // Set the nodeID manually
-  mesh.setNodeID(slaveNodeID);
-  // Serial.print(F("Setup node: "));
-  // Serial.print(slaveNodeID);
-  Serial.println(F(", connecting to the mesh..."));
-  // Connect to the mesh
-  meshrunning = meshstartup();
+  // Serial.begin(115200);
+  // Serial.println(F(" ***************"));  
 
   display.begin(SSD1306_SWITCHCAPVCC, i2c_Address);
   displaystatus = setDisplay(DisplayState::Dim);
@@ -179,6 +146,25 @@ void setup() {
   display_oled(false, 4, y3, Line3);  
   prevx = x;
 
+  delay(1000);
+
+  // if (!radio.begin()){
+  //   //Serial.println(F("Radio hardware error."));
+  //   while (1) {
+  //     // hold in an infinite loop
+  //   }
+  // }
+  //radio.setPALevel(RF24_PA_MIN, 0);
+  //network.begin(radioChannel, slaveNodeID);
+
+  // Set the nodeID manually
+  mesh.setNodeID(slaveNodeID);
+  // Serial.print(F("Setup node: "));
+  // Serial.print(slaveNodeID);
+  Serial.println(F(", connecting to the mesh..."));
+  // Connect to the mesh
+  meshrunning = meshstartup();
+
 }
  
 unsigned int mesherror = 0;
@@ -186,17 +172,17 @@ uint8_t meshupdaterc = 0;
 uint8_t rem_meshupdaterc = 200;
 
 void loop() {
-  if (mesherror > 8) {
-    meshrunning = meshstartup();
-    mesherror = 0;
-  }
-  // Call mesh.update to keep the network updated
-  meshupdaterc = mesh.update();
-  if (meshupdaterc != rem_meshupdaterc) {
-    Serial.print(F("meshupdaterc: "));
-    Serial.println(meshupdaterc);
-    rem_meshupdaterc = meshupdaterc;
-  } 
+  // if (mesherror > 8) {
+  //   meshrunning = meshstartup();
+  //   mesherror = 0;
+  // }
+  // // Call mesh.update to keep the network updated
+  // meshupdaterc = mesh.update();
+  // if (meshupdaterc != rem_meshupdaterc) {
+  //   // Serial.print(F("meshupdaterc: "));
+  //   // Serial.println(meshupdaterc);
+  //   rem_meshupdaterc = meshupdaterc;
+  // } 
 
   // //// Receive a message from master if available - START
   // while (network.available()) {
