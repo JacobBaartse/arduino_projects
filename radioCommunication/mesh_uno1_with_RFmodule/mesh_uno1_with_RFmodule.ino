@@ -62,7 +62,6 @@ struct payload_from_master {
 struct payload_from_slave {
   unsigned long keyword;
   uint32_t timing;
-  bool relayActive;
   uint8_t nodeId;
 };
  
@@ -102,11 +101,10 @@ void LEDstatustext(bool LEDon, unsigned long count){
   }
 }
 
-
 bool displaystatus = DisplayState::Off;
 void display_oled(bool clear, int x, int y, String text) {
   if (displaystatus == DisplayState::Off) return;
-  if (clear) clear_display();
+  if (clear) display.clearDisplay();
   display.setCursor(x, y);
   display.print(text);
   display.display();
@@ -251,10 +249,7 @@ void setup() {
 
   display.setTextWrap(true);
   display_oled(true, 0, dy1, currentTime); 
-  //display.display();
-  delay(2000);
   display.setTextWrap(false);
-  clear_display();
 
   Serial.println();  
   Serial.println(F(" ***************"));  
@@ -304,9 +299,7 @@ void loop() {
         Serial.print(F("Received from Slave nodeId: "));
         Serial.print(payload.nodeId);
         Serial.print(F(", timing: "));
-        Serial.print(payload.timing);
-        Serial.print(F(", relayActive: "));
-        Serial.println(payload.relayActive);
+        Serial.println(payload.timing);
         if (payload.keyword == keywordvalS) {
 
         }
@@ -320,7 +313,6 @@ void loop() {
         Serial.println(header.type);
     }
   }
-  
   
   if(sendDirect){
     Serial.print(F(" send direct about to happen ")); 
@@ -516,5 +508,7 @@ void loop() {
     //delay(1000); // make sure the disconnection is detected
   
   }
+
+  clear_display();
 
 }
