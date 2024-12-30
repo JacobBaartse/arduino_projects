@@ -1,20 +1,28 @@
-int pin_7 = 11; // pir connected
+
 #define BUILD_IN_LED 13
+int pin_7 = 11; // pir connected
 
 void setup() {
   // put your setup code here, to run once:
-    pinMode(pin_7, INPUT);
-    pinMode(BUILD_IN_LED, OUTPUT);
+  Serial.begin(115200);
 
+  pinMode(pin_7, INPUT);
+  pinMode(BUILD_IN_LED, OUTPUT);
 }
 
+unsigned long val = 0;
+
 void loop() {
+  Serial.print(++val);
+
   // put your main code here, to run repeatedly:
-    if (digitalRead(pin_7)==LOW){
-      digitalWrite(BUILD_IN_LED, LOW);
-    }
-    else{
-      digitalWrite(BUILD_IN_LED, HIGH);
-    }
-      delay(100);
+  if (digitalRead(pin_7)==LOW){
+    digitalWrite(BUILD_IN_LED, LOW);
+    Serial.println(" L");
+  }
+  else{
+    digitalWrite(BUILD_IN_LED, HIGH);
+    Serial.println(" H");
+  }
+  delay(1000);
 }
