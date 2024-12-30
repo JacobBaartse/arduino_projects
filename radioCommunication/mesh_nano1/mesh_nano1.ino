@@ -215,7 +215,7 @@ void setup() {
   // radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
   // Set the nodeID manually
-  mesh.setNodeID(slaveNodeID);
+  mesh.setNodeID(slaveNodeID);6
   // Serial.print(F("Setup node: "));
   // Serial.print(slaveNodeID);
   Serial.println(F(", connecting to the mesh..."));
