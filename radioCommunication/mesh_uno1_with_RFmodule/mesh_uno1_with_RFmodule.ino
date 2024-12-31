@@ -63,6 +63,8 @@ struct payload_from_slave {
   unsigned long keyword;
   uint32_t timing;
   uint8_t nodeId;
+  uint8_t detection;
+  uint8_t distance;
 };
  
 unsigned long displayTimer = 0;
@@ -214,7 +216,7 @@ void setup() {
   meshrunning = meshstartup();
 
   digitalWrite(LEDpin1, HIGH);
-  Serial.print(F("Starting up UNO R4 WiFi"));
+  Serial.println(F("Starting UNO R4 WiFi"));
   Serial.flush();
 
   String timestamp = __TIMESTAMP__;
@@ -249,12 +251,15 @@ void setup() {
 
   display.setTextWrap(true);
   display_oled(true, 0, dy1, currentTime); 
-  display.setTextWrap(false);
+  delay(1500);
 
   Serial.println();  
   Serial.println(F(" ***************"));  
   Serial.println();  
   Serial.flush(); 
+
+  display.setTextWrap(false);
+  clear_display();
 }
  
 unsigned int mesherror = 0;
@@ -301,7 +306,21 @@ void loop() {
         Serial.print(F(", timing: "));
         Serial.println(payload.timing);
         if (payload.keyword == keywordvalS) {
-
+          Serial.print(F("presence: "));
+          Serial.print(payload.detection);
+          String distanceString = "Dist.: ";
+          distanceString += payload.distance;
+          distanceString += " cm";
+          Serial.print(F(", "));
+          Serial.println(distanceString);
+            
+          display_oled(true, 0, dy1, distanceString); 
+          if (payload.detection > 0){
+            display_oled(false, 40, dy3, "O"); 
+          }
+          else{
+            display_oled(false, 20, dy3, "-"); 
+          }          
         }
         else{
           Serial.println("Wrong keyword"); 
@@ -313,7 +332,7 @@ void loop() {
         Serial.println(header.type);
     }
   }
-  
+
   if(sendDirect){
     Serial.print(F(" send direct about to happen ")); 
     Serial.println(millis());
@@ -355,6 +374,8 @@ void loop() {
           Serial.print(mesh.addrList[i].nodeID);
           Serial.println();
           mesherror++;
+
+          clear_display();
         }
         else {
           Serial.print(F("Send to Slave Node "));
@@ -509,6 +530,5 @@ void loop() {
   
   }
 
-  clear_display();
 
 }

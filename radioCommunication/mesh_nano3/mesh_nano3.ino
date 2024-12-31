@@ -8,8 +8,8 @@
 #include <SPI.h>
 
 #include <Wire.h>
-//#include <Adafruit_GFX.h> // already included from font file
-#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+// #include <Adafruit_GFX.h> // already included from font file
+//#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SSD1306.h> // Adafruit SSD 1306 by Adafruit
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -24,7 +24,7 @@ enum DisplayState {
     On = 2,
 };
 
-Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+//Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // #########################################################
 
@@ -71,44 +71,44 @@ bool meshstartup(){
 // #########################################################
 
 
-bool displaystatus = DisplayState::Off;
-void display_oled(bool clear, int x, int y, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  if (clear) display.clearDisplay();
-  display.setCursor(x, y);
-  display.print(text);
-  display.display();
-}
+// bool displaystatus = DisplayState::Off;
+// void display_oled(bool clear, int x, int y, String text) {
+//   if (displaystatus == DisplayState::Off) return;
+//   if (clear) display.clearDisplay();
+//   display.setCursor(x, y);
+//   display.print(text);
+//   display.display();
+// }
 
-DisplayState setDisplay(DisplayState statustoset){
-  static DisplayState displaystatus = DisplayState::Dim;
-  switch(statustoset){
-    case DisplayState::Dim:
-      display.ssd1306_command(SSD1306_DISPLAYON);
-      //display.dim(true); // dim display
-      //displaystatus = DisplayState::Dim; // this display does not support dim
-      //displaystatus = DisplayState::On;
-      display.ssd1306_command(SSD1306_SETCONTRAST);
-      display.ssd1306_command(1);
-      displaystatus = DisplayState::Dim; // this display does not support dim ??
-      break;
-    case DisplayState::On:
-      display.ssd1306_command(SSD1306_DISPLAYON);
-      display.dim(false);
-      displaystatus = DisplayState::On;
-      break;
-    //case DisplayState::Off:
-    default:
-      display.ssd1306_command(SSD1306_DISPLAYOFF);
-      displaystatus = DisplayState::Off;
-  }
-  return displaystatus;
-}
+// DisplayState setDisplay(DisplayState statustoset){
+//   static DisplayState displaystatus = DisplayState::Dim;
+//   switch(statustoset){
+//     case DisplayState::Dim:
+//       display.ssd1306_command(SSD1306_DISPLAYON);
+//       //display.dim(true); // dim display
+//       //displaystatus = DisplayState::Dim; // this display does not support dim
+//       //displaystatus = DisplayState::On;
+//       display.ssd1306_command(SSD1306_SETCONTRAST);
+//       display.ssd1306_command(1);
+//       displaystatus = DisplayState::Dim; // this display does not support dim ??
+//       break;
+//     case DisplayState::On:
+//       display.ssd1306_command(SSD1306_DISPLAYON);
+//       display.dim(false);
+//       displaystatus = DisplayState::On;
+//       break;
+//     //case DisplayState::Off:
+//     default:
+//       display.ssd1306_command(SSD1306_DISPLAYOFF);
+//       displaystatus = DisplayState::Off;
+//   }
+//   return displaystatus;
+// }
 
-void clear_display(){
-  display.clearDisplay();
-  display.display();
-}
+// void clear_display(){
+//   display.clearDisplay();
+//   display.display();
+// }
 
 // #########################################################
 
@@ -121,41 +121,42 @@ int y1, y2, y3, minY;
 bool oncecompleted = false;
 
 void setup() {
-  // Serial.begin(115200);
-  // Serial.println(F(" ***************"));  
+  Serial.begin(115200);
+  Serial.println(F(" ***************"));  
 
-  display.begin(SSD1306_SWITCHCAPVCC, i2c_Address);
-  displaystatus = setDisplay(DisplayState::Dim);
-  display.clearDisplay();
-  display.setFont(&FreeSerif12pt7b);
-  display.setTextSize(1); // 3 lines of 10-12 chars
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextWrap(false);
-  display.display();
-
-  x = display.width();
-  y1 = 16;
-  y2 = 38;
-  y3 = 60;
-  // minX = -128;
-  minX = -200; // depends on length of the text
-  minY = -22;
-
-  display_oled(true, 0, y1, Line1); 
-  display_oled(false, 2, y2, Line2); 
-  display_oled(false, 4, y3, Line3);  
-  prevx = x;
-
-  delay(1000);
-
-  // if (!radio.begin()){
-  //   //Serial.println(F("Radio hardware error."));
-  //   while (1) {
-  //     // hold in an infinite loop
-  //   }
-  // }
-  //radio.setPALevel(RF24_PA_MIN, 0);
+  // SPI.begin();
+  if (!radio.begin()){
+    Serial.println(F("Radio hardware error."));
+    while (1) {
+      // hold in an infinite loop
+    }
+  }
+  radio.setPALevel(RF24_PA_MIN, 0);
   //network.begin(radioChannel, slaveNodeID);
+
+  // display.begin(SSD1306_SWITCHCAPVCC, i2c_Address);
+  // displaystatus = setDisplay(DisplayState::Dim);
+  // display.clearDisplay();
+  // display.setFont(&FreeSerif12pt7b);
+  // display.setTextSize(1); // 3 lines of 10-12 chars
+  // display.setTextColor(SSD1306_WHITE);
+  // display.setTextWrap(false);
+  // display.display();
+
+  // x = display.width();
+  // y1 = 16;
+  // y2 = 38;
+  // y3 = 60;
+  // // minX = -128;
+  // minX = -200; // depends on length of the text
+  // minY = -22;
+
+  // display_oled(true, 0, y1, Line1); 
+  // display_oled(false, 2, y2, Line2); 
+  // display_oled(false, 4, y3, Line3);  
+  // prevx = x;
+
+  // delay(1000);
 
   // Set the nodeID manually
   mesh.setNodeID(slaveNodeID);
@@ -172,65 +173,65 @@ uint8_t meshupdaterc = 0;
 uint8_t rem_meshupdaterc = 200;
 
 void loop() {
-  // if (mesherror > 8) {
-  //   meshrunning = meshstartup();
-  //   mesherror = 0;
-  // }
-  // // Call mesh.update to keep the network updated
-  // meshupdaterc = mesh.update();
-  // if (meshupdaterc != rem_meshupdaterc) {
-  //   // Serial.print(F("meshupdaterc: "));
-  //   // Serial.println(meshupdaterc);
-  //   rem_meshupdaterc = meshupdaterc;
-  // } 
+  if (mesherror > 8) {
+    meshrunning = meshstartup();
+    mesherror = 0;
+  }
+  // Call mesh.update to keep the network updated
+  meshupdaterc = mesh.update();
+  if (meshupdaterc != rem_meshupdaterc) {
+    // Serial.print(F("meshupdaterc: "));
+    // Serial.println(meshupdaterc);
+    rem_meshupdaterc = meshupdaterc;
+  } 
 
-  // //// Receive a message from master if available - START
-  // while (network.available()) {
-  //   RF24NetworkHeader header;
-  //   payload_from_master payload;
-  //   network.read(header, &payload, sizeof(payload));
-  //   Serial.print(F("Received packet #"));
-  //   Serial.print(payload.counter);
-  //   if (payload.keyword == keywordvalM) {
+  //// Receive a message from master if available - START
+  while (network.available()) {
+    RF24NetworkHeader header;
+    payload_from_master payload;
+    network.read(header, &payload, sizeof(payload));
+    Serial.print(F("Received packet #"));
+    Serial.print(payload.counter);
+    if (payload.keyword == keywordvalM) {
 
-  //   }
-  //   else{
-  //     Serial.println(F("Wrong keyword")); 
-  //   }
-  // }
-  // //// Receive a message from master if available - END
+    }
+    else{
+      Serial.println(F("Wrong keyword")); 
+    }
+  }
+  //// Receive a message from master if available - END
 
-  // //// Send to the master node every x seconds - BEGIN
-  // if (millis() - sleepTimer > 10000) {
-  //   sleepTimer = millis();
-  //   payload_from_slave payloadM = {keywordvalS, sleepTimer, slaveNodeID};
+  //// Send to the master node every x seconds - BEGIN
+  if (millis() - sleepTimer > 10000) {
+    sleepTimer = millis();
+    payload_from_slave payloadM = {keywordvalS, sleepTimer, slaveNodeID};
  
-  //   // Send an 'M' type message containing the current millis()
-  //   if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {
-  //     // If a write fails, check connectivity to the mesh network
-  //     if (!mesh.checkConnection()) {
-  //       //refresh the network address
-  //       Serial.println(F("Renewing Address"));
-  //       if (mesh.renewAddress() == MESH_DEFAULT_ADDRESS) {
-  //         // If address renewal fails, reconfigure the radio and restart the mesh
-  //         // This allows recovery from most, if not all radio errors
-  //         meshstartup();
-  //       }
-  //     }
-  //     else {
-  //       //Serial.println(F("Send fail, Test OK"));
-  //       mesherror++;
-  //     }
-  //   } else {
-  //     // Serial.print(F("Send to Master OK: "));
-  //     // Serial.println(payloadM.timing);
-  //     mesherror = 0;
-  //   }
-  // }
-  // //// Send to the master node every x seconds - END
+    // Send an 'M' type message containing the current millis()
+    if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {
+      // If a write fails, check connectivity to the mesh network
+      if (!mesh.checkConnection()) {
+        //refresh the network address
+        Serial.println(F("Renewing Address"));
+        if (mesh.renewAddress() == MESH_DEFAULT_ADDRESS) {
+          // If address renewal fails, reconfigure the radio and restart the mesh
+          // This allows recovery from most, if not all radio errors
+          meshstartup();
+        }
+      }
+      else {
+        //Serial.println(F("Send fail, Test OK"));
+        mesherror++;
+      }
+    } else {
+      // Serial.print(F("Send to Master OK: "));
+      // Serial.println(payloadM.timing);
+      mesherror = 0;
+    }
+  }
+  //// Send to the master node every x seconds - END
 
-  float tempval = 24.567;
-  display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.
-  delay(2000);
+  // float tempval = 24.567;
+  // display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.
+  // delay(2000);
 
 }

@@ -7,7 +7,7 @@
 #include "RF24Mesh.h"
 #include <SPI.h>
 
-#include "Wire.h"
+#include <Wire.h>
 
 // #########################################################
 
@@ -49,6 +49,8 @@ struct payload_from_slave {
   unsigned long keyword;
   uint32_t timing;
   uint8_t nodeId;
+  uint8_t detection;
+  uint8_t distance;
 };
  
 uint32_t sleepTimer = 0;
@@ -139,7 +141,9 @@ uint8_t meshupdaterc = 0;
 uint8_t rem_meshupdaterc = 200;
 bool detectionval = false;
 bool remdetectionval = false;
-int distval = 0;
+uint8_t detval = 0;
+uint8_t distval = 0;
+bool sendDirect = false;
 
 void loop() {
   if (mesherror > 8) {
@@ -170,11 +174,19 @@ void loop() {
   }
   //// Receive a message from master if available - END
 
+  if(sendDirect){
+    Serial.print(F(" send direct about to happen ")); 
+    Serial.println(millis());
+  }
   //// Send to the master node every x seconds - BEGIN
-  if (millis() - sleepTimer > 10000) {
+  if ((sendDirect) || (millis() - sleepTimer > 10000)) {
     sleepTimer = millis();
-    payload_from_slave payloadM = {keywordvalS, sleepTimer, slaveNodeID};
- 
+    sendDirect = false;
+    payload_from_slave payloadM = {keywordvalS, sleepTimer, slaveNodeID, detval, distval};
+    Serial.print(detval);
+    Serial.print(F(", "));
+    Serial.println(distval);
+
     // Send an 'M' type message containing the current millis()
     if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {
       // If a write fails, check connectivity to the mesh network
@@ -201,9 +213,12 @@ void loop() {
 
   detectionval = PIRdetection();
   if (remdetectionval != detectionval){
+    sendDirect = true;
     remdetectionval = detectionval;
     Serial.print(F("PIR detection: "));
     Serial.println(detectionval);
+    detval = 0;
+    if (detectionval) detval = 0xff;
   }
 
   distval = distanceMeasurement();
