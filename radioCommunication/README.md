@@ -38,4 +38,40 @@ https://www.best-microcontroller-projects.com/arduino-interrupt.html
 # BUILTIN LED 
 The SPI interface uses PIN 13 as output
 
-This means the buildin LED of the Arduino UNO R4 WiFi cannot be used (hard-wired to PIN 13).
+This means the buildin LED of the Arduino boards (UNO R4 WiFi, NANO) cannot be used (as the builtin LED is hard-wired to PIN 13).
+
+
+----------
+# MESH components
+The mesh network is created with independent network capable devices. Radio channel selected is 96. One node is the master, that is necessary to keep the network active and operational.
+
+## mesh_uno1_with_RFmodule
+Master controller for the mesh, webserver for remote control
+
+node 0, master ID
+
+## mesh_nano1
+RF-NANO with KIKA receiver and relays module attached
+node 3
+
+## mesh_nano2
+RF-Nano with 1.3 inch Display (big display)
+
+node 5
+
+## mesh_nano3
+RF-Nano with 0,96 inch Display (small Display)
+
+node 7
+
+## mesh_nano4
+Nano with external RF module
+
+node 9
+
+## mesh_nano5
+RF-NANO with PIR and distance (I2C)
+
+node 1
+
+----------

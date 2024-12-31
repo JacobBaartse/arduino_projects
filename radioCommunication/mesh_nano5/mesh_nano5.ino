@@ -7,11 +7,17 @@
 #include "RF24Mesh.h"
 #include <SPI.h>
 
+#include "Wire.h"
+
 // #########################################################
+
+int SR04_I2CADDR = 0x57;
+
+#define pinPIR 7 // PIR pin connection
 
 #define radioChannel 96
 /** User Configuration per 'slave' node: nodeID **/
-#define slaveNodeID 9
+#define slaveNodeID 1
 #define masterNodeID 0
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -20,8 +26,8 @@
 // for the UNO/NANO with external RF24 module:
 //RF24 radio(8, 7); // nRF24L01 (CE, CSN)
 
-#define CE_PIN  8
-#define CSN_PIN 7
+#define CE_PIN  10
+#define CSN_PIN 9
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 
 RF24Network network(radio);
@@ -61,9 +67,52 @@ bool meshstartup(){
   return mesh.begin(radioChannel, RF24_250KBPS);
 }
 
+bool PIRdetection(){
+  bool activedetection = digitalRead(pinPIR) == HIGH;
+  //Serial.println(activedetection);
+  return activedetection;
+}
+
+int distanceMeasurement(){
+  static unsigned long remdistance = 0;
+  byte ds[3];
+  ds[0] = 0;
+  ds[1] = 0;
+  ds[2] = 0;
+
+  Wire.beginTransmission(SR04_I2CADDR);
+  Wire.write(1);          // 1 = cmd to start meansurement
+  Wire.endTransmission();
+  delay(120);             // 1 cycle approx. 100 ms. 
+  int i = 0;
+  Wire.requestFrom(SR04_I2CADDR,3);  // read distance       
+  while (Wire.available())
+  {
+    ds[i++] = Wire.read();
+  }        
+    
+  unsigned long distance = (unsigned long)(ds[0]) * 65536;
+  distance = distance + (unsigned long)(ds[1]) * 256;
+  distance = (distance + (unsigned long)(ds[2])) / 10000;
+  if (distance > 0) {
+    if (remdistance != distance) {
+      remdistance = distance;
+      Serial.print(distance);
+      Serial.println(" cm");
+    }
+  }
+
+  return (int)distance;
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println(F(" *************>>"));  
+
+  pinMode(pinPIR, INPUT);
+
+  // Start I2C
+  Wire.begin();
 
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
@@ -88,6 +137,9 @@ void setup() {
 unsigned int mesherror = 0;
 uint8_t meshupdaterc = 0;
 uint8_t rem_meshupdaterc = 200;
+bool detectionval = false;
+bool remdetectionval = false;
+int distval = 0;
 
 void loop() {
   if (mesherror > 8) {
@@ -147,5 +199,13 @@ void loop() {
   }
   //// Send to the master node every x seconds - END
 
+  detectionval = PIRdetection();
+  if (remdetectionval != detectionval){
+    remdetectionval = detectionval;
+    Serial.print(F("PIR detection: "));
+    Serial.println(detectionval);
+  }
+
+  distval = distanceMeasurement();
 
 }
