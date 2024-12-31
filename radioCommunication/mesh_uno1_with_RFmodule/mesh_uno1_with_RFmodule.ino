@@ -306,21 +306,23 @@ void loop() {
         Serial.print(F(", timing: "));
         Serial.println(payload.timing);
         if (payload.keyword == keywordvalS) {
-          Serial.print(F("presence: "));
-          Serial.print(payload.detection);
-          String distanceString = "Dist.: ";
-          distanceString += payload.distance;
-          distanceString += " cm";
-          Serial.print(F(", "));
-          Serial.println(distanceString);
-            
-          display_oled(true, 0, dy1, distanceString); 
-          if (payload.detection > 0){
-            display_oled(false, 40, dy3, "O"); 
-          }
-          else{
-            display_oled(false, 20, dy3, "-"); 
-          }          
+          if(payload.nodeId == 1){
+            Serial.print(F("presence: "));
+            Serial.print(payload.detection);
+            String distanceString = "Dist.: ";
+            distanceString += payload.distance;
+            distanceString += " cm";
+            Serial.print(F(", "));
+            Serial.println(distanceString);
+              
+            display_oled(true, 0, dy1, distanceString); 
+            if (payload.detection > 0){
+              display_oled(false, 50, dy3, "O"); 
+            }
+            else{
+              display_oled(false, 20, dy3, "--"); 
+            }  
+          }        
         }
         else{
           Serial.println("Wrong keyword"); 

@@ -1,6 +1,7 @@
 /*
  * RF-Nano with 1.3 inch Display (big display)
  */
+
 #include "RF24Network.h"
 #include "RF24.h"
 #include "RF24Mesh.h"
@@ -40,6 +41,8 @@ unsigned long const keywordvalS = 0xbeeffeeb;
 struct payload_from_master {
   unsigned long keyword;
   uint32_t counter;
+  uint32_t dummy1 = 0;
+  uint32_t dummy2 = 0;
 };
  
 // Payload from/for SLAVE
@@ -84,38 +87,6 @@ void display_oled(bool clear, int x, int y, String text) {
   display.display();
 }
 
-// move text, write old location in background color
-void display_move(int x, int y, int nx, int ny, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  display.setCursor(x, y);
-  display.setTextColor(SH110X_BLACK);
-  display.print(text);
-  display.setCursor(nx, ny);
-  display.setTextColor(SH110X_WHITE);
-  display.print(text);
-  display.display();
-}
-
-DisplayState setDisplay(DisplayState statustoset){
-  static DisplayState displaystatus = DisplayState::Dim;
-  switch(statustoset){
-    case DisplayState::Dim:
-      display.oled_command(SH110X_DISPLAYON);
-      display.setContrast(0); // dim display
-      displaystatus = DisplayState::Dim;
-      break;
-    case DisplayState::On:
-      display.oled_command(SH110X_DISPLAYON);
-      displaystatus = DisplayState::On;
-      break;
-    //case DisplayState::Off:
-    default:
-      display.oled_command(SH110X_DISPLAYOFF);
-      displaystatus = DisplayState::Off;
-  }
-  return displaystatus;
-}
-
 void clear_display(){
   display.clearDisplay();
   display.display();
@@ -151,8 +122,11 @@ void setup() {
   // Connect to the mesh
   meshrunning = meshstartup();
 
+  // // Wire.begin();
   // display.begin(i2c_Address, true); // Address 0x3C default
-  // displaystatus = setDisplay(DisplayState::Dim);
+  // display.oled_command(SH110X_DISPLAYON);
+  // display.setContrast(0); // dim display
+  // displaystatus = DisplayState::Dim;
   // display.clearDisplay();
   // display.setFont(&FreeSerif12pt7b);
   // display.setTextSize(1); // 3 lines of 10-12 chars
@@ -192,50 +166,50 @@ void loop() {
     rem_meshupdaterc = meshupdaterc;
   } 
 
-  // //// Receive a message from master if available - START
-  // while (network.available()) {
-  //   RF24NetworkHeader header;
-  //   payload_from_master payload;
-  //   network.read(header, &payload, sizeof(payload));
-  //   Serial.print(F("Received packet #"));
-  //   Serial.print(payload.counter);
-  //   if (payload.keyword == keywordvalM) {
+  //// Receive a message from master if available - START
+  while (network.available()) {
+    RF24NetworkHeader header;
+    payload_from_master payload;
+    network.read(header, &payload, sizeof(payload));
+    Serial.print(F("Received packet #"));
+    Serial.println(payload.counter);
+    if (payload.keyword == keywordvalM){
 
-  //   }
-  //   else{
-  //     Serial.println(F("Wrong keyword")); 
-  //   }
-  // }
-  // //// Receive a message from master if available - END
+    }
+    else{
+      Serial.println(F("Wrong keyword")); 
+    }
+  }
+  //// Receive a message from master if available - END
 
-  // //// Send to the master node every x seconds - BEGIN
-  // if (millis() - sleepTimer > 10000) {
-  //   sleepTimer = millis();
-  //   payload_from_slave payloadM = {keywordvalS, sleepTimer, slaveNodeID};
+  //// Send to the master node every x seconds - BEGIN
+  if (millis() - sleepTimer > 10000) {
+    sleepTimer = millis();
+    payload_from_slave payloadM = {keywordvalS, sleepTimer, slaveNodeID};
  
-  //   // Send an 'M' type message containing the current millis()
-  //   if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {
-  //     // If a write fails, check connectivity to the mesh network
-  //     if (!mesh.checkConnection()) {
-  //       //refresh the network address
-  //       Serial.println(F("Renewing Address"));
-  //       if (mesh.renewAddress() == MESH_DEFAULT_ADDRESS) {
-  //         // If address renewal fails, reconfigure the radio and restart the mesh
-  //         // This allows recovery from most, if not all radio errors
-  //         meshstartup();
-  //       }
-  //     }
-  //     else {
-  //       //Serial.println(F("Send fail, Test OK"));
-  //       mesherror++;
-  //     }
-  //   } else {
-  //     // Serial.print(F("Send to Master OK: "));
-  //     // Serial.println(payloadM.timing);
-  //     mesherror = 0;
-  //   }
-  // }
-  // //// Send to the master node every x seconds - END
+    // Send an 'M' type message containing the current millis()
+    if (!mesh.write(&payloadM, 'M', sizeof(payloadM))) {
+      // If a write fails, check connectivity to the mesh network
+      if (!mesh.checkConnection()) {
+        //refresh the network address
+        Serial.println(F("Renewing Address"));
+        if (mesh.renewAddress() == MESH_DEFAULT_ADDRESS) {
+          // If address renewal fails, reconfigure the radio and restart the mesh
+          // This allows recovery from most, if not all radio errors
+          meshstartup();
+        }
+      }
+      else {
+        //Serial.println(F("Send fail, Test OK"));
+        mesherror++;
+      }
+    } else {
+      Serial.print(F("Send to Master OK: "));
+      Serial.println(payloadM.timing);
+      mesherror = 0;
+    }
+  }
+  //// Send to the master node every x seconds - END
 
   // float tempval = 24.567;
   // display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.

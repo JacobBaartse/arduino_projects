@@ -7,4 +7,4 @@ String PROGMEM knownnetworks[][3] = {
   { "SSID_2", "PASS_2", "Location_2" }, 
   { "SSID_3", "PASS_3", "Location_2" }, 
   { "EOR", "-", "-"} // End Of Array indication
-};
+}; 
