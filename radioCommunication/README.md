@@ -74,4 +74,11 @@ RF-NANO with PIR and distance (I2C)
 
 node 1
 
+## mesh_nano6
+RF-NANO with PIR and servo control 
+(let the PIR sensor move, to detect 
+still/not moving IR source)
+
+node 13
+
 ----------
