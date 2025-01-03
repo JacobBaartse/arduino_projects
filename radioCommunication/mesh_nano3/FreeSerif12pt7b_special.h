@@ -1,5 +1,5 @@
 #pragma once
-#include <Adafruit_GFX.h>
+//#include <Adafruit_GFX.h>
 
 const uint8_t FreeSerif12pt7bBitmaps[] PROGMEM = {
   0xFF, 0xFE, 0xA8, 0x3F, 0xFF, 0xFE, 0xA8, 0x3F, 0xCF, 0x3C, 0xF3, 0x8A, 
@@ -261,7 +261,7 @@ const GFXglyph FreeSerif12pt7bGlyphs[] PROGMEM = {
   {  1851,   6,  22,   6,    0,  -16 }    // 0x81 'non-printable'
 };
 
-const GFXfont FreeSerif12pt7b PROGMEM = {(uint8_t *)FreeSerif12pt7bBitmaps,    
+const GFXfont FreeSerif12pt7b = {(uint8_t *)FreeSerif12pt7bBitmaps,    
                                          (GFXglyph *)FreeSerif12pt7bGlyphs, 0x20, 0x81,     29};
 
 // Approx. 2511 bytes

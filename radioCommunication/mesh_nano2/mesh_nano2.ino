@@ -122,30 +122,30 @@ void setup() {
   // Connect to the mesh
   meshrunning = meshstartup();
 
-  // // Wire.begin();
-  // display.begin(i2c_Address, true); // Address 0x3C default
-  // display.oled_command(SH110X_DISPLAYON);
-  // display.setContrast(0); // dim display
-  // displaystatus = DisplayState::Dim;
-  // display.clearDisplay();
-  // display.setFont(&FreeSerif12pt7b);
-  // display.setTextSize(1); // 3 lines of 10-12 chars
-  // display.setTextColor(SH110X_WHITE);
-  // display.setTextWrap(false);
-  // display.display();
+  // Wire.begin();
+  display.begin(i2c_Address, true); // Address 0x3C default
+  display.oled_command(SH110X_DISPLAYON);
+  display.setContrast(0); // dim display
+  displaystatus = DisplayState::Dim;
+  display.clearDisplay();
+  display.setFont(&FreeSerif12pt7b);
+  display.setTextSize(1); // 3 lines of 10-12 chars
+  display.setTextColor(SH110X_WHITE);
+  display.setTextWrap(false);
+  display.display();
 
-  // x = display.width();
-  // y1 = 16;
-  // y2 = 38;
-  // y3 = 60;
-  // // minX = -128;
-  // minX = -200; // depends on length of the text
-  // minY = -22;
+  x = display.width();
+  y1 = 16;
+  y2 = 38;
+  y3 = 60;
+  // minX = -128;
+  minX = -200; // depends on length of the text
+  minY = -22;
 
-  // display_oled(true, 0, y1, Line1); 
-  // display_oled(false, 2, y2, Line2); 
-  // display_oled(false, 4, y3, Line3);  
-  // prevx = x;
+  display_oled(true, 0, y1, Line1); 
+  display_oled(false, 2, y2, Line2); 
+  display_oled(false, 4, y3, Line3);  
+  prevx = x;
 
 }
  
