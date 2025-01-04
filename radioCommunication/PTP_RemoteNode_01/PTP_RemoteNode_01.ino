@@ -381,6 +381,7 @@ LEDState GreenIndication = LEDState::LEDOff;
 LEDState RedIndication = LEDState::LEDOff;
 
 void loop() {
+  
   network.update();
 
   currentMillis = millis();   // capture the value of millis() only once in the loop
@@ -514,4 +515,5 @@ void loop() {
     data2 = response_none;
     data3 = response_none;
   }
+
 }

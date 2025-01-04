@@ -53,7 +53,7 @@ bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata)
 }
 
 //===== Signal via onboard LED =====//
-// on board LED is in a PIN of the PSI interface, so should not be used
+// on board LED is in a PIN of the SPI interface, so should not be used
 unsigned long knipper_duration = 5000;
 unsigned long knipper_interval = 500;
 
