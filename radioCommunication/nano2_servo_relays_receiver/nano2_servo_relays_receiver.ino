@@ -9,9 +9,10 @@
 
 #define radioChannel 106
 
+const int buzzer = 9; //buzzer to arduino pin 9
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(8, 7); // nRF24L01 (CE, CSN)
+RF24 radio(7, 8); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t node00 = 00; // Address of this node in Octal format (04, 031, etc.)
@@ -32,11 +33,10 @@ network_payload Rxdata;
 
 Servo Servo1;  // create servo object to control a servo
 Servo Servo2;  // create servo object to control a servo
-Servo Servo3;  // create servo object to control a servo
 
 void setup() {
   Serial.begin(115200);
-  Serial.println(F(" *****<>*****"));  
+  Serial.println(F(" ***<-->***"));  
 
   SPI.begin();
   if (!radio.begin()){
@@ -49,13 +49,17 @@ void setup() {
   radio.setDataRate(RF24_250KBPS);
   network.begin(radioChannel, node00);
 
-  Servo1.attach(9);  // attaches the servo on pin 9 to the servo object
-  Servo2.attach(9);  // attaches the servo on pin 9 to the servo object
-  Servo3.attach(9);  // attaches the servo on pin 9 to the servo object
+  Servo1.attach(5);  // attaches the servo on pin 5 to the servo object
+  Servo2.attach(6);  // attaches the servo on pin 6 to the servo object
 
+  pinMode(buzzer, OUTPUT); // Set buzzer - pin 9 as an output
 }
  
 unsigned long currentmilli = 0;
+unsigned long buzzertime = 0;
+bool newdata = false;
+int numX = 0;
+int numY = 0;
 
 //===== Receiving =====//
 void receiveRFnetwork(){
@@ -79,17 +83,16 @@ void receiveRFnetwork(){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh){
+void transmitRFnetwork(unsigned long millitime){
   static unsigned long sendingTimer = 0;
   static bool w_ok;
 
-  // Every 5 seconds, or on new data
-  unsigned long currentmilli = millis();
-  if ((fresh)||(currentmilli - sendingTimer > 5000)){
-    sendingTimer = currentmilli;
+  // Every 15 seconds
+  if (millitime - sendingTimer > 15000){
+    sendingTimer = millitime;
 
     Txdata.keyword = keywordvalM;
-    Txdata.timing = currentmilli;
+    Txdata.timing = millitime;
     // Txdata.xvalue = xValue;
     // Txdata.yvalue = yValue;
     // Txdata.bvalue = bValue;
@@ -109,7 +112,6 @@ void transmitRFnetwork(bool fresh){
   }
 }
 
-bool newdata = false;
 
 void loop() {
 
@@ -117,13 +119,32 @@ void loop() {
 
   currentmilli = millis();
 
+  transmitRFnetwork(currentmilli);
+
   receiveRFnetwork();
 
   //************************ actuators ****************//
 
   if (newdata){
 
+    if (Rxdata.bvalue > 0){
+      if (currentmilli - buzzertime > 5000){ // create a silence time of 5 seconds
+        tone(buzzer, 500); // Send a sound signal...
+        buzzertime = currentmilli;
+      }
+    }
+    // maybe first integrate the x end y value before mapping
+    numX = map(Rxdata.xvalue, 0, 1023, 0, 180);
+    numY = map(Rxdata.yvalue, 0, 1023, 0, 180);
+    Servo1.write(numX);
+    Servo2.write(numY);
+
   }
+  if (currentmilli - buzzertime > 2000){ // create a buzzing time of 2 seconds
+    noTone(buzzer);     // Stop sound...
+    buzzertime = currentmilli;
+  }
+
   // for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
   //   // in steps of 1 degree
   //   myservo.write(pos);              // tell servo to go to position in variable 'pos'
@@ -133,8 +154,6 @@ void loop() {
   //************************ actuators ****************//
   newdata = false;
 
-  transmitRFnetwork();
-
-  delay(500); // for debugging, this can be removed in practice
+  delay(200); // for debugging, this can be removed in practice
 
 }

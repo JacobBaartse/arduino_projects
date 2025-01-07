@@ -139,13 +139,13 @@ void loop() {
   divYr = yValue - remy;
   divX = abs(divXr);
   divY = abs(divYr);
-  if ((divY > 1)||(divX > 1)){
+  // if ((divY > 1)||(divX > 1)){
   //   Serial.print(F("dX: "));
   //   Serial.print(divX);    
   //   Serial.print(F(", dY: "));
   //   Serial.println(divY);
   // }
-  // if ((divY > 2)||(divX > 2)){
+  if ((divY > 2)||(divX > 2)){
     Serial.println(F("----"));  
     Serial.print(F("X: "));
     Serial.print(xValue);
