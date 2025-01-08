@@ -1,0 +1,8 @@
+
+chip on the back:
+6208-3.3 UMW 2426
+seems a voltage regulator
+
+connecting to 5Volt should be possible 
+and digital pins directly from the
+Arduino UNO to the display
