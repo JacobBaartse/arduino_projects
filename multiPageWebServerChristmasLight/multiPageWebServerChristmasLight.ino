@@ -52,6 +52,9 @@ const char pass[] = SECRET_PASS;   // change your network password (use for WPA,
 String lamp_state1 = "uit";
 String lamp_state2 = "uit";
 String lamp_state3 = "uit";
+String lamp_state4 = "uit";
+String lamp_state5 = "uit";
+String lamp_state6 = "uit";
 
 int status = WL_IDLE_STATUS;
 bool charging = false;
@@ -251,8 +254,18 @@ void webserver(){
       if (HTTP_req.indexOf("GET /lamp?4") > -1) light(false, 2);
       if (HTTP_req.indexOf("GET /lamp?5") > -1) light(true, 3);
       if (HTTP_req.indexOf("GET /lamp?6") > -1) light(false, 3);
-      if (HTTP_req.indexOf("GET /lamp?7") > -1) all_lights(true);
-      if (HTTP_req.indexOf("GET /lamp?8") > -1) all_lights(false);
+      if (HTTP_req.indexOf("GET /lamp?7") > -1) light(true, 4);
+      if (HTTP_req.indexOf("GET /lamp?8") > -1) light(false, 4);
+      if (HTTP_req.indexOf("GET /lamp?9") > -1) light(true, 5);
+      if (HTTP_req.indexOf("GET /lamp?A") > -1) light(false, 5);
+      if (HTTP_req.indexOf("GET /lamp?B") > -1) light(true, 6);
+      if (HTTP_req.indexOf("GET /lamp?C") > -1) light(false, 6);
+
+      if (HTTP_req.indexOf("GET /lamp?D") > -1) all_lights(true);
+      if (HTTP_req.indexOf("GET /lamp?E") > -1) all_lights(false);
+
+      if (HTTP_req.indexOf("GET /lamp?W") > -1) send_code(RF_WISS_CONFIG);;
+      
       if (HTTP_req.indexOf("GET /lamp") > -1 )                                   page_id = PAGE_LAMP;
 
       if (HTTP_req.indexOf("GET /battery?1") > -1 ) battery_charge(true);
@@ -285,7 +298,7 @@ void webserver(){
         break;
       case PAGE_LAMP:
         html = String(HTML_CONTENT_LAMP);
-        lamp_state = String(" "+lamp_state1 + " " + lamp_state2 + " " + lamp_state3);
+        lamp_state = String(" "+lamp_state1 + " " + lamp_state2 + " " + lamp_state3 + " </br>"+ lamp_state4 + " " + lamp_state5 + " " + lamp_state6);
         html.replace("LAMP_STATE_MARKER", lamp_state);  // replace the marker by a real value
         break;
       case PAGE_ERROR_404:
@@ -315,6 +328,9 @@ void light(bool turn_on, int light_id){
       case 1: send_code(RF_LIGHT_ON1);lamp_state1 = "aan"; break;
       case 2: send_code(RF_LIGHT_ON2);lamp_state2 = "aan"; break;
       case 3: send_code(RF_LIGHT_ON3);lamp_state3 = "aan"; break;
+      case 4: send_code(RF_LIGHT_ON4);lamp_state4 = "aan"; break;
+      case 5: send_code(RF_LIGHT_ON5);lamp_state5 = "aan"; break;
+      case 6: send_code(RF_LIGHT_ON6);lamp_state6 = "aan"; break;
     }
   }
   else{
@@ -322,6 +338,9 @@ void light(bool turn_on, int light_id){
     case 1: send_code(RF_LIGHT_OFF1);lamp_state1 = "uit"; break;
     case 2: send_code(RF_LIGHT_OFF2);lamp_state2 = "uit"; break;
     case 3: send_code(RF_LIGHT_OFF3);lamp_state3 = "uit"; break;
+    case 4: send_code(RF_LIGHT_OFF4);lamp_state4 = "uit"; break;
+    case 5: send_code(RF_LIGHT_OFF5);lamp_state5 = "uit"; break;
+    case 6: send_code(RF_LIGHT_OFF6);lamp_state6 = "uit"; break;
     }
   }
 }
@@ -331,6 +350,9 @@ bool get_light_state(int light_id){
     case 1: if (lamp_state1 == "uit") return false; break;
     case 2: if (lamp_state2 == "uit") return false; break;
     case 3: if (lamp_state3 == "uit") return false; break;
+    case 4: if (lamp_state4 == "uit") return false; break;
+    case 5: if (lamp_state5 == "uit") return false; break;
+    case 6: if (lamp_state6 == "uit") return false; break;
   }
   return true;
 }
@@ -346,12 +368,18 @@ void all_lights(bool turn_on){
     lamp_state1 = "aan";
     lamp_state2 = "aan";
     lamp_state3 = "aan";
+    lamp_state4 = "aan";
+    lamp_state5 = "aan";
+    lamp_state6 = "aan";
   }
   else{
     send_code(RF_LIGHT_ALL_OFF);
     lamp_state1 = "uit";
     lamp_state2 = "uit";
     lamp_state3 = "uit";
+    lamp_state4 = "uit";
+    lamp_state5 = "uit";
+    lamp_state6 = "uit";
   }
 }
 
@@ -421,10 +449,12 @@ void businessLogic(){
       else if (ir_value == 0x80) toggle_light(1);
       else if (ir_value == 0x81) toggle_light(2);
       else if (ir_value == 0x82) toggle_light(3);
+      else if (ir_value == 0x83) toggle_light(4);
+      else if (ir_value == 0x84) toggle_light(5);
+      else if (ir_value == 0x85) toggle_light(6);
       else light(true, 1);
   }
 }
-
 
 void loop() {
   webserver();

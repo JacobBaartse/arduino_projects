@@ -11,10 +11,19 @@ unsigned long RF_LIGHT_OFF2 = 0x90c40081;
 unsigned long RF_LIGHT_ON3 = 0x90c40092;
 unsigned long RF_LIGHT_OFF3 = 0x90c40082;
 
+unsigned long RF_LIGHT_ON4 = 0x90c40094;
+unsigned long RF_LIGHT_OFF4 = 0x90c40084;
+
+unsigned long RF_LIGHT_ON5 = 0x90c40095;
+unsigned long RF_LIGHT_OFF5 = 0x90c40085;
+
+unsigned long RF_LIGHT_ON6 = 0x90c40096;
+unsigned long RF_LIGHT_OFF6 = 0x90c40086;
+
 unsigned long RF_LIGHT_ALL_ON = 0x90c40093;
 unsigned long RF_LIGHT_ALL_OFF = 0x90c40083;
 
-//unsigned long RF_LIGHT_ALL_OFF = 0x90c400A0;
+unsigned long RF_WISS_CONFIG = 0x90c400A0;
 
 
 void rf_setup(int pin) {
