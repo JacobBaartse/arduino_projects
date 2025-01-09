@@ -11,9 +11,10 @@ location schuur SO 148
 
 */
 
-#include <RF24Network.h>;
-#include <RF24.h>;
-#include "repeater.h";
+#include <RF24Network.h>
+#include <RF24.h>
+#include <SPI.h>
+#include "repeater.h"
 
 RF24 radio1(10, 9);              // onboard nRF24L01 (CE, CSN)
 RF24 radio2(8, 7);               // external nRF24L01 (CE, CSN)
@@ -27,6 +28,7 @@ const uint16_t remote_node = 01;    // Address of the other node in Octal format
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE 57600 (RF-NANO), there is somewhere a mismatch in clock factor of 4
 
+  SPI.begin();
   radio1.begin();
   radio2.begin();
   radio1.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.

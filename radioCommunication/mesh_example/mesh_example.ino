@@ -77,7 +77,7 @@ void setup() {
  
   // Connect to the mesh
   Serial.println(F("Connecting to the mesh..."));
-  if (!mesh.begin()) {
+  if (!mesh.begin(radioChannel)) {
     if (radio.isChipConnected()) {
       do {
         // mesh.renewAddress() will return MESH_DEFAULT_ADDRESS on failure to connect
@@ -110,7 +110,7 @@ void loop() {
         if (mesh.renewAddress() == MESH_DEFAULT_ADDRESS) {
           //If address renewal fails, reconfigure the radio and restart the mesh
           //This allows recovery from most if not all radio errors
-          mesh.begin();
+          mesh.begin(radioChannel);
         }
       } else {
         Serial.println("Send fail, Test OK");

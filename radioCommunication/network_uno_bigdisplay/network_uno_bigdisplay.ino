@@ -8,9 +8,7 @@
 #include "RTC.h"
 #include "clock.h"
 
-#include "RF24Network.h"
 #include "RF24.h"
-#include "RF24Mesh.h"
 #include <SPI.h>
 
 #include <Wire.h>
@@ -35,8 +33,8 @@ Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, 
 
 #define radioChannel 96
 /** User Configuration per 'slave' node: nodeID **/
-#define slavenodeID 3
-#define masterNodeID 0
+// #define slavenodeID 3
+// #define masterNodeID 0
 
 #define LEDpin1 4
 #define LEDpin2 5
@@ -45,8 +43,7 @@ Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, 
 WiFiServer server(80);
 IPAddress IPhere;
 
-RF24Mesh mesh(radio, network);
- 
+
 unsigned long const keywordvalM = 0xfeebbeef; 
 unsigned long const keywordvalS = 0xbeeffeeb; 
 
@@ -79,12 +76,12 @@ void restart_arduino(){
   NVIC_SystemReset();
 }
 
-bool meshstartup(){
-  if (meshrunning){
-    Serial.println(F("Radio issue, turn up PA level?"));
-  }
-  return mesh.begin(radioChannel, RF24_250KBPS);
-}
+// bool meshstartup(){
+//   if (meshrunning){
+//     Serial.println(F("Radio issue, turn up PA level?"));
+//   }
+//   return mesh.begin(radioChannel, RF24_250KBPS);
+// }
 
 void LEDstatustext(bool LEDon, unsigned long count){
   static unsigned long bcount = 0;
@@ -206,14 +203,9 @@ void setup() {
     }
   }
   radio.setPALevel(RF24_PA_MIN, 0);
-  // radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-
-  // Set the nodeID to 0 for the master node
-  mesh.setNodeID(masterNodeID);
-  Serial.print(F("Starting Master of the mesh, nodeID: "));
-  Serial.println(mesh.getNodeID());
-  // Connect to the mesh
-  meshrunning = meshstartup();
+  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio.openWritingPipe(addresses[1]);    //Setting the address at which we will send the data
+  radio.openReadingPipe(1, addresses[0]); // Setting the address at which we will receive the data 
 
   digitalWrite(LEDpin1, HIGH);
   Serial.println(F("Starting UNO R4 WiFi"));
@@ -243,7 +235,6 @@ void setup() {
   Serial.println(F("\nStart connection to time reference"));
   get_time_from_hsdesign();
   // Retrieve the date and time from the RTC and print them
-  RTCTime currentTime;
   RTC.getTime(currentTime); 
   digitalWrite(LEDpin3, HIGH);
   Serial.println(F("The RTC was just set to: "));
@@ -260,6 +251,8 @@ void setup() {
 
   display.setTextWrap(false);
   clear_display();
+
+  radio.startListening(); 
 }
  
 unsigned int mesherror = 0;
@@ -274,132 +267,12 @@ unsigned long remacounter = 0;
 bool sendDirect = false;
 
 void loop() {
-  if (mesherror > 8) {
-    meshrunning = meshstartup();
-    mesherror = 0;
-  }
-  // Call mesh.update to keep the network updated
-  meshupdaterc = mesh.update();
-  if (meshupdaterc != rem_meshupdaterc) {
-    Serial.print(F("meshupdaterc: "));
-    Serial.println(meshupdaterc);
-    rem_meshupdaterc = meshupdaterc;
-  }
 
-  // In addition, keep the 'DHCP service' running 
-  // on the master node so addresses will
-  // be assigned to the sensor nodes
-  mesh.DHCP();
- 
-  // Check for incoming data from the sensors
-  while (network.available()) {
-    RF24NetworkHeader header;
-    network.peek(header);
-  
-    switch(header.type) {
-      // Display the incoming millis() values from sensor nodes
-      case 'M': 
-        payload_from_slave payload;
-        network.read(header, &payload, sizeof(payload));
-        Serial.print(F("Received from Slave nodeId: "));
-        Serial.print(payload.nodeId);
-        Serial.print(F(", timing: "));
-        Serial.println(payload.timing);
-        if (payload.keyword == keywordvalS) {
-          if(payload.nodeId == 1){
-            Serial.print(F("presence: "));
-            Serial.print(payload.detection);
-            String distanceString = "Dist.: ";
-            distanceString += payload.distance;
-            distanceString += " cm";
-            Serial.print(F(", "));
-            Serial.println(distanceString);
-              
-            display_oled(true, 0, dy1, distanceString); 
-            if (payload.detection > 0){
-              display_oled(false, 50, dy3, "O"); 
-            }
-            else{
-              display_oled(false, 20, dy3, "--"); 
-            }  
-          }        
-        }
-        else{
-          Serial.println("Wrong keyword"); 
-        }
-        break;
-      default: 
-        network.read(header, 0, 0);
-        Serial.print(F("TBD header.type: "));
-        Serial.println(header.type);
-    }
-  }
+  receiveRFnetwork();
 
-  if(sendDirect){
-    Serial.print(F(" send direct about to happen ")); 
-    Serial.println(millis());
-  }
-  // Meanwhile, every x seconds...
-  if ((sendDirect) || (millis() - displayTimer > 15000)) {
-    displayTimer = millis();
-    sendDirect = false;
-
-    //// SHOW DHCP TABLE - BEGIN
-    if (mesh.addrListTop > 0) {
-      Serial.println();
-      Serial.println(F("******* Assigned Addresses *******"));
-      for(int i=0; i<mesh.addrListTop; i++){
-        Serial.print(F("NodeID: "));
-        Serial.print(mesh.addrList[i].nodeID);
-        Serial.print(F(" RF24Network Address: 0")); // this is in octal
-        Serial.println(mesh.addrList[i].address, OCT);
-      }
-      Serial.println(F("**********************************"));
-    }
-    else{
-      Serial.print(F(" ."));
-    }
-    //// SHOW DHCP TABLE - END
-
-    //// Send same master message to all slaves - BEGIN
-    if (mesh.addrListTop > 0) {
-      for(int i=0; i<mesh.addrListTop; i++){
-        counter += 1;
-        payload_from_master payloadS = {keywordvalM, counter, relay1, relay2};        
-        
-        // RF24NetworkHeader header(mesh.addrList[i].address, OCT);
-        // // int x = network.write(header, &payload, sizeof(payload));
-        // network.write(header, &payloadS, sizeof(payloadS));
-        
-        if (!mesh.write(&payloadS, 'S', sizeof(payloadS), mesh.addrList[i].nodeID)) {
-          Serial.print(F("Send fail, Master to Slave, nodeID: "));
-          Serial.print(mesh.addrList[i].nodeID);
-          Serial.println();
-          mesherror++;
-
-          clear_display();
-        }
-        else {
-          Serial.print(F("Send to Slave Node "));
-          Serial.print(mesh.addrList[i].nodeID);
-          Serial.print(F(" OK: "));
-          Serial.println(payloadS.counter);
-          mesherror = 0;
-        }
-      }
-    }
-    else{
-      mesherror++;
-      Serial.print(F("No network node to write to ("));
-      Serial.print(mesherror);
-      Serial.println(F(")"));
-    }
-    //// Send same master message to all slaves - END
-  }
-  // end of while network.available
+  transmitRFnetwork();
 
   client = server.available();   // listen for incoming clients
-
   if (client) {                             // if you get a client,
     Serial.println(F("new client"));        // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
@@ -532,5 +405,24 @@ void loop() {
   
   }
 
+  // RTC.getTime(currentTime); 
+  // //currentTime = RTC.getTmTime(); 
+  // //Serial.println(&currentTime, "%H:%M:%S");
+  // // struct tm timeinfo;
+  // // getLocalTime(&timeinfo);
+  // Serial.print(currentTime.getHour(), DEC);
+  // Serial.print(':');
+  // Serial.print(currentTime.getMinutes(), DEC);
+  // Serial.print(':');
+  // Serial.println(currentTime.getSeconds(), DEC);
+  // RTCDateTime dt = RTC.getDateTime();
+  // Serial.println(CurrentTime(dt.hour,dt.minute));
+
+  // char output_time [9];
+  // strftime(output_time, sizeof(output_time), "%H:%M:%S", currentTime);
+  //String TimeMoment = String(&currentTime, "%H:%M:%S");
+  //display_oled(true, 0, dy1, output_time); 
+  float tempval = (float)(millis() % 1000000) / (float)1000;
+  display_oled(true, 4, dy3, String(tempval, 3) + " s");
 
 }

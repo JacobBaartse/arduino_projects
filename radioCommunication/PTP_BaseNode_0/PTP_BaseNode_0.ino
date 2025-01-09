@@ -66,37 +66,17 @@ void setup() {
   }
   startupscrollingtext(String("-->: ") + IPhere.toString());
 
-  // Serial.println(F("\nStarting connection to NTP server..."));
-  // timeClient.begin();
-  // unsigned long unixTime = 0;
-  // const unsigned long unixmintime = 1729331495; // 19 October 2024
-  // const unsigned long unixmaxtime = 2076393095; // 19 October 2035
-  // while ((unixTime < unixmintime)||(unixTime > unixmaxtime)) {
-  //   delay(1000);
-  //   Serial.println(F("\nRetrieving UTC time"));
-  //   timeClient.update();
-  //   // Get the current date and time from an NTP server
-  //   unixTime = timeClient.getEpochTime();
-  // }
-  // // convert it to UTC +2 by passing the time zone offset in hours.
-  // // You may change the time zone offset to your local one.  auto timeZoneOffsetHours = 2;
-  // //unixTime = unixTime + (timeZoneOffsetHours * 3600);
-  // Serial.print(F("Unix time = "));
-  // Serial.println(unixTime);
-  // RTCTime timeToSet = RTCTime(unixTime);
-  // RTC.setTime(timeToSet);
-
-  Serial.println(F("\nStarting connection to HS Design"));
+  Serial.println(F("\nStarting connection to get actual time from the internet"));
   get_time_from_hsdesign();
   // Retrieve the date and time from the RTC and print them
   RTCTime currentTime;
   RTC.getTime(currentTime); 
-  Serial.println(F("The RTC was just set to: "));
+  Serial.println(F("The RTC is: "));
   Serial.println(currentTime);
 
-  Serial.println(F(" "));  
-  Serial.println(F(" *************** "));  
-  Serial.println(F(" "));  
+  Serial.println();  
+  Serial.println(F(" **************"));  
+  Serial.println();  
   Serial.flush(); 
 }
 
@@ -136,6 +116,7 @@ unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
 
 void loop() {
+
   network.update();
 
   if (messageStatus(60000)) { // request remote status when local status is printed
@@ -155,4 +136,5 @@ void loop() {
   else {
     loadsequencepicture();
   }
+  
 }
