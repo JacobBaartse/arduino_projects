@@ -67,8 +67,7 @@ void send_bit(int bitval){
 
 
 void send_code(long code){
-    for (int k = 0; k<5; k++){
-    //start = millis();
+  for (int k = 0; k<7; k++){
     prev_micros = micros();
     send_times_t(27, LOW); // delay betwen codes. 9ms
 
