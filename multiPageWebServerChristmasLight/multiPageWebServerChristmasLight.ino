@@ -409,11 +409,7 @@ void businessLogic(){
     activate_display=6;
     pinMode(GREEN_LED_PIN, OUTPUT);
     digitalWrite(GREEN_LED_PIN, HIGH);  
-    light(true, 1);
-    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) delay(500);
-    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) light(true, 2);
-    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) delay(500);
-    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) light(true, 3);
+    if (digitalRead(GREEN_BUTTON_PIN)==PUSHED) all_lights(true);
   } 
   else{
     pinMode(GREEN_LED_PIN, INPUT);
@@ -430,7 +426,7 @@ void businessLogic(){
   }
   if (digitalRead(RED_BUTTON_PIN)==PUSHED){
     if (debug) Serial.println("red button pressed");
-    activate_display=5;
+    activate_display=6;
     pinMode(RED_LED_PIN, OUTPUT);  
     digitalWrite(RED_LED_PIN, HIGH);
     all_lights(false);
