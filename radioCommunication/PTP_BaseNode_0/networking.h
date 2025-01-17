@@ -170,7 +170,7 @@ RF24Network network(radio);      // Include the radio in the network
 
 const uint16_t wrappingcounter = 255;
 
-unsigned long const keywordval= 0xabcdfedc; 
+unsigned long const keywordval = 0xabcdfedc; 
 unsigned long const command_none = 0x00; 
 unsigned long const command_clear_counters = 0x01; 
 unsigned long const command_status = 0x02; 
