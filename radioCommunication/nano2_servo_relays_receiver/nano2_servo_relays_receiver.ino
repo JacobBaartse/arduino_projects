@@ -126,11 +126,11 @@ void loop() {
   //************************ actuators ****************//
 
   if (newdata){
-
     if (Rxdata.bvalue > 0){
       if (currentmilli - buzzertime > 5000){ // create a silence time of 5 seconds
         tone(buzzer, 500); // Send a sound signal...
         buzzertime = currentmilli;
+        Serial.println(F("Start buzzing"));
       }
     }
     // maybe first integrate the x end y value before mapping
@@ -138,21 +138,15 @@ void loop() {
     numY = map(Rxdata.yvalue, 0, 1023, 0, 180);
     Servo1.write(numX);
     Servo2.write(numY);
-
   }
   if (currentmilli - buzzertime > 2000){ // create a buzzing time of 2 seconds
-    noTone(buzzer);     // Stop sound...
+    noTone(buzzer); // Stop sound...
     buzzertime = currentmilli;
+    Serial.println(F("Stop buzzing"));
   }
 
-  // for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
-  //   // in steps of 1 degree
-  //   myservo.write(pos);              // tell servo to go to position in variable 'pos'
-  //   delay(15);                       // waits 15ms for the servo to reach the position
-  // }
-
-  //************************ actuators ****************//
   newdata = false;
+  //************************ actuators ****************//
 
   delay(200); // for debugging, this can be removed in practice
 
