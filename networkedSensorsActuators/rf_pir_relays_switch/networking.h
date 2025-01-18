@@ -25,6 +25,7 @@ RF24Network network(radio); // Include the radio in the network
 
 const uint16_t wrappingcounter = 255;
 
+unsigned long const keywordval_02 = 0xcdabfedc; 
 unsigned long const keywordval_03 = 0xabcdfedc; 
 
 unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrappingcounter){
@@ -69,15 +70,23 @@ unsigned int receiveRFnetwork(){
     RF24NetworkHeader header;
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
+    Serial.print(F("received message, from_node: "));
+    Serial.println(header.from_node);
+    Serial.print(F("Keyword: 0x"));
+    Serial.println(incomingData.keyword, HEX);
+
     if (header.from_node != base_node) {
       Serial.print(F("received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
     }
     receivedmsg++;
-    if (incomingData.keyword == keywordval_03){
-      // Serial.println(incomingData.counter);
-      // Serial.println(incomingData.timing);
+    if (incomingData.keyword == keywordval_02){
+      Serial.print(F("msg counter: "));
+      Serial.print(incomingData.counter);
+      Serial.print(F(", timing: "));
+      Serial.println(incomingData.timing);
+
       rdata1 = incomingData.data1;
       rdata2 = incomingData.data2;
       rdata3 = incomingData.data3;
@@ -87,7 +96,7 @@ unsigned int receiveRFnetwork(){
     }
     else{
       Serial.print(F("Keyword failure: "));
-      Serial.println(incomingData.keyword);
+      Serial.println(incomingData.keyword, HEX);
     }
   }
   return reaction;
@@ -102,7 +111,7 @@ unsigned int transmitRFnetwork(bool immediate){
 
   // Every x seconds...
   unsigned long currentmilli = millis();
-  if((immediate)||(currentmilli - sendingTimer > 5000)){
+  if((immediate)||(currentmilli - sendingTimer > 10000)){
     sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
     RF24NetworkHeader headerb(base_node); // (Address where the data is going)

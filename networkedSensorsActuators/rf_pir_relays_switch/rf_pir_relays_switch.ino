@@ -7,7 +7,7 @@
 
 // #########################################################
 
-#define pinPIR A7 // PIR pin connection
+#define pinPIR 21 //A7 // PIR pin connection
 #define pinPressButton 8  
 
 void switchlight(bool lightON, bool lightOFF){
