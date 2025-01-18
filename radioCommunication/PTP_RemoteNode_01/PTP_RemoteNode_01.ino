@@ -25,16 +25,16 @@ location JWF21
 #include <RF24Network.h>
 #include <RF24.h>
 #include <SPI.h>
-#include <Wire.h>
+//#include <Wire.h>
 //#include <Adafruit_GFX.h> // already included from font file
-#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
-#include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
+//#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+//#include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
-//#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
-#define OLED_RESET -1
+// #define SCREEN_WIDTH 128 // OLED display width, in pixels
+// #define SCREEN_HEIGHT 64 // OLED display height, in pixels
+// #define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
+// //#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
+// #define OLED_RESET -1
  
 
 #define buttonPinGreen 7  
@@ -42,11 +42,11 @@ location JWF21
 #define ledPinGreen 4  
 #define ledPinRed 6 
 
-enum DisplayState {
-    Off = 0,
-    Dim = 1,
-    On = 2,
-};
+// enum DisplayState {
+//     Off = 0,
+//     Dim = 1,
+//     On = 2,
+// };
 
 enum LEDState {
     LEDOff = 0,
@@ -54,53 +54,53 @@ enum LEDState {
     LEDOn = 2,
 };
 
-Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+// Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-bool displaystatus = DisplayState::Off;
-void display_oled(bool clear, int x, int y, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  if (clear) display.clearDisplay();
-  display.setCursor(x, y);
-  display.print(text);
-  display.display();
-}
+// bool displaystatus = DisplayState::Off;
+// void display_oled(bool clear, int x, int y, String text) {
+//   if (displaystatus == DisplayState::Off) return;
+//   if (clear) display.clearDisplay();
+//   display.setCursor(x, y);
+//   display.print(text);
+//   display.display();
+// }
 
-// move text, write old location in background color
-void display_move(int x, int y, int nx, int ny, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  display.setCursor(x, y);
-  display.setTextColor(SH110X_BLACK);
-  display.print(text);
-  display.setCursor(nx, ny);
-  display.setTextColor(SH110X_WHITE);
-  display.print(text);
-  display.display();
-}
+// // move text, write old location in background color
+// void display_move(int x, int y, int nx, int ny, String text) {
+//   if (displaystatus == DisplayState::Off) return;
+//   display.setCursor(x, y);
+//   display.setTextColor(SH110X_BLACK);
+//   display.print(text);
+//   display.setCursor(nx, ny);
+//   display.setTextColor(SH110X_WHITE);
+//   display.print(text);
+//   display.display();
+// }
 
-DisplayState setDisplay(DisplayState statustoset){
-  static DisplayState displaystatus = DisplayState::Dim;
-  switch(statustoset){
-    case DisplayState::Dim:
-      display.oled_command(SH110X_DISPLAYON);
-      display.setContrast(0); // dim display
-      displaystatus = DisplayState::Dim;
-      break;
-    case DisplayState::On:
-      display.oled_command(SH110X_DISPLAYON);
-      displaystatus = DisplayState::On;
-      break;
-    //case DisplayState::Off:
-    default:
-      display.oled_command(SH110X_DISPLAYOFF);
-      displaystatus = DisplayState::Off;
-  }
-  return displaystatus;
-}
+// DisplayState setDisplay(DisplayState statustoset){
+//   static DisplayState displaystatus = DisplayState::Dim;
+//   switch(statustoset){
+//     case DisplayState::Dim:
+//       display.oled_command(SH110X_DISPLAYON);
+//       display.setContrast(0); // dim display
+//       displaystatus = DisplayState::Dim;
+//       break;
+//     case DisplayState::On:
+//       display.oled_command(SH110X_DISPLAYON);
+//       displaystatus = DisplayState::On;
+//       break;
+//     //case DisplayState::Off:
+//     default:
+//       display.oled_command(SH110X_DISPLAYOFF);
+//       displaystatus = DisplayState::Off;
+//   }
+//   return displaystatus;
+// }
 
-void clear_display(){
-  display.clearDisplay();
-  display.display();
-}
+// void clear_display(){
+//   display.clearDisplay();
+//   display.display();
+// }
 
 const int debounceDelay = 50;
 
@@ -274,13 +274,13 @@ struct network_payload {
   unsigned long data3;
 };
 
-String Line1 = "Welcome \x81"; 
-String Line2 = "George {Munteanu} \x81"; 
-String Line3 = "Whats \x81 up?";  
+// String Line1 = "Welcome \x81"; 
+// String Line2 = "George {Munteanu} \x81"; 
+// String Line3 = "Whats \x81 up?";  
 
-int prevx, x, minX;
-int y1, y2, y3, minY;
-bool oncecompleted = false;
+// int prevx, x, minX;
+// int y1, y2, y3, minY;
+// bool oncecompleted = false;
 
 
 void setup() {
@@ -401,7 +401,6 @@ void loop() {
   buttonGreenPressed = greendebounce((digitalRead(buttonPinGreen) == LOW), currentMillis);
   buttonRedPressed = reddebounce((digitalRead(buttonPinRed) == LOW), currentMillis);
 
-
   /* 
   display_move(prevx, y2, x, y2, Line2);
   if (!oncecompleted){
@@ -413,7 +412,6 @@ void loop() {
   if (x < minX) x = display.width();
   if (x < 12) oncecompleted = true;
   /* */
-
 
   if (printstatus) {
     messageStatus(0);
