@@ -278,6 +278,8 @@ void tftPrintTest() {
   tft.print(p, 6);
   tft.println(" Want pi?");
   tft.println(" ");
+  tft.print(8675309); // DEC
+  tft.print(", 0x");
   tft.print(8675309, HEX); // print 8,675,309 out in HEX!
   tft.println(" Print HEX!");
   tft.println(" ");

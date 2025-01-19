@@ -173,8 +173,8 @@ const uint16_t pir_node = 03; // Address of PIR node in Octal format (04, 031, e
 // for the UNO/NANO with external RF24 module:
 //RF24 radio(8, 7); // nRF24L01 (CE, CSN)
 
-#define CE_PIN 8
-#define CSN_PIN 7
+#define CE_PIN 5
+#define CSN_PIN 4
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 

@@ -17,7 +17,9 @@
 #include "RTC.h"
 #include "clock.h"
 // #include <NTPClient.h>
-#include <SPI.h>
+#include "colordisplay.h"
+
+
 
 WiFiServer server(80);
 IPAddress IPhere;
@@ -31,6 +33,9 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   network.begin(radioChannel, base_node); // (channel, node address)
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+
+  pinMode(TFT_BL, OUTPUT);
+  tft_off();
 
   Serial.print(F("Starting up UNO R4 WiFi"));
   Serial.flush();
