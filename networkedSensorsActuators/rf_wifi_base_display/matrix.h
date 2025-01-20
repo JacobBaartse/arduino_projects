@@ -133,7 +133,7 @@ void displayFull(bool on=true){
 }
 
 bool alarmingsequence(){
-  static long alarmtime = 0;
+  static unsigned long alarmtime = 0;
   static int alarmcount = 0;
   static bool fullred = false;
   if(millis() < alarmtime) return true;

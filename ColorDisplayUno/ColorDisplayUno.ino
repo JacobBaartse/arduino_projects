@@ -43,7 +43,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 float p = 3.1415926;
 
 void setup(void) {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.print(F("Hello! ST77xx TFT Test "));
 
   pinMode(7, OUTPUT);
@@ -75,7 +75,7 @@ void setup(void) {
 
   // a single pixel
   tft.drawPixel(tft.width()/2, tft.height()/2, ST77XX_GREEN);
-  delay(500);
+  delay(2500);
 
   // line draw test
   testlines(ST77XX_YELLOW);
