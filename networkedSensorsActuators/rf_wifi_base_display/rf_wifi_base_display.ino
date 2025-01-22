@@ -20,7 +20,6 @@
 #include "colordisplay.h"
 
 
-
 WiFiServer server(80);
 IPAddress IPhere;
 

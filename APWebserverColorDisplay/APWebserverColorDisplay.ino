@@ -39,10 +39,6 @@ ArduinoLEDMatrix matrix;
 char ssid[] = "UNO_R4_AP_wCD"; // your network SSID (name)
 uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
 
-// int led =  LED_BUILTIN;
-int status = WL_IDLE_STATUS;
-int newstatus = WL_IDLE_STATUS;
-
 WiFiServer server(80);
 IPAddress IPhere;
 
@@ -59,19 +55,22 @@ void startupscrollingtext(String starttext){
   matrix.endDraw();
 }
 
-void LEDstatustext(bool LEDon, unsigned long count){
-  static unsigned long bcount = 0;
-  if (count != bcount){ // update display only once
-    String TextHere = "_"; // "_--  ";
-    if (LEDon) TextHere = "^"; // "oO0  ";
-    TextHere = TextHere + (count % 10);
+void Colorstatustext(int color){
+  static unsigned long bcolor = 99;
+  if (color != bcolor){ // update display only once
+    String TextHere = "_"; 
+
+
+
+
+
     Serial.println(F(""));
     Serial.print(TextHere);
 
     matrix.beginText(0, 1, 0xFFFFFF);
     matrix.println(TextHere);
     matrix.endText();
-    bcount = count;
+    bcolor = color;
   }
 }
 
@@ -91,6 +90,8 @@ IPAddress printWiFiStatus() {
   
   return ip;
 }
+
+int status = WL_IDLE_STATUS;
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -166,50 +167,6 @@ void setup() {
 
 WiFiClient client;
 
-// void sendFavicon()
-// {
-//   // create a favion: https://www.favicon.cc/
-//   // convert to hex: http://tomeko.net/online_tools/file_to_hex.php?lang=en or https://www.onlinehexeditor.com/
-//   // Please note that if PROGMEM variables are not globally defined, 
-//   // you have to define them locally with static keyword, in order to work with PROGMEM.
-//   const static byte tblFavicon[] PROGMEM = {0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10, 0x10, 0x00, 0x01, 0x00, 0x04, 0x00, 0x28, 0x01, 
-//                                             0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x20, 0x00, 
-//                                             0x00, 0x00, 0x01, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x00, 0x82, 0x7E, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x11, 0x11, 0x10, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x11, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-//                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x10, 0x01, 0x00, 0x01, 0x00, 0x10, 0x00, 0x10, 0x10, 
-//                                             0x01, 0x00, 0x01, 0x00, 0x10, 0x00, 0x11, 0x10, 0x01, 0x00, 0x01, 0x00, 0x11, 0x10, 0x10, 0x10, 
-//                                             0x01, 0x00, 0x01, 0x00, 0x10, 0x10, 0x10, 0x10, 0x11, 0x10, 0x11, 0x10, 0x11, 0x10, 0xFF, 0xFF, 
-//                                             0x00, 0x00, 0xF0, 0x1F, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0xFE, 0xFF, 
-//                                             0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0xFA, 0xBF, 0x00, 0x00, 0xFC, 0x7F, 
-//                                             0x00, 0x00, 0xFE, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x5B, 0xB7, 0x00, 0x00, 0x5B, 0xB7, 
-//                                             0x00, 0x00, 0x1B, 0xB1, 0x00, 0x00, 0x5B, 0xB5, 0x00, 0x00, 0x51, 0x11, 0x00, 0x00 
-//                                            };
-
-//   const size_t MESSAGE_BUFFER_SIZE = 64;
-//   char buffer[MESSAGE_BUFFER_SIZE];  // a buffer needed for the StreamLib
-//   BufferedPrint message(client, buffer, sizeof(buffer));
-//   message.print(F("HTTP/1.0 200 OK\r\n"
-//                  "Content-Type: image/x-icon\r\n"
-//                  "\r\n"));
-
-//   for (uint16_t i = 0; i < sizeof(tblFavicon); i++)
-//   {
-//     byte p = pgm_read_byte_near(tblFavicon + i);
-//     message.write(p);
-//   }
-//   message.flush();
-//   client.stop();
-// }
-
 char c = '\n';
 String currentLine = "";
 unsigned long acounter = 0;
@@ -217,19 +174,7 @@ unsigned long acounter = 0;
 void loop() {
   
   // compare the previous status to the current status
-  newstatus = WiFi.status();
-  if (status != newstatus) {
-    // it has changed update the variable
-    status = newstatus;
-  
-    if (status == WL_AP_CONNECTED) {
-      // a device has connected to the AP
-      Serial.println(F("Device connected to AP"));
-    } else {
-      // a device has disconnected from the AP, and we are back in listening mode
-      Serial.println(F("Device disconnected from AP"));
-    }
-  }
+  // newstatus = WiFi.status();
   
   client = server.available();   // listen for incoming clients
 
@@ -252,16 +197,22 @@ void loop() {
             client.println();
 
             // the content of the HTTP response follows the header:
-            // client.print("<p style=\"font-size:7vw;\">LED<br></p>");
-            // client.print("<p style=\"font-size:7vw;\"><a href=\"/H\">ON</a><br></p>");
-            // client.print("<p style=\"font-size:7vw;\"><a href=\"/L\">off</a><br></p>");
 
             client.print(F("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>"));
-            client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
-            client.print(F("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
-            client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>"));
-            client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>"));
-            client.print(F("</TABLE></BODY></HTML>"));
+            client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\">")); 
+            client.print(F("<style> table {width:100%;} tr {height:200px; font-size:4em;} th, td {text-align:center;} </style>")); 
+            client.print(F("</HEAD><BODY TEXT=\"#873e23\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
+
+            client.print(F("<TABLE><TR><TH colspan=2>Coloring</TH></TR>"));
+            client.print(F("<TR><TD><a href=\"/C1\">ON</a></TD><TD><a href=\"/C2\">off</a></TD></TR>"));
+            client.print(F("<TR><TD><a href=\"/C3\">ON</a></TD><TD><a href=\"/C4\">off</a></TD></TR>"));
+            client.print(F("<TR><TD><a href=\"/C5\">ON</a></TD><TD><a href=\"/C6\">off</a></TD></TR>"));
+            client.print(F("<TR><TD><a href=\"/C7\">ON</a></TD><TD><a href=\"/C8\">off</a></TD></TR>"));
+
+            client.print(F("</TABLE><HR><label for=\"textin\">Text for display:</label><FORM>"));
+            client.print(F("<input type=\"text\" id=\"textin\" name=\"textin\" required minlength=\"4\" maxlength=\"80\" size=\"10\"/>"));
+            client.print(F("&nbsp;&nbsp;&nbsp;<input type=\"submit\"/>")); // <input type=\"submit\" hidden />
+            client.print(F("</FORM><HR></BODY></HTML>"));
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -289,13 +240,11 @@ void loop() {
           //digitalWrite(led, !digitalRead(led));  // GET /T toggles the LED
           acounter += 1;
         }
-        // if (currentLine.endsWith("GET /")) {  // home page gets triggered as well
+        // if (currentLine.startsWith("GET /")) {  // text input follows
         //   acounter += 1;
         // }
-        //LEDstatustext(digitalRead(led), acounter);
 
         if (currentLine.endsWith("GET /favicon.ico")) {
-          // sendFavicon();
           client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
         }      
       }
