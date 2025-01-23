@@ -55,15 +55,15 @@ void startupscrollingtext(String starttext){
   matrix.endDraw();
 }
 
-const uint32_t clear[] = {0x19819, 0x80000001, 0x81f8000};
+//const uint32_t clear[] = {0x19819, 0x80000001, 0x81f8000};
 
 void Colorstatustext(int color){
   static unsigned long bcolor = 99;
   if (color != bcolor){ // update display only once
-    matrix.loadFrame(clear);
+    //matrix.loadFrame(clear);
     matrix.textFont(Font_4x6);
 
-    String TextHere = String(color); 
+    String TextHere = String(color) + "  "; 
 
     Serial.println(F(""));
     Serial.print(TextHere);
