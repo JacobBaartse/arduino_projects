@@ -64,6 +64,9 @@ void Colorstatustext(int color){
     matrix.textFont(Font_4x6);
 
     String TextHere = String(color) + "  "; 
+    while (TextHere.length() < 4){ // make it 3 digits spacing
+      TextHere = " " + TextHere;
+    }
 
     Serial.println(F(""));
     Serial.print(TextHere);
@@ -183,7 +186,7 @@ String currentLine = "";
 unsigned long acounter = 0;
 unsigned long currenttime = 0;
 unsigned long screentiming = 0;
-bool actiontodo = false;
+//bool actiontodo = false;
 String actiontext = "";
 int currentmeta = 0;
 
@@ -195,11 +198,11 @@ void loop() {
   
   currenttime = millis();
 
-  // // screensaver
-  // if (currenttime - screentiming > 10000) {
-  //   tft.fillScreen(ST77XX_BLACK);
-  //   screentiming = currenttime;
-  // }
+  // screensaver
+  if (currenttime - screentiming > 10000) {
+    tft.fillScreen(ST77XX_BLACK);
+    screentiming = currenttime;
+  }
 
   client = server.available();              // listen for incoming clients
 
@@ -216,7 +219,6 @@ void loop() {
         c = client.read();                  // read a byte, then
         //Serial.write(c);                    // print it out to the serial monitor
         if (c == '\n') {                    // if the byte is a newline character
-
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() < 1) {
@@ -233,27 +235,6 @@ void loop() {
         else if (c != '\r') {    // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine
         }
-
-        // // Check to see if the client request was "GET /H" or "GET /L":
-        // if (currentLine.endsWith("GET /H")) {
-        //   //digitalWrite(led, HIGH);               // GET /H turns the LED on
-        //   acounter += 1;
-        // }
-        // if (currentLine.endsWith("GET /L")) {
-        //   //digitalWrite(led, LOW);                // GET /L turns the LED off
-        //   acounter += 1;
-        // }
-        // if (currentLine.endsWith("GET /T")) {
-        //   //digitalWrite(led, !digitalRead(led));  // GET /T toggles the LED
-        //   acounter += 1;
-        // }
-        // // if (currentLine.startsWith("GET /")) {  // text input follows
-        // //   acounter += 1;
-        // // }
-
-        // if (currentLine.endsWith("GET /favicon.ico")) {
-        //   client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
-        // }      
       }
       else {
         Serial.println(F("\nbreaking from loop"));
@@ -273,14 +254,16 @@ void loop() {
     // close the connection:
     client.stop();
     Serial.println(F("client disconnected"));
-    //delay(1000); // make sure the disconnection is detected
+    delay(10); // make sure the disconnection is detected
+    screentiming = currenttime;
   }
+  client.stop();
 
-  if (actiontodo){
+  // if (actiontodo){
 
 
-    actiontodo = false;
-  }
+  //   actiontodo = false;
+  // }
 }
 
 void HTMLreply(){
@@ -300,12 +283,15 @@ void HTMLreply(){
   client.print(F("</HEAD><BODY TEXT=\"#873e23\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
 
   client.print(F("<TABLE><TR><TH colspan=3>Coloring</TH></TR>"));
-  client.print(F("<TR><TD><a href=\"/C1\">Red</a></TD><TD><a href=\"/C2\">Green</a></TD><TD><a href=\"/C3\">Blue</a></TD></TR>"));
-  client.print(F("<TR><TD><a href=\"/C4\">Cyan</a></TD><TD><a href=\"/C5\">Magenta</a></TD><TD><a href=\"/C6\">Yellow</a></TD></TR>"));
-  client.print(F("<TR><TD><a href=\"/C7\">Orange</a></TD><TD><a href=\"/C8\">White</a></TD><TD><a href=\"/C9\">Black</a></TD></TR>"));
+  // client.print(F("<TR><TD><a href=\"/C1\">Red</a></TD><TD><a href=\"/C2\">Green</a></TD><TD><a href=\"/C3\">Blue</a></TD></TR>"));
+  // client.print(F("<TR><TD><a href=\"/C4\">Cyan</a></TD><TD><a href=\"/C5\">Magenta</a></TD><TD><a href=\"/C6\">Yellow</a></TD></TR>"));
+  // client.print(F("<TR><TD><a href=\"/C7\">Orange</a></TD><TD><a href=\"/C8\">White</a></TD><TD><a href=\"/C9\">Black</a></TD></TR>"));
+  client.print(F("<TR><TD><a href=\"/C1\"><span style=\"color: #ff0000\">Red</span></a></TD><TD><a href=\"/C2\"><span style=\"color: #00ff00\">Green</span></a></TD><TD><a href=\"/C3\"><span style=\"color: #0000ff\">Blue</span></a></TD></TR>"));
+  client.print(F("<TR><TD><a href=\"/C4\"><span style=\"color: #33ccff\">Cyan</span></a></TD><TD><a href=\"/C5\"><span style=\"color: #9900ff\">Magenta</span></a></TD><TD><a href=\"/C6\"><span style=\"color: #ffff99\">Yellow</span></a></TD></TR>"));
+  client.print(F("<TR><TD><a href=\"/C7\"><span style=\"color: #ffgg33\">Orange</span></a></TD><TD><a href=\"/C8\"><span style=\"color: #ffffff\">White</span></a></TD><TD><a href=\"/C9\"><span style=\"color: #000000\">Black</span></a></TD></TR>"));
 
-  client.print(F("</TABLE><HR><label for=\"textin\">Text input:</label><FORM action=\"textin\" method=\"post\">"));
-  client.print(F("<input type=\"text\" id=\"textin\" name=\"textin\" required minlength=\"4\" maxlength=\"80\" size=\"30\"/>"));
+  client.print(F("</TABLE><HR>Text in:<FORM action=\"t\" method=\"post\">"));
+  client.print(F("<input type=\"text\" id=\"t1\" name=\"t2\" required minlength=\"4\" maxlength=\"80\" size=\"30\"/>"));
   client.print(F("&nbsp;&nbsp;&nbsp;<input type=\"submit\"/>")); // <input type=\"submit\" hidden />
   client.print(F("</FORM><HR></BODY></HTML>"));
 
@@ -341,34 +327,42 @@ int HTMLresponseline(String requestline, int metadata){
     } 
     if (requestline.startsWith("GET /C1")) {  // color item
       postedcolors = postedcolors | 0b00000001;
+      tft.setTextColor(ST77XX_RED);
     }     
     if (requestline.startsWith("GET /C2")) {  // color item
       postedcolors = postedcolors | 0b00000010;
+      tft.setTextColor(ST77XX_GREEN);
     } 
     if (requestline.startsWith("GET /C3")) {  // color item
       postedcolors = postedcolors | 0b00000100;
+      tft.setTextColor(ST77XX_BLUE);
     }     
     if (requestline.startsWith("GET /C4")) {  // color item
       postedcolors = postedcolors | 0b00001000;
+      tft.setTextColor(ST77XX_CYAN);
     }     
     if (requestline.startsWith("GET /C5")) {  // color item
       postedcolors = postedcolors | 0b00010000;
+      tft.setTextColor(ST77XX_MAGENTA);
     }     
     if (requestline.startsWith("GET /C6")) {  // color item
       postedcolors = postedcolors | 0b00100000;
+      tft.setTextColor(ST77XX_YELLOW);
     } 
     if (requestline.startsWith("GET /C7")) {  // color item
       postedcolors = postedcolors | 0b01000000;
+      tft.setTextColor(ST77XX_ORANGE);
     } 
     if (requestline.startsWith("GET /C8")) {  // color item
       postedcolors = postedcolors | 0b10000000;
+      tft.setTextColor(ST77XX_WHITE);
     } 
     if (requestline.startsWith("GET /C9")) {  // color item
       postedcolors = postedcolors | 0x0100;
-    } 
- 
+      actiontext = ""; // clear text
+      //tft.setTextColor(ST77XX_BLACK); // makes text invisible, not really usefull
+    }  
     /*
-
     Serial.println(F(" "));
     Serial.println("1. Red");
     Serial.println("2. Green");
@@ -404,7 +398,7 @@ int HTMLresponseline(String requestline, int metadata){
       default:
         TextColor = ST77XX_WHITE;
         menuChoice = 0;
-        /* */
+    /* */
   }
   if (metadata == 9){ // last line of response
     if (postedtext){
@@ -422,5 +416,12 @@ int HTMLresponseline(String requestline, int metadata){
     if (postedcolors > 0){
       Colorstatustext(postedcolors);
     }
+
+    int16_t CX = tft.getCursorX();
+    int16_t CY = tft.getCursorY();
+    tft.setCursor(0, 200);
+    tft.println(actiontext);
+    tft.setCursor(CX, CY);
+
   }
 }

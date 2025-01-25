@@ -7,18 +7,28 @@
 
 // #########################################################
 
-#define pinPIR 21 //A7 // PIR pin connection
+#define pinPIR 17 //A3 // PIR pin connection
 #define pinPressButton 8  
 
 void switchlight(bool lightON, bool lightOFF){
+  static int lightstatus = 0;
   if(lightON && lightOFF){
-    Serial.println(F("ERROR: Light ON OFF"));  
+    if (lightstatus != 1) {
+      Serial.println(F("ERROR: Light ON OFF"));  
+    }
+    lightstatus = 1;
   }
   if(lightON){
-    Serial.println(F("Light ON"));  
+    if (lightstatus != 2) {
+      Serial.println(F("Light ON")); 
+    } 
+    lightstatus = 2;
   }
   if(lightOFF){
-    Serial.println(F("Light OFF"));  
+    if (lightstatus != 3) {
+      Serial.println(F("Light OFF"));  
+    }
+    lightstatus = 3;
   }
 }
 
@@ -37,7 +47,9 @@ void setup() {
   Serial.print(F("radio node: "));  
   Serial.println(this_node);  
   Serial.println(F(" *************"));  
-  Serial.flush();  
+  Serial.flush(); 
+  //if(!radio.testRPD()) // detect carrier?
+  radio.printDetails(); 
 }
  
 bool remdetectionval = false;
@@ -52,7 +64,7 @@ void loop() {
   network.update();
 
   if(sendDirect){
-    Serial.print(F(" send direct about to happen")); 
+    Serial.println(F(" send direct about to happen")); 
   }
   else {
     // Receive a message from base if available
@@ -71,12 +83,17 @@ void loop() {
 
   // Send to the base node every x seconds or immediate
   writeaction = transmitRFnetwork(sendDirect);
+  if (writeaction > 10)
+  {
+    sendDirect = false;
+    delay(5000);
+  }
 
   if (digitalRead(pinPIR) == HIGH){
     lightON = true;
     if (!remdetectionval){
       sendDirect = true;
-      Serial.print(F("PIR detection"));
+      Serial.print(F("PIR detection "));
       Serial.println(millis());
       remdetectionval = true;
     }

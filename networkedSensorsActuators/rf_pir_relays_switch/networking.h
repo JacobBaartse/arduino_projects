@@ -108,34 +108,53 @@ unsigned int transmitRFnetwork(bool immediate){
   static unsigned long sendingCounter = 0;
   static unsigned long sendmsg = 0;
   unsigned int traction = 0;
+  static bool radiocarrier = false;
+  static int carriercount = 0;
 
   // Every x seconds...
   unsigned long currentmilli = millis();
-  if((immediate)||(currentmilli - sendingTimer > 10000)){
-    sendingTimer = currentmilli;
-    sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader headerb(base_node); // (Address where the data is going)
-     network_payload outgoing = {keywordval_03, sendingCounter, currentmilli, tdata1, tdata2, tdata3, tdata4, tdata5};
-    bool ok = network.write(headerb, &outgoing, sizeof(outgoing)); // Send the data
-    if (!ok) {
-      Serial.print(F("Retry sending message: "));
-      Serial.println(sendingCounter);      
-      ok = network.write(headerb, &outgoing, sizeof(outgoing)); // retry once
+  if(radio.testRPD()){
+    if (!radiocarrier){
+      Serial.print(F("Error time counting: "));
+      Serial.println(carriercount);
+      Serial.println(F("Radio carrier detected"));
     }
-    if (ok) {
-      sendmsg++;
-      tdata1 = 0;
-      tdata2 = 0;
-      tdata3 = 0;
-      tdata4 = 0;
-      tdata5 = 0;
-      traction = 0x1ff;
+    radiocarrier = true;
+    carriercount = 0;
+    if((immediate)||(currentmilli - sendingTimer > 10000)){
+      sendingTimer = currentmilli;
+      sendingCounter = updatecounter(sendingCounter); 
+      RF24NetworkHeader headerb(base_node); // (Address where the data is going)
+      network_payload outgoing = {keywordval_03, sendingCounter, currentmilli, tdata1, tdata2, tdata3, tdata4, tdata5};
+      bool ok = network.write(headerb, &outgoing, sizeof(outgoing)); // Send the data
+      if (!ok) {
+        Serial.print(F("Retry sending message: "));
+        Serial.println(sendingCounter);      
+        ok = network.write(headerb, &outgoing, sizeof(outgoing)); // retry once
+      }
+      if (ok) {
+        sendmsg++;
+        tdata1 = 0;
+        tdata2 = 0;
+        tdata3 = 0;
+        tdata4 = 0;
+        tdata5 = 0;
+        traction = 0x1ff;
+      }
+      else{
+        Serial.print(F("Error sending message: "));
+        Serial.println(sendingCounter);
+        traction = 3;
+      }
     }
-    else{
-      Serial.print(F("Error sending message: "));
-      Serial.println(sendingCounter);
-      traction = 3;
+  }
+  else {
+    radiocarrier = false;
+    if (carriercount < 5){
+      Serial.println(F("No radio carrier detected, not able to send data"));
     }
+    carriercount++;
+    traction = 99;
   }
   return traction;
 }
