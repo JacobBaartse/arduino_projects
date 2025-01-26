@@ -16,8 +16,7 @@
 // #include "WiFiS3.h" // already included in networking.h
 #include "RTC.h"
 #include "clock.h"
-// #include <NTPClient.h>
-#include "colordisplay.h"
+//#include "colordisplay.h"
 
 
 WiFiServer server(80);
@@ -33,8 +32,8 @@ void setup() {
   network.begin(radioChannel, base_node); // (channel, node address)
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
-  pinMode(TFT_BL, OUTPUT);
-  tft_off();
+  //pinMode(TFT_BL, OUTPUT);
+  //tft_off();
 
   Serial.print(F("Starting up UNO R4 WiFi"));
   Serial.flush();
