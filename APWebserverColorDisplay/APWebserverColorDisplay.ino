@@ -168,8 +168,7 @@ void setup() {
   tft.setTextColor(ST77XX_RED);
   tft.setTextSize(3);
   tft.println(IPhere.toString());
-  tft.setTextColor(ST77XX_GREEN);
-  tft.setTextSize(1);
+
 
   startupscrollingtext(String("-->: ") + IPhere.toString());
 
@@ -177,6 +176,11 @@ void setup() {
   Serial.println(F(" *************** "));  
   Serial.println(F(" "));  
   Serial.flush(); 
+  tft.setTextColor(ST77XX_GREEN);
+  tft.setTextSize(4);
+  tft.setCursor(50, 100);
+  tft.println(F("Go"));
+  tft.setTextSize(1);
 }
 
 WiFiClient client;
@@ -189,7 +193,8 @@ unsigned long screentiming = 0;
 //bool actiontodo = false;
 String actiontext = "";
 int currentmeta = 0;
-
+int text_size = 2;
+bool screensaveractive = false;
 
 void loop() {
   
@@ -199,9 +204,11 @@ void loop() {
   currenttime = millis();
 
   // screensaver
-  if (currenttime - screentiming > 10000) {
-    tft.fillScreen(ST77XX_BLACK);
-    screentiming = currenttime;
+  if (screensaveractive){
+    if (currenttime - screentiming > 10000) {
+      tft.fillScreen(ST77XX_BLACK);
+      screentiming = currenttime;
+    }
   }
 
   client = server.available();              // listen for incoming clients
@@ -255,15 +262,11 @@ void loop() {
     client.stop();
     Serial.println(F("client disconnected"));
     delay(10); // make sure the disconnection is detected
+    screensaveractive = true;
     screentiming = currenttime;
   }
   client.stop();
 
-  // if (actiontodo){
-
-
-  //   actiontodo = false;
-  // }
 }
 
 void HTMLreply(){
@@ -290,9 +293,11 @@ void HTMLreply(){
   client.print(F("<TR><TD><a href=\"/C4\"><span style=\"color: #33ccff\">Cyan</span></a></TD><TD><a href=\"/C5\"><span style=\"color: #9900ff\">Magenta</span></a></TD><TD><a href=\"/C6\"><span style=\"color: #ffff99\">Yellow</span></a></TD></TR>"));
   client.print(F("<TR><TD><a href=\"/C7\"><span style=\"color: #ffgg33\">Orange</span></a></TD><TD><a href=\"/C8\"><span style=\"color: #ffffff\">White</span></a></TD><TD><a href=\"/C9\"><span style=\"color: #000000\">Black</span></a></TD></TR>"));
 
-  client.print(F("</TABLE><HR>Text in:<FORM action=\"t\" method=\"post\">"));
+  client.print(F("</TABLE><HR>&nbsp;<a href=\"/SL\">smaller</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"/SU\">bigger</a>&nbsp;&nbsp;("));
+  client.print(text_size);
+  client.print(F(")&nbsp;&nbsp;Text in:<FORM action=\"t\" method=\"post\">"));
   client.print(F("<input type=\"text\" id=\"t1\" name=\"t2\" required minlength=\"4\" maxlength=\"80\" size=\"30\"/>"));
-  client.print(F("&nbsp;&nbsp;&nbsp;<input type=\"submit\"/>")); // <input type=\"submit\" hidden />
+  client.print(F("&nbsp;&nbsp;&nbsp;<input name=\"send\" type=\"submit\"/>")); // <input type=\"submit\" hidden />
   client.print(F("</FORM><HR></BODY></HTML>"));
 
   // The HTTP response ends with another blank line:
@@ -362,6 +367,13 @@ int HTMLresponseline(String requestline, int metadata){
       actiontext = ""; // clear text
       //tft.setTextColor(ST77XX_BLACK); // makes text invisible, not really usefull
     }  
+    if (requestline.startsWith("GET /SL")) {  // size item
+      if (text_size > 1) text_size--;
+    }
+    if (requestline.startsWith("GET /SU")) {  // size item
+      if (text_size < 6) text_size++;
+    }
+
     /*
     Serial.println(F(" "));
     Serial.println("1. Red");
@@ -420,8 +432,10 @@ int HTMLresponseline(String requestline, int metadata){
     int16_t CX = tft.getCursorX();
     int16_t CY = tft.getCursorY();
     tft.setCursor(0, 200);
+    tft.setTextSize(text_size);
     tft.println(actiontext);
     tft.setCursor(CX, CY);
+    tft.setTextSize(1);
 
   }
 }

@@ -7,7 +7,7 @@
 
 // #########################################################
 
-#define pinPIR 6         // PIR pin connection
+#define pinPIR A7        // PIR pin connection
 #define pinPressButton 5 // light off button
 
 void switchlight(bool lightON, bool lightOFF){
@@ -52,14 +52,13 @@ void setup() {
   //radio.printDetails(); 
 }
  
-bool remdetectionval = false;
 bool sendDirect = false;
 unsigned int readaction = 0;
 unsigned int writeaction = 0;
 bool lightON = false;
 bool lightOFF = false;
 int pirstatus = LOW;
-int rempirstatus = 99;
+int rempirstatus = 2;
 
 void loop() {
 
@@ -101,19 +100,9 @@ void loop() {
     if (pirstatus == HIGH){
       lightON = true;
       tdata1 = 0xff;
+      sendDirect = true;
     }
   }
-
-  // if (digitalRead(pinPIR) == HIGH){
-  //   lightON = true;
-  //   if (!remdetectionval){
-  //     sendDirect = true;
-  //     Serial.print(F("PIR detection "));
-  //     Serial.println(millis());
-  //     remdetectionval = true;
-  //   }
-  //   tdata1 = 0xff;
-  // }
 
   if (digitalRead(pinPressButton) == LOW){ // no debounce necessary here
     lightON = false;
