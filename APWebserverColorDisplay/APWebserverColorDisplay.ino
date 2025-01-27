@@ -431,9 +431,11 @@ int HTMLresponseline(String requestline, int metadata){
 
     int16_t CX = tft.getCursorX();
     int16_t CY = tft.getCursorY();
-    tft.setCursor(0, 200);
+    tft.setCursor(0, 150);
     tft.setTextSize(text_size);
+    tft.setTextWrap(true);
     tft.println(actiontext);
+    tft.setTextWrap(false);
     tft.setCursor(CX, CY);
     tft.setTextSize(1);
 
