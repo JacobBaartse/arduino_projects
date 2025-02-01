@@ -7,28 +7,68 @@
 
 // #########################################################
 
-#define pinPIR A5        // PIR pin connection
-#define pinPressButton 5 // light off button
-#define pinLight 6       // light driver pin
-#define pinDetection 7   // light off button
+#define pinPIR1 6        // PIR pin connection
+#define pinPIR2 A3       // PIR pin connection
+#define pinLight 3       // light driver pin
+#define pinStatus 4      // check relays position
 
-void switchlight(bool lightON, bool lightOFF){
+#define pinPressButton 5 // light off button
+//#define pinDetection 7   // light off button
+
+unsigned long runningtime = 0;
+unsigned long lighttime = 0;
+
+void changelight(){
+    digitalWrite(pinLight, HIGH);
+    delay(500);
+    digitalWrite(pinLight, LOW);
+}
+
+int statuslight(){
+    return digitalRead(pinStatus);
+}
+
+void setLight(bool LightOn){
+  int cursttat = statuslight();
+  if (LightOn){
+    digitalWrite(pinLight, HIGH);
+    // if (cursttat == HIGH){
+    //   changelight();
+    //   delay(1000);
+    // }
+  }
+  else {
+    digitalWrite(pinLight, LOW);
+    // if (cursttat == HIGH){
+    //   changelight();
+    //   delay(1000);
+    // }
+  }
+  //return statuslight();
+}
+
+void switchlight(bool plightON, bool plightOFF){
   static int lightstatus = 0;
-  if(lightON && lightOFF){
+  if(plightON && plightOFF){
     if (lightstatus != 1) {
       Serial.println(F("ERROR: Light ON OFF"));  
     }
     lightstatus = 1;
   }
-  if(lightON){
+  if(plightON){
     if (lightstatus != 2) {
-      Serial.println(F("Light ON")); 
+      Serial.print(F("Light ON - ")); 
+      setLight(true);
+      lighttime = millis();
+      Serial.println(lighttime); 
     } 
     lightstatus = 2;
   }
-  if(lightOFF){
+  if(plightOFF){
     if (lightstatus != 3) {
-      Serial.println(F("Light OFF"));  
+      Serial.print(F("Light OFF - ")); 
+      setLight(false);
+      Serial.println(millis()); 
     }
     lightstatus = 3;
   }
@@ -38,7 +78,9 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F(" *************>>"));  
 
-  pinMode(pinPIR, INPUT);
+  pinMode(pinPIR1, INPUT);
+  pinMode(pinPIR2, INPUT);
+  pinMode(pinLight, OUTPUT);
   pinMode(pinPressButton, INPUT_PULLUP);
 
   radio.begin();
@@ -59,12 +101,23 @@ unsigned int readaction = 0;
 unsigned int writeaction = 0;
 bool lightON = false;
 bool lightOFF = false;
-int pirstatus = LOW;
-int rempirstatus = 2;
+int pirstatus1 = LOW;
+int rempirstatus1 = 2;
+int pirstatus2 = LOW;
+int rempirstatus2 = 2;
+
 
 void loop() {
 
   network.update();
+
+  runningtime = millis();
+  if (lighttime > 0){
+    if (runningtime - lighttime > 20000){ // 20 seconds
+      lightON = false;
+      lightOFF = true;
+    }
+  }
 
   if(sendDirect){
     Serial.println(F(" send direct about to happen")); 
@@ -86,21 +139,29 @@ void loop() {
 
   // // Send to the base node every x seconds or immediate
   // writeaction = transmitRFnetwork(sendDirect);
+  sendDirect = false;
+
   // if (writeaction > 10)
   // {
   //   sendDirect = false;
   //   delay(5000);
   // }
 
-  pirstatus = digitalRead(pinPIR);
-  if (pirstatus != rempirstatus){
-    rempirstatus = pirstatus;
-    Serial.print(F("PIR detection "));
-    Serial.print(pirstatus);
+  pirstatus1 = digitalRead(pinPIR1);
+  pirstatus2 = digitalRead(pinPIR2);
+  if ((pirstatus1 != rempirstatus1)||(pirstatus2 != rempirstatus2)){
+    rempirstatus1 = pirstatus1;
+    rempirstatus2 = pirstatus2;
+
+    Serial.print(F("PIR 1 detection "));
+    Serial.print(pirstatus1);
+    Serial.print(F(", PIR 2 detection "));
+    Serial.print(pirstatus2);
     Serial.print(F(" - time: "));
-    Serial.println(millis());
-    if (pirstatus == HIGH){
+    Serial.println(runningtime);
+    if ((pirstatus1 == HIGH)&&(pirstatus2 == HIGH)){
       lightON = true;
+      lightOFF = false;
       tdata1 = 0xff;
       sendDirect = true;
     }
