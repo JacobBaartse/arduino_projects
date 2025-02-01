@@ -1,5 +1,5 @@
 /*
- * Nano with external RF module, PIR sensor
+ * Nano with external RF module, PIR sensor, switch bistable relays
  */
 
 #include "networking.h"
@@ -7,8 +7,10 @@
 
 // #########################################################
 
-#define pinPIR A7        // PIR pin connection
+#define pinPIR A5        // PIR pin connection
 #define pinPressButton 5 // light off button
+#define pinLight 6       // light driver pin
+#define pinDetection 7   // light off button
 
 void switchlight(bool lightON, bool lightOFF){
   static int lightstatus = 0;
