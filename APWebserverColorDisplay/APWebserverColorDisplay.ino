@@ -169,7 +169,6 @@ void setup() {
   tft.setTextSize(3);
   tft.println(IPhere.toString());
 
-
   startupscrollingtext(String("-->: ") + IPhere.toString());
 
   Serial.println(F(" "));  
