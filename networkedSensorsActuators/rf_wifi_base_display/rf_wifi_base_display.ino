@@ -16,10 +16,10 @@
 // #include "WiFiS3.h" // already included in networking.h
 #include "RTC.h"
 #include "clock.h"
+#include "website.h"
 #include "bdisplay.h"
 
 
-WiFiServer server(80);
 IPAddress IPhere;
 
 void setup() {
@@ -115,5 +115,7 @@ void loop() {
   }
 
   bdisplay_loop();
+
+  websitehandling();
 
 }

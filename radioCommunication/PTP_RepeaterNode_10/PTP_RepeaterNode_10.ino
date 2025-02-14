@@ -21,9 +21,9 @@ RF24 radio2(8, 7);               // external nRF24L01 (CE, CSN)
 RF24Network network1(radio1);    // Include the radio in the network
 RF24Network network2(radio2);    // Include the radio in the network
 
-const uint16_t base_node = 00;      // Address of the other node in Octal format
-const uint16_t repeater_node = 010; // Address of the repeater node in Octal format (04, 031, etc.)
-const uint16_t remote_node = 01;    // Address of the other node in Octal format
+const uint16_t base_node = 00;     // Address of the other, base node in Octal format
+const uint16_t repeater_node = 01; // Address of the repeater node in Octal format (04, 031, etc.)
+const uint16_t remote_node = 00;   // Address of the other, remote node in Octal format
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE 57600 (RF-NANO), there is somewhere a mismatch in clock factor of 4
@@ -58,7 +58,7 @@ void loop() {
   if (nw1Data.data1 > 0xab000000) { // data1 should be the keyword
     transmit = transmitRFnetwork(network2, remote_node, nw1Data);
     if (transmit) {
-      Serial.println("nw1 -> nw2"); 
+      Serial.println("nw1, base -> nw2, remote"); 
     }
   }
 
@@ -66,7 +66,7 @@ void loop() {
   if (nw2Data.data1 > 0xab000000) { // data1 should be the keyword
     transmit = transmitRFnetwork(network1, base_node, nw2Data);
     if (transmit) {
-      Serial.println("nw2 -> nw1"); 
+      Serial.println("nw2, remote -> nw1, base"); 
     }
   }
 

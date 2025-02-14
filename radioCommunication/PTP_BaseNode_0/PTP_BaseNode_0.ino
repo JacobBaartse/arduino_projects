@@ -25,8 +25,8 @@ location SO148
 #include "clock.h"
 // #include <NTPClient.h>
 #include <SPI.h>
+#include "webinterface.h"
 
-WiFiServer server(80);
 IPAddress IPhere;
 
 // WiFiUDP Udp; // A UDP instance to let us send and receive packets over UDP
@@ -136,5 +136,7 @@ void loop() {
   else {
     loadsequencepicture();
   }
+  
+  webinterfacing();
   
 }
