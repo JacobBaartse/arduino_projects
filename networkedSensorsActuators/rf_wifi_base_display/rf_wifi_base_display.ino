@@ -16,7 +16,7 @@
 // #include "WiFiS3.h" // already included in networking.h
 #include "RTC.h"
 #include "clock.h"
-//#include "colordisplay.h"
+#include "bdisplay.h"
 
 
 WiFiServer server(80);
@@ -67,6 +67,8 @@ void setup() {
   Serial.println(F("The RTC is: "));
   Serial.println(currentTime);
 
+  bdisplay_setup();
+
   Serial.println();  
   Serial.println(F(" **************"));  
   Serial.println();  
@@ -111,5 +113,7 @@ void loop() {
   else {
     loadsequencepicture();
   }
-  
+
+  bdisplay_loop();
+
 }
