@@ -25,82 +25,17 @@ location JWF21
 #include <RF24Network.h>
 #include <RF24.h>
 #include <SPI.h>
-//#include <Wire.h>
-//#include <Adafruit_GFX.h> // already included from font file
-//#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
-//#include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
-
-// #define SCREEN_WIDTH 128 // OLED display width, in pixels
-// #define SCREEN_HEIGHT 64 // OLED display height, in pixels
-// #define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
-// //#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
-// #define OLED_RESET -1
- 
 
 #define buttonPinGreen 7  
 #define buttonPinRed 8  
 #define ledPinGreen 4  
 #define ledPinRed 6 
 
-// enum DisplayState {
-//     Off = 0,
-//     Dim = 1,
-//     On = 2,
-// };
-
 enum LEDState {
     LEDOff = 0,
     LEDFlashing = 1,
     LEDOn = 2,
 };
-
-// Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-// bool displaystatus = DisplayState::Off;
-// void display_oled(bool clear, int x, int y, String text) {
-//   if (displaystatus == DisplayState::Off) return;
-//   if (clear) display.clearDisplay();
-//   display.setCursor(x, y);
-//   display.print(text);
-//   display.display();
-// }
-
-// // move text, write old location in background color
-// void display_move(int x, int y, int nx, int ny, String text) {
-//   if (displaystatus == DisplayState::Off) return;
-//   display.setCursor(x, y);
-//   display.setTextColor(SH110X_BLACK);
-//   display.print(text);
-//   display.setCursor(nx, ny);
-//   display.setTextColor(SH110X_WHITE);
-//   display.print(text);
-//   display.display();
-// }
-
-// DisplayState setDisplay(DisplayState statustoset){
-//   static DisplayState displaystatus = DisplayState::Dim;
-//   switch(statustoset){
-//     case DisplayState::Dim:
-//       display.oled_command(SH110X_DISPLAYON);
-//       display.setContrast(0); // dim display
-//       displaystatus = DisplayState::Dim;
-//       break;
-//     case DisplayState::On:
-//       display.oled_command(SH110X_DISPLAYON);
-//       displaystatus = DisplayState::On;
-//       break;
-//     //case DisplayState::Off:
-//     default:
-//       display.oled_command(SH110X_DISPLAYOFF);
-//       displaystatus = DisplayState::Off;
-//   }
-//   return displaystatus;
-// }
-
-// void clear_display(){
-//   display.clearDisplay();
-//   display.display();
-// }
 
 const int debounceDelay = 50;
 
@@ -111,7 +46,6 @@ bool greendebounce(bool pressedbutton, unsigned long curtime){
   if (pressedbutton != buttonstate) {
     if ((unsigned long)(curtime - lastdebouncetime) > debounceDelay) {
       buttonstate = pressedbutton;
-      // lastdebouncetime = curtime;
     }
     lastdebouncetime = curtime;
   }
@@ -125,7 +59,6 @@ bool reddebounce(bool pressedbutton, unsigned long curtime){
   if (pressedbutton != buttonstate) {
     if ((unsigned long)(curtime - lastdebouncetime) > debounceDelay) {
       buttonstate = pressedbutton;
-      // lastdebouncetime = curtime;
     }
     lastdebouncetime = curtime;
   }
@@ -247,8 +180,8 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
 RF24 radio(10, 9);               // onboard nRF24L01 (CE, CSN)
 // RF24 radio(8, 7);             // external nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
-const uint16_t this_node = 01;   // Address of our node in Octal format (04, 031, etc.)
-const uint16_t master00 = 00;    // Address of the other node in Octal format
+const uint16_t this_node = 00;   // Address of our node in Octal format (04, 031, etc.)
+const uint16_t repeaternode = 01;    // Address of the other node in Octal format
 const uint16_t wrappingcounter = 255;
 
 unsigned long const keywordval = 0xabcdfedc; 
@@ -274,14 +207,6 @@ struct network_payload {
   unsigned long data3;
 };
 
-// String Line1 = "Welcome \x81"; 
-// String Line2 = "George {Munteanu} \x81"; 
-// String Line3 = "Whats \x81 up?";  
-
-// int prevx, x, minX;
-// int y1, y2, y3, minY;
-// bool oncecompleted = false;
-
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE 57600 (RF-NANO), there is somewhere a mismatch in clock factor of 4
@@ -297,32 +222,6 @@ void setup() {
   network.begin(60, this_node); // (channel, node address)
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
-  /* 
-  display.begin(i2c_Address, true); // Address 0x3C default
-  displaystatus = setDisplay(DisplayState::Dim);
-  display.clearDisplay();
-  
-  display.setFont(&FreeSerif12pt7b);
-  display.setTextSize(1); // 3 lines of 10-12 chars
-  display.setTextColor(SH110X_WHITE);
-  display.setTextWrap(false);
-  display.display();
-
-  x = display.width();
-  y1 = 16;
-  y2 = 37;
-  y3 = 58;
-  minX = -128;
-  minX = -200; // depends on length of the text
-  minY = -22;
-
-  display_oled(true, 0, y1, Line1); 
-  display_oled(false, x, y2, Line2); 
-  display_oled(false, x, y3, Line3);  
-  prevx = x;
-  /* */
-
-  //delay(1000);
   Serial.println(" ");  
   Serial.println(" *************** ");  
   Serial.println(" "); 
@@ -389,29 +288,8 @@ void loop() {
   GreenIndication = greenledprocessing(currentMillis, buttonGreenPressed);
   RedIndication = redledprocessing(currentMillis, buttonRedPressed);
 
-  // if ((RedIndication == LEDState::LEDOff)&&(GreenIndication == LEDState::LEDOff)){
-  //   digitalWrite(LED_BUILTIN, LOW);
-  //   //Serial.println(F("Builtin LED OFF"));
-  // }
-  // else {
-  //   digitalWrite(LED_BUILTIN, HIGH);
-  //   //Serial.println(F("Builtin LED ON"));
-  // }
-
   buttonGreenPressed = greendebounce((digitalRead(buttonPinGreen) == LOW), currentMillis);
   buttonRedPressed = reddebounce((digitalRead(buttonPinRed) == LOW), currentMillis);
-
-  /* 
-  display_move(prevx, y2, x, y2, Line2);
-  if (!oncecompleted){
-    display_move(prevx, y3, x, y3, Line3);
-  }
-
-  prevx = x;
-  x = x - 3;
-  if (x < minX) x = display.width();
-  if (x < 12) oncecompleted = true;
-  /* */
 
   if (printstatus) {
     messageStatus(0);
@@ -419,11 +297,11 @@ void loop() {
   }
 
   //===== Receiving =====//
-  while (network.available()) {     // Is there any incoming data?
+  while (network.available()) { // any incoming data?
     RF24NetworkHeader header;
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
-    if (header.from_node != 0) {
+    if (header.from_node != repeaternode) {
       Serial.print(F("received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
@@ -441,7 +319,7 @@ void loop() {
       else { // check received message value
         if (rcvmsgcount != receiveCounter) {
           if (receivedmsg > 1) {
-             droppedmsg++; // this could be multiple as well
+            droppedmsg++; // this could be multiple as well
             Serial.print(F("Missed network message(s): "));
             Serial.print(F("received id: "));
             Serial.print(receiveCounter);
@@ -453,7 +331,7 @@ void loop() {
       }
       rcvmsgcount = updatecounter(rcvmsgcount); // calculate next expected message 
     }
-    else{
+    else {
       Serial.println(F("Keyword failure"));
       receivedcommand = command_none;
     }
@@ -468,7 +346,7 @@ void loop() {
   if(currentmilli - sendingTimer > 15000) {
     sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header0(master00); // (Address where the data is going)
+    RF24NetworkHeader headerR(repeaternode); // address where the data is going
 
     if (commandfrombase > command_none) {
       if ((commandfrombase & command_clear_counters) > 0) {
@@ -493,11 +371,11 @@ void loop() {
     }
 
     network_payload outgoing = {keywordval, sendingCounter, currentmilli, commanding, responding, data1, data2, data3};
-    bool ok = network.write(header0, &outgoing, sizeof(outgoing)); // Send the data
+    bool ok = network.write(headerR, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {
       Serial.print(F("Retry sending message: "));
       Serial.println(sendingCounter);
-      ok = network.write(header0, &outgoing, sizeof(outgoing)); // retry once
+      ok = network.write(headerR, &outgoing, sizeof(outgoing)); // retry once
     }
     if (ok) {
       sendmsg++;

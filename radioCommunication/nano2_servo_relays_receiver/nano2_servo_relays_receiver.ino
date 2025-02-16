@@ -9,7 +9,7 @@
 
 #define radioChannel 106
 
-const int buzzer = 9; //buzzer to arduino pin 9
+const int buzzer = 9; // buzzer to arduino pin 9
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(7, 8); // nRF24L01 (CE, CSN)
@@ -34,9 +34,11 @@ network_payload Rxdata;
 Servo Servo1;  // create servo object to control a servo
 Servo Servo2;  // create servo object to control a servo
 
+bool buzzing = true;
+
 void setup() {
   Serial.begin(115200);
-  Serial.println(F(" ***<-->***"));  
+  Serial.println(F(" *** <--> ***"));  
 
   SPI.begin();
   if (!radio.begin()){
@@ -53,6 +55,7 @@ void setup() {
   Servo2.attach(6);  // attaches the servo on pin 6 to the servo object
 
   pinMode(buzzer, OUTPUT); // Set buzzer - pin 9 as an output
+  tone(buzzer, 1500); 
 }
  
 unsigned long currentmilli = 0;
@@ -112,7 +115,6 @@ void transmitRFnetwork(unsigned long millitime){
   }
 }
 
-
 void loop() {
 
   network.update();
@@ -128,8 +130,9 @@ void loop() {
   if (newdata){
     if (Rxdata.bvalue > 0){
       if (currentmilli - buzzertime > 5000){ // create a silence time of 5 seconds
-        tone(buzzer, 500); // Send a sound signal...
+        tone(buzzer, 1500); // Send a sound signal...
         buzzertime = currentmilli;
+        buzzing = true;
         Serial.println(F("Start buzzing"));
       }
     }
@@ -139,15 +142,19 @@ void loop() {
     Servo1.write(numX);
     Servo2.write(numY);
   }
-  if (currentmilli - buzzertime > 2000){ // create a buzzing time of 2 seconds
-    noTone(buzzer); // Stop sound...
-    buzzertime = currentmilli;
-    Serial.println(F("Stop buzzing"));
+  if (buzzing)
+  {
+    if (currentmilli - buzzertime > 2000){ // create a buzzing time of 2 seconds
+      noTone(buzzer); // Stop sound...
+      buzzertime = currentmilli;
+      buzzing = false;
+      Serial.println(F("Stop buzzing"));
+    }
   }
 
   newdata = false;
   //************************ actuators ****************//
 
-  delay(200); // for debugging, this can be removed in practice
+  //delay(200); // for debugging, this can be removed in practice
 
 }

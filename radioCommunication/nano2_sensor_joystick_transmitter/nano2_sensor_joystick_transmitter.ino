@@ -40,7 +40,7 @@ network_payload Rxdata;
 
 void setup() {
   Serial.begin(115200);
-  Serial.println(F(" *****<>*****"));  
+  Serial.println(F(" ***** <> *****"));  
 
   SPI.begin();
   if (!radio.begin()){
@@ -74,6 +74,7 @@ void receiveRFnetwork(){
     }
     if (Rxdata.keyword == keywordvalS){
 
+      Serial.println(F("new data received"));
     }
     else{
       Serial.println(F("Keyword failure"));
@@ -96,7 +97,7 @@ void transmitRFnetwork(bool fresh){
     Txdata.xvalue = xValue;
     Txdata.yvalue = yValue;
     Txdata.bvalue = bValue;
-    RF24NetworkHeader header0(node00); // (Address where the data is going)
+    RF24NetworkHeader header0(node00); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
       delay(50);
