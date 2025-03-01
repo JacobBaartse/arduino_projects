@@ -27,7 +27,11 @@ const uint16_t remote_node = 00;   // Address of the other, remote node in Octal
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE 57600 (RF-NANO), there is somewhere a mismatch in clock factor of 4
-
+  String timestamp = __TIMESTAMP__;
+  Serial.print(F("PTP_RepeaterNode_10, creation/build time: "));
+  Serial.println(timestamp);
+  Serial.flush(); 
+  
   SPI.begin();
   radio1.begin();
   radio2.begin();

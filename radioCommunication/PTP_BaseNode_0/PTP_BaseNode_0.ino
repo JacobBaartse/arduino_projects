@@ -9,7 +9,7 @@
 
   https://howtomechatronics.com/tutorials/arduino/how-to-build-an-arduino-wireless-network-with-multiple-nrf24l01-modules/#h-base-00-source-code
 
-Target: UNO R4 Wifi, with RF24 module Long Range
+Target: UNO R4 Wifi, with RF24 module 
 nRF24L01 (CE,CSN) connected to pin 8, 7
 location SO148
 
@@ -34,6 +34,11 @@ IPAddress IPhere;
 
 void setup() {
   Serial.begin(115200);
+  String timestamp = __TIMESTAMP__;
+  Serial.print(F("PTP_BaseNode_0, creation/build time: "));
+  Serial.println(timestamp);
+  Serial.flush(); 
+
   RTC.begin();
   matrix.begin();
   SPI.begin();
@@ -45,15 +50,10 @@ void setup() {
   Serial.print(F("Starting up UNO R4 WiFi"));
   Serial.flush();
 
-  String timestamp = __TIMESTAMP__;
-  Serial.print(F("Creation/build time: "));
-  Serial.println(timestamp);
-  Serial.flush(); 
-
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION){
-    Serial.println("Please upgrade the firmware for the WiFi module");
-  }
+  // String fv = WiFi.firmwareVersion();
+  // if (fv < WIFI_FIRMWARE_LATEST_VERSION){
+  //   Serial.println("Please upgrade the firmware for the WiFi module");
+  // }
 
   // attempt to connect to WiFi network:
   int wifistatus = WifiConnect();

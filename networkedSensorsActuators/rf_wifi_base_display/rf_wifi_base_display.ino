@@ -24,6 +24,11 @@ IPAddress IPhere;
 
 void setup() {
   Serial.begin(115200);
+  Serial.print(__FILE__);
+  Serial.print(F(" networkedSensorsActuators/rf_wifi_base_display, creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
+  
   RTC.begin();
   matrix.begin();
   SPI.begin();
@@ -38,15 +43,10 @@ void setup() {
   Serial.print(F("Starting up UNO R4 WiFi"));
   Serial.flush();
 
-  String timestamp = __TIMESTAMP__;
-  Serial.print(F("Creation/build time: "));
-  Serial.println(timestamp);
-  Serial.flush(); 
-
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION){
-    Serial.println("Please upgrade the firmware for the WiFi module");
-  }
+  // String fv = WiFi.firmwareVersion();
+  // if (fv < WIFI_FIRMWARE_LATEST_VERSION){
+  //   Serial.println("Please upgrade the firmware for the WiFi module");
+  // }
 
   // attempt to connect to WiFi network:
   int wifistatus = WifiConnect();

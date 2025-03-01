@@ -210,7 +210,11 @@ struct network_payload {
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE 57600 (RF-NANO), there is somewhere a mismatch in clock factor of 4
-  
+  String timestamp = __TIMESTAMP__;
+  Serial.print(F("PTP_RemoteNode_01, creation/build time: "));
+  Serial.println(timestamp);
+  Serial.flush(); 
+
   pinMode(buttonPinGreen, INPUT_PULLUP);
   pinMode(buttonPinRed, INPUT_PULLUP);
   pinMode(ledPinGreen, INPUT_PULLUP);
@@ -225,7 +229,7 @@ void setup() {
   Serial.println(" ");  
   Serial.println(" *************** ");  
   Serial.println(" "); 
-  Serial.flush();  
+  Serial.flush(); 
 }
 
 unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrappingcounter) {

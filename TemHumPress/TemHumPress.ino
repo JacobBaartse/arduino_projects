@@ -2,13 +2,18 @@
 
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
-#include <AHT10.h>
+#include <Adafruit_AHTX0.h> 
 
 Adafruit_BMP280 bmp;
-AHT10 myAHT20(AHT10_ADDRESS_0X38, AHT20_SENSOR);
+Adafruit_AHTX0 myAHT20(AHT10_ADDRESS_0X38, AHT20_SENSOR);
 
 void setup() {
   Serial.begin(115200);
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush();
+
   Serial.println(F("AHT20+BMP280 test"));
 
   while (myAHT20.begin() != true) {
@@ -31,9 +36,11 @@ void setup() {
 }
 
 void loop() {
-  Serial.printf("Temperature: %.02f *C\n", myAHT20.readTemperature());
-  Serial.printf("Humidity: %.02f %RH\n", myAHT20.readHumidity());
-  Serial.printf("Pressure: %.02f hPa\n", bmp.readPressure());
+  sensors_event_t humidity, temp;
+  aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
+  Serial.print("Temperature: "); Serial.print(temp.temperature); Serial.println(" degrees C");
+  Serial.print("Humidity: "); Serial.print(humidity.relative_humidity); Serial.println("% rH");
+  Serial.print("Pressure: "); Serial.print(bmp.readPressure()); Serial.println("hPa");
 
   delay(1000);
 }

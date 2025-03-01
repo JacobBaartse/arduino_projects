@@ -7,15 +7,9 @@
   to the Serial Monitor. From there, you can open that address in a web browser
   to use the controls on the web page.
 
-  Find the full UNO R4 WiFi Network documentation here:
-  https://docs.arduino.cc/tutorials/uno-r4-wifi/wifi-examples#access-point
-
- */
-/*
- *
- * default ip address: 192.168.12.2
- *
- */
+  default ip address: 192.168.12.2
+ 
+**/
 
 #include "ArduinoGraphics.h"
 #include "Arduino_LED_Matrix.h"
@@ -55,12 +49,9 @@ void startupscrollingtext(String starttext){
   matrix.endDraw();
 }
 
-//const uint32_t clear[] = {0x19819, 0x80000001, 0x81f8000};
-
 void Colorstatustext(int color){
   static unsigned long bcolor = 99;
   if (color != bcolor){ // update display only once
-    //matrix.loadFrame(clear);
     matrix.textFont(Font_4x6);
 
     String TextHere = String(color) + "  "; 
@@ -110,19 +101,17 @@ void setup() {
 
   pinMode(7, OUTPUT);
   digitalWrite(7, LOW);
-  // pinMode(led, OUTPUT); // set the LED pin mode
 
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
-    Serial.println("Communication with WiFi module failed!");
-    // don't continue
-    while (true);
+    Serial.println("Communication with WiFi module failed!"); 
+    while (true); // don't continue
   }
 
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the WiFi firmware");
-  }
+  // String fv = WiFi.firmwareVersion();
+  // if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
+  //   Serial.println("Please upgrade the WiFi firmware");
+  // }
 
   String timestamp = __TIMESTAMP__;
   Serial.print(F("Creation/build time: "));
@@ -143,8 +132,7 @@ void setup() {
   status = WiFi.beginAP(ssid, WiFichannel);
   if (status != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
-    // don't continue
-    while (true);
+    while (true); // don't continue
   }
 
   tft.init(240, 240, SPI_MODE2);    // Init ST7789 display 240x240 pixel
@@ -175,6 +163,7 @@ void setup() {
   Serial.println(F(" *************** "));  
   Serial.println(F(" "));  
   Serial.flush(); 
+
   tft.setTextColor(ST77XX_GREEN);
   tft.setTextSize(4);
   tft.setCursor(50, 100);
@@ -189,7 +178,6 @@ String currentLine = "";
 unsigned long acounter = 0;
 unsigned long currenttime = 0;
 unsigned long screentiming = 0;
-//bool actiontodo = false;
 String actiontext = "";
 int currentmeta = 0;
 int text_size = 2;
