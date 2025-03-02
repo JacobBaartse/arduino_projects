@@ -32,7 +32,7 @@ void setup() {
   RTC.begin();
   matrix.begin();
 
-  Serial.print(F("Starting up UNO R4 WiFi"));
+  Serial.println(F("Starting up UNO R4 WiFi"));
   Serial.flush();
 
   // String fv = WiFi.firmwareVersion();

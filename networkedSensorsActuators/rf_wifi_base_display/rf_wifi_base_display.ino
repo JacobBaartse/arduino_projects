@@ -40,7 +40,7 @@ void setup() {
   //pinMode(TFT_BL, OUTPUT);
   //tft_off();
 
-  Serial.print(F("Starting up UNO R4 WiFi"));
+  Serial.println(F("Starting up UNO R4 WiFi"));
   Serial.flush();
 
   // String fv = WiFi.firmwareVersion();
