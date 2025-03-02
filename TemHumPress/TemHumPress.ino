@@ -40,7 +40,22 @@ void loop() {
   aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
   Serial.print("Temperature: "); Serial.print(temp.temperature); Serial.println(" degrees C");
   Serial.print("Humidity: "); Serial.print(humidity.relative_humidity); Serial.println("% rH");
-  Serial.print("Pressure: "); Serial.print(bmp.readPressure()); Serial.println("hPa");
+  Serial.print("Pressure: "); Serial.print(bmp.readPressure()); Serial.println(" hPa");
 
+  delay(1000);
+
+  Serial.print("Temperature : ");
+  Serial.print(myAHT20.readTemperature());
+  Serial.println(" *C");
+  
+  Serial.print("Humidity : ");
+  Serial.print(myAHT20.readHumidity());
+  Serial.println(" RH");
+  
+  Serial.print("Pressure : ");
+  Serial.print( bmp.readPressure());
+  Serial.println(" hPa");
+  Serial.println(" ");
+  
   delay(1000);
 }
