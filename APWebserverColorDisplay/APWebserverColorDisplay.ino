@@ -113,9 +113,9 @@ void setup() {
   //   Serial.println("Please upgrade the WiFi firmware");
   // }
 
-  String timestamp = __TIMESTAMP__;
-  Serial.print(F("Creation/build time: "));
-  Serial.println(timestamp);
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
   // print the network name (SSID);
