@@ -86,6 +86,7 @@ String Line3 = "Whats up \x81?";
 int bprevx, bx, bminX;
 int by1, by2, by3, bminY;
 bool oncecompleted = false;
+bool sensorvalues = false;
 
 void bdisplay_setup() {
   //Serial.begin(115200);
@@ -114,20 +115,24 @@ void bdisplay_setup() {
 }
 
 void bdisplay_loop() {
+  if(!sensorvalues){
+    display_move(bprevx, by2, bx, by2, Line2);
+    if (!oncecompleted){
+      display_move(bprevx, by3, bx, by3, Line3);
+    }
 
-  // float tempval = 24.567;
-  // display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.
-  // delay(2000);
-
-  display_move(bprevx, by2, bx, by2, Line2);
-  if (!oncecompleted){
-    display_move(bprevx, by3, bx, by3, Line3);
+    bprevx = bx;
+    bx = bx - 3;
+    if (bx < bminX) bx = display.width();
+    if (bx < 12) oncecompleted = true;
+    //if (--bx < bminX) bx = display.width(); // this line is moving 1 pixel at the time, this can be too slow
   }
+}
 
-  bprevx = bx;
-  bx = bx - 3;
-  if (bx < bminX) bx = display.width();
-  if (bx < 12) oncecompleted = true;
-  //if (--bx < bminX) bx = display.width(); // this line is moving 1 pixel at the time, this can be too slow
-
+void bdisplay_readings(float temp1, float temp2, int humid, int pressure){
+  sensorvalues = true;
+  display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
+  display_oled(false, 100, 16, String(temp2, 1) + " \x7F"+"C");  
+  display_oled(false, 0, 38, String(humid, 1) + "% rH");  
+  display_oled(false, 100, 38, String(pressure, 1) + " hPa");  
 }

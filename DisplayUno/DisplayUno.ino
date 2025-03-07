@@ -1,13 +1,8 @@
 /*
-  Arduino Wireless Network - Multiple NRF24L01 Tutorial
-          == Base/Master Node 00 ==
-  by Dejan, www.HowToMechatronics.com
-  Libraries:
-  nRF24/RF24, https://github.com/nRF24/RF24
-  nRF24/RF24Network, https://github.com/nRF24/RF24Network
 
-
-  https://howtomechatronics.com/tutorials/arduino/how-to-build-an-arduino-wireless-network-with-multiple-nrf24l01-modules/#h-base-00-source-code
+AHT20   0x38
+Display 0x3C
+BMP280  0x77
 
 */
 
@@ -18,6 +13,7 @@
 #include "clock.h"
 #include "website.h"
 #include "bdisplay.h"
+#include "temppress.h"
 
 
 IPAddress IPhere;
@@ -61,6 +57,8 @@ void setup() {
 
   bdisplay_setup();
 
+  sensors_setup();
+
   Serial.println();  
   Serial.println(F(" **************"));  
   Serial.println();  
@@ -78,6 +76,7 @@ bool alarming = true; // should become: false;
 bool sendDirect = false;
 unsigned int readaction = 0;
 unsigned int writeaction = 0;
+bool new_sensing = false;
 
 void loop() {
 
@@ -90,6 +89,11 @@ void loop() {
   }
 
   bdisplay_loop();
+
+  new_sensing = read_sensors();
+  if (new_sensing){
+    bdisplay_readings(sensor1_temp/10, sensor2_temp/10, sensor1_humi, sensor2_pres);
+  }
 
   websitehandling();
 
