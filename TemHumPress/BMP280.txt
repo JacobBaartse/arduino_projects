@@ -1,0 +1,7 @@
+
+The BME280 (and the BMP280) have two possible I2C addresses depending on how you have the SDO pin configured. 
+If SDO is high then the I2C address is 0x77. If SDO is low the I2C address is 0x76.
+On the Adafruit BME280 module the SDO pin is pulled high so if you leave it alone the address will be 0x77. 
+You can connect SDO to GND to change the address to 0x76.
+The Adafruit BME280 library is geared toward their module so it is set up to use a default address of 0x77. 
+You can encourage the library to use address 0x76 with [b]bme.begin(0x76)[/b].
