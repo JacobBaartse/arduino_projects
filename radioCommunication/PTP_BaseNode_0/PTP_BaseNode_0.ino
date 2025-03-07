@@ -34,9 +34,9 @@ IPAddress IPhere;
 
 void setup() {
   Serial.begin(115200);
-  String timestamp = __TIMESTAMP__;
-  Serial.print(F("PTP_BaseNode_0, creation/build time: "));
-  Serial.println(timestamp);
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
   RTC.begin();
