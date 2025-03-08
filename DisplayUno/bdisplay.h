@@ -145,7 +145,7 @@ void bdisplay_readingtime(float temp1, int hours, int minutes, int secondes){
   //dateTime = buffer;
   //String timestampnow = sprintf("%02d:%02d:%02d", hours, minutes, secondes);
   //display_oled(false, 0, 38, timestampnow);  
-  display_oled(false, 0, 38, String(buffer));  
+  display_oled(false, 0, 49, String(buffer));  
   //display_oled(false, 0, 38, String(hours) + ":" + String(minutes) + ":" + String(secondes));  
   //display_oled(false, 100, 38, minutes);  
 }
