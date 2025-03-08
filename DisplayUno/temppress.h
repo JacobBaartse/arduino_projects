@@ -61,8 +61,8 @@ bool read_sensors(){
 
   sensor1_temp = int(temp.temperature * 10); // make it 1 digit after the .
   sensor1_humi = int(humidity.relative_humidity);
-  sensor2_temp = bmp.readTemperature();
-  sensor2_temp = int(sensor2_temp * 10); // make it 1 digit after the .
+  float sensor2_tempe = bmp.readTemperature();
+  sensor2_temp = int(sensor2_tempe * 10); // make it 1 digit after the .
   float sensor2_press = bmp.readPressure();
   sensor2_pres = int(sensor2_press / 100); // make it hPa
 

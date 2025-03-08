@@ -83,16 +83,16 @@ void loop() {
   // show something on the LED matrix 
   if (alarming) {
     alarming = alarmingsequence();
+
+    bdisplay_loop();
   }
   else {
     loadsequencepicture();
-  }
 
-  bdisplay_loop();
-
-  new_sensing = read_sensors();
-  if (new_sensing){
-    bdisplay_readings(sensor1_temp/10, sensor2_temp/10, sensor1_humi, sensor2_pres);
+    new_sensing = read_sensors();
+    if (new_sensing){
+      bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
+    }
   }
 
   websitehandling();

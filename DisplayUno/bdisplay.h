@@ -132,7 +132,7 @@ void bdisplay_loop() {
 void bdisplay_readings(float temp1, float temp2, int humid, int pressure){
   sensorvalues = true;
   display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
-  display_oled(false, 100, 16, String(temp2, 1) + " \x7F"+"C");  
-  display_oled(false, 0, 38, String(humid, 1) + "% rH");  
-  display_oled(false, 100, 38, String(pressure, 1) + " hPa");  
+  //display_oled(false, 75, 16, String(temp2, 1) + " \x7F"+"C");  
+  display_oled(false, 0, 38, String(humid) + "% rH");  
+  display_oled(false, 0, 60, String(pressure) + " hPa");  
 }
