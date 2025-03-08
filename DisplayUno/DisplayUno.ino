@@ -50,9 +50,8 @@ void setup() {
   Serial.println(F("\nStarting connection to get actual time from the internet"));
   get_time_from_hsdesign();
   // Retrieve the date and time from the RTC and print them
-  RTCTime currentTime;
   RTC.getTime(currentTime); 
-  Serial.println(F("The RTC is: "));
+  Serial.print(F("The RTC is: "));
   Serial.println(currentTime);
 
   bdisplay_setup();
@@ -77,6 +76,9 @@ bool sendDirect = false;
 unsigned int readaction = 0;
 unsigned int writeaction = 0;
 bool new_sensing = false;
+bool doshow0 = true;
+bool doshow1 = true;
+int remsecs = 0;
 
 void loop() {
 
@@ -89,9 +91,31 @@ void loop() {
   else {
     loadsequencepicture();
 
-    new_sensing = read_sensors();
-    if (new_sensing){
-      bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
+    read_sensors();
+    int showdata = toggle_data(1, 4000);
+    if (showdata == 0){
+      if (doshow0){
+        bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
+        doshow0 = false;
+      }
+      doshow1 = true;
+    }
+    else if (showdata == 1){
+      RTC.getTime(currentTime); 
+      int secs = currentTime.getSeconds();
+      doshow1 = (secs != remsecs); // count the secodns when displayed
+      if (doshow1){
+        //Serial.print(F("The RTC is: "));
+        //Serial.println(currentTime);
+        bdisplay_readingtime((float)sensor1_temp/10, currentTime.getHour(), currentTime.getMinutes(), secs);
+        remsecs = secs;
+        doshow1 = false;
+      }
+      doshow0 = true;
+    }
+    else{
+      Serial.print(showdata);  
+      Serial.println(F(" ERROR xxxxxxxxxxxxxxxxxxxxxxxxxxxx"));  
     }
   }
 

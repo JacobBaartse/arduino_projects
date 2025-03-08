@@ -107,6 +107,24 @@ void get_time_from_hsdesign(){
   Serial.println("Time retrieved from the internet and set locally.");
 }
 
+bool update_time(int toggle_time){
+  static unsigned long timetime = 0;
+  unsigned long timing = millis();
+  if(timing < timetime) return false;
+  timetime = timing + toggle_time;
+  return true;
+}
+
+int toggle_data(int choises, int toggle_time){
+  static int datatracking = 0;
+  if (update_time(toggle_time)){
+    if (++datatracking > choises){ 
+      datatracking = 0;
+    }
+  }
+  return datatracking;
+}
+
 // int prev_second;
 // const int hour = 60*60;
 
