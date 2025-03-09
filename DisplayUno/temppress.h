@@ -54,7 +54,7 @@ bool read_sensors(){
   bool changedetected = false;
   unsigned long timing = millis();
   if(timing < sensortime) return changedetected;
-  sensortime = timing + 10000;
+  sensortime = timing + 60000; // once per minute
 
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp); // populate temp and humidity objects with fresh data

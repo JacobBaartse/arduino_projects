@@ -92,6 +92,7 @@ void loop() {
     loadsequencepicture();
 
     read_sensors();
+    
     int showdata = toggle_data(1, 4000);
     if (showdata == 0){
       if (doshow0){
@@ -103,7 +104,7 @@ void loop() {
     else if (showdata == 1){
       RTC.getTime(currentTime); 
       int secs = currentTime.getSeconds();
-      doshow1 = (secs != remsecs); // count the secodns when displayed
+      doshow1 = (secs != remsecs); // count the seconds on display
       if (doshow1){
         //Serial.print(F("The RTC is: "));
         //Serial.println(currentTime);
