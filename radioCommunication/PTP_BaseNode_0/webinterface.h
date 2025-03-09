@@ -116,7 +116,7 @@ void webinterfacing() {
   client = server.available();              // listen for incoming clients
 
   if (client) {                             // if you get a client,
-    Serial.println(F("client:"));           // print a message out the serial port
+    Serial.println(F("new client:"));       // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
@@ -130,7 +130,7 @@ void webinterfacing() {
             //break;
           }
           //else { // if there is a newline, then print, process and clear currentLine
-            HTMLresponseline(currentLine, 10);
+          HTMLresponseline(currentLine, 10);
             // currentmeta = 1;
             // currentLine = "";
           //}

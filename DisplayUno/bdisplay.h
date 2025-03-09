@@ -129,6 +129,12 @@ void bdisplay_loop() {
   }
 }
 
+void bdisplay_textline(String textline){
+  display.setTextWrap(true);
+  display_oled(true, 30, 16, textline);  
+  display.setTextWrap(false);
+}
+
 void bdisplay_readings(float temp1, float temp2, int humid, int pressure){
   sensorvalues = true;
   display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.

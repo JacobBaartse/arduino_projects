@@ -36,6 +36,8 @@ void setup() {
   //   Serial.println("Please upgrade the firmware for the WiFi module");
   // }
 
+  bdisplay_setup();
+
   // attempt to connect to WiFi network:
   int wifistatus = WifiConnect();
   if (wifistatus == WL_CONNECTED){
@@ -45,16 +47,18 @@ void setup() {
   else{ // stop the wifi connection
     WiFi.disconnect();
   }
-  startupscrollingtext(String("-->: ") + IPhere.toString());
+  String ipaddresstext = IPhere.toString();
+  bdisplay_textline(ipaddresstext);
+  startupscrollingtext(String("-->: ") + ipaddresstext);
 
   Serial.println(F("\nStarting connection to get actual time from the internet"));
   get_time_from_hsdesign();
   // Retrieve the date and time from the RTC and print them
   RTC.getTime(currentTime); 
+  bdisplay_textline(currentTime);
+
   Serial.print(F("The RTC is: "));
   Serial.println(currentTime);
-
-  bdisplay_setup();
 
   sensors_setup();
 
@@ -62,6 +66,9 @@ void setup() {
   Serial.println(F(" **************"));  
   Serial.println();  
   Serial.flush(); 
+  
+  delay(2000); // give time to read the time of the display
+  bdisplay_textline(""); // clear display
 }
 
 // void restart_arduino(){
@@ -120,6 +127,6 @@ void loop() {
     }
   }
 
-  websitehandling();
+  websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
 
 }
