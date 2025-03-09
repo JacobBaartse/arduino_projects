@@ -27,20 +27,20 @@ void HTMLreply() {
   client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
   client.print(F("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
 
-  client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\">Measured values</TH></TR>"));
-  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 1</TD><TD style=\"text-align: right\">"));
-  client.print(tempval1);
-  client.print(F(" &deg;C</TD></TR>"));
-  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 2</TD><TD style=\"text-align: right\">"));
-  client.print(tempval2);
-  client.print(F(" &deg;C</TD></TR>"));
-  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">rel. Humidity</TD><TD style=\"text-align: right\">"));
-  client.print(humidval);
-  client.print(F("%</TD></TR>"));
-  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Pressure</TD><TD style=\"text-align: right\">"));
-  client.print(presval);
-  client.print(F(" hPa</TD></TR>"));
-  client.print(F("</TABLE>"));
+  // client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\">Measured values</TH></TR>"));
+  // client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 1</TD><TD style=\"text-align: right\">"));
+  // client.print(tempval1);
+  // client.print(F(" &deg;C</TD></TR>"));
+  // client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 2</TD><TD style=\"text-align: right\">"));
+  // client.print(tempval2);
+  // client.print(F(" &deg;C</TD></TR>"));
+  // client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">rel. Humidity</TD><TD style=\"text-align: right\">"));
+  // client.print(humidval);
+  // client.print(F("%</TD></TR>"));
+  // client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Pressure</TD><TD style=\"text-align: right\">"));
+  // client.print(presval);
+  // client.print(F(" hPa</TD></TR>"));
+  // client.print(F("</TABLE>"));
 
   client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>"));
@@ -79,28 +79,6 @@ int HTMLresponseline(String requestline, int metadata) {
     // if (requestline.startsWith("GET /C2")) {  // color item
     //   postedcolors = postedcolors | 0b00000010;
     // } 
-    // if (requestline.startsWith("GET /C3")) {  // color item
-    //   postedcolors = postedcolors | 0b00000100;
-    // }     
-    // if (requestline.startsWith("GET /C4")) {  // color item
-    //   postedcolors = postedcolors | 0b00001000;
-    // }     
-    // if (requestline.startsWith("GET /C5")) {  // color item
-    //   postedcolors = postedcolors | 0b00010000;
-    // }     
-    // if (requestline.startsWith("GET /C6")) {  // color item
-    //   postedcolors = postedcolors | 0b00100000;
-    // } 
-    // if (requestline.startsWith("GET /C7")) {  // color item
-    //   postedcolors = postedcolors | 0b01000000;
-    // } 
-    // if (requestline.startsWith("GET /C8")) {  // color item
-    //   postedcolors = postedcolors | 0b10000000;
-    // } 
-    // if (requestline.startsWith("GET /C9")) {  // color item
-    //   postedcolors = postedcolors | 0x0100;
-    //   //actiontext = ""; // clear text
-    // }  
     // if (requestline.startsWith("GET /SL")) {  // size item
     //   //if (text_size > 1) text_size--;
     // }
@@ -120,7 +98,8 @@ int HTMLresponseline(String requestline, int metadata) {
   }
 }
 
-void websitehandling(float temp1, float temp2, int humid, int press) {
+// void websitehandling(float temp1, float temp2, int humid, int press) {
+void websitehandling() {
   
   client = server.available();              // listen for incoming clients
 
@@ -135,10 +114,10 @@ void websitehandling(float temp1, float temp2, int humid, int press) {
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() < 1) {
-            tempval1 = temp1;
-            tempval2 = temp2;
-            humidval = humid;
-            presval = press;
+            // tempval1 = temp1;
+            // tempval2 = temp2;
+            // humidval = humid;
+            // presval = press;
             HTMLreply();
           }
           HTMLresponseline(currentLine, 10);
