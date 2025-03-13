@@ -129,11 +129,11 @@ void webinterfacing() {
             HTMLreply();
             //break;
           }
-          //else { // if there is a newline, then print, process and clear currentLine
-          HTMLresponseline(currentLine, 10);
+          else { // if there is a newline, then print, process and clear currentLine
+            HTMLresponseline(currentLine, 10);
             // currentmeta = 1;
-            // currentLine = "";
-          //}
+            currentLine = "";
+          }
         }
         else if (c != '\r') {    // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine

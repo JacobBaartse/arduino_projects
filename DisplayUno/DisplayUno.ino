@@ -127,6 +127,6 @@ void loop() {
     }
   }
 
-  //websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
-  websitehandling();
+  websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
+  //websitehandling();
 }

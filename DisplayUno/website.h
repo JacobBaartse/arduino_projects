@@ -2,11 +2,10 @@
 #include "WiFiS3.h"
 
 WiFiServer server(80);
+WiFiClient client;
 
 char c = '\n';
 String currentLine = "";
-unsigned long acounter = 0;
-WiFiClient client;
 
 float tempval1 = 0;
 float tempval2 = 0;
@@ -27,20 +26,20 @@ void HTMLreply() {
   client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
   client.print(F("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
 
-  // client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\">Measured values</TH></TR>"));
-  // client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 1</TD><TD style=\"text-align: right\">"));
-  // client.print(tempval1);
-  // client.print(F(" &deg;C</TD></TR>"));
-  // client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 2</TD><TD style=\"text-align: right\">"));
-  // client.print(tempval2);
-  // client.print(F(" &deg;C</TD></TR>"));
-  // client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">rel. Humidity</TD><TD style=\"text-align: right\">"));
-  // client.print(humidval);
-  // client.print(F("%</TD></TR>"));
-  // client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Pressure</TD><TD style=\"text-align: right\">"));
-  // client.print(presval);
-  // client.print(F(" hPa</TD></TR>"));
-  // client.print(F("</TABLE>"));
+  client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:150px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\">Measured values</TH><TH>&nbsp;</TH></TR>"));
+  client.print(F("<TR style=\"height:100px; font-size:4em;\"><TD style=\"text-align: right\">Temp 1</TD><TD style=\"text-align: right\">"));
+  client.print(tempval1);
+  client.print(F(" &deg;C</TD><TD>&nbsp;</TD></TR>"));
+  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 2</TD><TD style=\"text-align: right\">"));
+  client.print(tempval2);
+  client.print(F(" &deg;C</TD><TD>&nbsp;</TD></TR>"));
+  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">rel. Humidity</TD><TD style=\"text-align: right\">"));
+  client.print(humidval);
+  client.print(F("%</TD><TD>&nbsp;</TD></TR>"));
+  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Pressure</TD><TD style=\"text-align: right\">"));
+  client.print(presval);
+  client.print(F(" hPa</TD><TD>&nbsp;</TD></TR>"));
+  client.print(F("</TABLE>"));
 
   client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>"));
@@ -98,8 +97,8 @@ int HTMLresponseline(String requestline, int metadata) {
   }
 }
 
-// void websitehandling(float temp1, float temp2, int humid, int press) {
-void websitehandling() {
+void websitehandling(float temp1, float temp2, int humid, int press) {
+//void websitehandling() {
   
   client = server.available();              // listen for incoming clients
 
@@ -114,13 +113,16 @@ void websitehandling() {
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() < 1) {
-            // tempval1 = temp1;
-            // tempval2 = temp2;
-            // humidval = humid;
-            // presval = press;
+            tempval1 = temp1;
+            tempval2 = temp2;
+            humidval = humid;
+            presval = press;
             HTMLreply();
           }
-          HTMLresponseline(currentLine, 10);
+          else{
+            HTMLresponseline(currentLine, 10);
+            currentLine = "";
+          }
         }
         else if (c != '\r') {    // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine

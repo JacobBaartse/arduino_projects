@@ -25,7 +25,7 @@ IPAddress printWifiStatus(int connect) {
   Serial.println();
   Serial.println();
   // print your board's IP address:
-  Serial.print("IP Address: ");
+  Serial.print(F("IP Address: "));
   IPAddress here = WiFi.localIP();
   Serial.print(here);
 
@@ -67,25 +67,25 @@ void printEncryptionType(int thisType) {
 
 String findNetwork() {
   // scan for nearby networks:
-  Serial.println("** Scan Networks **");
+  Serial.println(F("** Scan Networks **"));
   int numSsid = WiFi.scanNetworks();
   if (numSsid == -1) {
-    Serial.println("Couldn't get WiFi information");
+    Serial.println(F("Couldn't get WiFi information"));
     while (true);
   }
 
   // print the list of networks seen:
-  Serial.print("number of available networks:");
+  Serial.print(F("number of available networks:"));
   Serial.println(numSsid);
 
   // print the network number and name for each network found:
   for (int thisNet = 0; thisNet < numSsid; thisNet++) {
     Serial.print(thisNet);
-    Serial.print(") ");
+    Serial.print(F(") "));
     Serial.print(WiFi.SSID(thisNet));
-    Serial.print(" Signal: ");
+    Serial.print(F(" Signal: "));
     Serial.print(WiFi.RSSI(thisNet));
-    Serial.println(" dBm");
+    Serial.println(F(" dBm"));
     // Serial.print(" Encryption: ");
     // printEncryptionType(WiFi.encryptionType(thisNet));
     // Serial.println(" ");
@@ -104,7 +104,7 @@ String findNetwork() {
       }
     }
   }
-  Serial.print("foundSSID: ");
+  Serial.print(F("foundSSID: "));
   Serial.println(foundSSID);
   return foundSSID;
 }
@@ -136,9 +136,9 @@ int WifiConnect(){
   String SSIDpwd = getNetworkPassword(SSIDfound);
   String SSIDlocation = getNetworkLocation(SSIDfound);
   
-  Serial.print("Wifi network: ");
+  Serial.print(F("Wifi network: "));
   Serial.print(SSIDfound);
-  Serial.print(", ");
+  Serial.print(F(", "));
   Serial.println(SSIDlocation);
 
   // attempt to connect to WiFi network:
