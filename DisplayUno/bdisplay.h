@@ -143,15 +143,17 @@ void bdisplay_readings(float temp1, float temp2, int humid, int pressure){
   display_oled(false, 0, 60, String(pressure) + " hPa");  
 }
 
-void bdisplay_readingtime(float temp1, int hours, int minutes, int secondes){
+String bdisplay_readingtime(float temp1, int hours, int minutes, int secondes){
   display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
   //display.setTextWrap(true);
-  char buffer [8] = "";
+  char buffer[8] = "";
   sprintf(buffer, "%02d:%02d:%02d", hours, minutes, secondes);
   //dateTime = buffer;
   //String timestampnow = sprintf("%02d:%02d:%02d", hours, minutes, secondes);
   //display_oled(false, 0, 38, timestampnow);  
-  display_oled(false, 0, 49, String(buffer));  
+  String timeformat = String(buffer);
+  display_oled(false, 0, 49, timeformat);  
   //display_oled(false, 0, 38, String(hours) + ":" + String(minutes) + ":" + String(secondes));  
   //display_oled(false, 100, 38, minutes);  
+  return timeformat;
 }

@@ -75,7 +75,7 @@ String findNetwork() {
   }
 
   // print the list of networks seen:
-  Serial.print(F("number of available networks:"));
+  Serial.print(F("number of available networks: "));
   Serial.println(numSsid);
 
   // print the network number and name for each network found:

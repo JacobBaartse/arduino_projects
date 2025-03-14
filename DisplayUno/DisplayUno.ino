@@ -86,6 +86,7 @@ bool new_sensing = false;
 bool doshow0 = true;
 bool doshow1 = true;
 int remsecs = 0;
+String timeinformation = "-";
 
 void loop() {
 
@@ -115,7 +116,7 @@ void loop() {
       if (doshow1){
         //Serial.print(F("The RTC is: "));
         //Serial.println(currentTime);
-        bdisplay_readingtime((float)sensor1_temp/10, currentTime.getHour(), currentTime.getMinutes(), secs);
+        timeinformation = bdisplay_readingtime((float)sensor1_temp/10, currentTime.getHour(), currentTime.getMinutes(), secs);
         remsecs = secs;
         doshow1 = false;
       }
@@ -127,6 +128,6 @@ void loop() {
     }
   }
 
-  websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
+  websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, timeinformation);
   //websitehandling();
 }

@@ -11,6 +11,9 @@ float tempval1 = 0;
 float tempval2 = 0;
 int humidval = 0;
 int presval = 0;
+String timval = "-";
+String actionval = "-";
+unsigned long actiontiming = 0;
 
 void HTMLreply() {
   Serial.print(F("HTMLreply"));
@@ -24,25 +27,30 @@ void HTMLreply() {
   
   client.print(F("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi with Display</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>"));
   client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
-  client.print(F("<BODY TEXT=\"#33cc33\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
+  client.print(F("<BODY TEXT=\"#006600\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
 
-  client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:150px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\">Measured values</TH><TH>&nbsp;</TH></TR>"));
+  client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:150px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\">Measured values</TH><TH>&nbsp;&nbsp;</TH></TR>"));
   client.print(F("<TR style=\"height:100px; font-size:4em;\"><TD style=\"text-align: right\">Temp 1</TD><TD style=\"text-align: right\">"));
   client.print(tempval1);
-  client.print(F(" &deg;C</TD><TD>&nbsp;</TD></TR>"));
+  client.print(F(" &deg;C</TD><TD>&nbsp;&nbsp;</TD></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 2</TD><TD style=\"text-align: right\">"));
   client.print(tempval2);
-  client.print(F(" &deg;C</TD><TD>&nbsp;</TD></TR>"));
+  client.print(F(" &deg;C</TD><TD>&nbsp;&nbsp;</TD></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">rel. Humidity</TD><TD style=\"text-align: right\">"));
   client.print(humidval);
-  client.print(F("%</TD><TD>&nbsp;</TD></TR>"));
+  client.print(F("%</TD><TD>&nbsp;&nbsp;</TD></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Pressure</TD><TD style=\"text-align: right\">"));
   client.print(presval);
-  client.print(F(" hPa</TD><TD>&nbsp;</TD></TR>"));
+  client.print(F(" hPa</TD><TD>&nbsp;&nbsp;</TD></TR>"));
+  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD colspan=2 style=\"text-align: center\">"));
+  client.print(timval);
+  client.print(F("</TD><TD>"));
+  client.print(actionval);
+  client.print(F("</TD></TR>"));
   client.print(F("</TABLE>"));
 
-  client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:200px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/T\">LED</a></TH></TR>"));
-  client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/H\">ON</a></TD><TD style=\"text-align: center\"><a href=\"/L\">off</a></TD></TR>"));
+  client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:150px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\"><a href=\"/action\">Action</a></TH></TR>"));
+  client.print(F("<TR style=\"height:100px; font-size:4em;\"><TD style=\"text-align: center\"><a href=\"/on\">On</a></TD><TD style=\"text-align: center\"><a href=\"/off\">off</a></TD></TR>"));
   client.print(F("</TABLE>"));
 
   client.print(F("</BODY></HTML>"));
@@ -53,8 +61,6 @@ void HTMLreply() {
 }
 
 int HTMLresponseline(String requestline, int metadata) {
-  // static bool postedtext = false;
-  // static int postedcolors = 0;
 
   if (requestline.length() > 0) {
     Serial.print(F("HTMLresp |"));
@@ -66,40 +72,41 @@ int HTMLresponseline(String requestline, int metadata) {
     if (currentLine.startsWith("GET /favicon.ico")) {
       client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
     } 
-    if (requestline.startsWith("POST /")) {  // text input follows
-      //postedtext = true;
-    }    
-    if (requestline.startsWith("GET /C0")) {  // color item
-      //postedcolors = postedcolors | 0x0200;
+    // if (requestline.startsWith("POST /")) {  // text input follows
+    // }    
+    String remactionval = actionval;
+    if (requestline.startsWith("GET /action")) {  // action
+      actionval = "Action";
+      actiontiming = millis();
     } 
-    // if (requestline.startsWith("GET /C1")) {  // color item
-    //   postedcolors = postedcolors | 0b00000001;
-    // }     
-    // if (requestline.startsWith("GET /C2")) {  // color item
-    //   postedcolors = postedcolors | 0b00000010;
-    // } 
-    // if (requestline.startsWith("GET /SL")) {  // size item
-    //   //if (text_size > 1) text_size--;
-    // }
-    // if (requestline.startsWith("GET /SU")) {  // size item
-    //   //if (text_size < 6) text_size++;
-    // }
+    if (requestline.startsWith("GET /on")) {  // on
+      actionval = "On";
+      actiontiming = millis();
+    }     
+    if (requestline.startsWith("GET /off")) {  // off
+      actionval = "Off";
+    } 
 
+    if (remactionval != actionval){
+      actiontiming = millis();
+    }
+
+    Serial.println(actionval);
   }
-  if (metadata == 9){ // last line of response
-    Serial.print(F("posted info: "));
-    // Serial.print(postedcolors);
-    // Serial.print(F(", 0x"));
-    // Serial.println(postedcolors, HEX);
-    // Serial.print(F("text input: |"));
-    // //Serial.print(actiontext);
-    Serial.println(F("|"));
-  }
+
+  // if (metadata == 9){ // last line of response
+  //   Serial.print(F("posted info: "));
+  //   // Serial.print(postedcolors);
+  //   // Serial.print(F(", 0x"));
+  //   // Serial.println(postedcolors, HEX);
+  //   // Serial.print(F("text input: |"));
+  //   // //Serial.print(actiontext);
+  //   Serial.println(F("|"));
+  // }
 }
 
-void websitehandling(float temp1, float temp2, int humid, int press) {
-//void websitehandling() {
-  
+void websitehandling(float temp1, float temp2, int humid, int press, String timinfo) {
+
   client = server.available();              // listen for incoming clients
 
   if (client) {                             // if you get a client,
@@ -117,6 +124,7 @@ void websitehandling(float temp1, float temp2, int humid, int press) {
             tempval2 = temp2;
             humidval = humid;
             presval = press;
+            timval = timinfo;
             HTMLreply();
           }
           else{
@@ -140,6 +148,10 @@ void websitehandling(float temp1, float temp2, int humid, int press) {
     client.stop();
     Serial.println(F("client disconnected"));
   }
-  client.stop();
+
+  if ((millis() - actiontiming) > 10000)
+  {
+    actionval = "-";
+  }
 
 }
