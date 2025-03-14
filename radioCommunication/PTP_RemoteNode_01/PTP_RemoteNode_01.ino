@@ -210,10 +210,11 @@ struct network_payload {
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE 57600 (RF-NANO), there is somewhere a mismatch in clock factor of 4
-  String timestamp = __TIMESTAMP__;
-  Serial.print(F("PTP_RemoteNode_01, creation/build time: "));
-  Serial.println(timestamp);
-  Serial.flush(); 
+  Serial.println(F(" "));
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush();  
 
   pinMode(buttonPinGreen, INPUT_PULLUP);
   pinMode(buttonPinRed, INPUT_PULLUP);
@@ -223,8 +224,8 @@ void setup() {
   SPI.begin();
   radio.begin();
   radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  network.begin(60, this_node); // (channel, node address)
-  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  network.begin(104, this_node); // (channel, node address)
+  radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
 
   Serial.println(" ");  
   Serial.println(" *************** ");  

@@ -77,7 +77,7 @@ String findNetwork() {
   }
 
   // print the list of networks seen:
-  Serial.print("number of available networks:");
+  Serial.print("number of available networks: ");
   Serial.println(numSsid);
 
   // print the network number and name for each network found:
@@ -225,7 +225,7 @@ unsigned int receiveRFnetwork(){
     RF24NetworkHeader header;
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
-    if (header.from_node != 1) {
+    if (header.from_node != node01) {
       Serial.print(F("received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
@@ -293,7 +293,7 @@ unsigned int transmitRFnetwork(unsigned long commandtx){
   if(currentmilli - sendingTimer > 5000) {
     sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header1(node01); // (Address where the data is going)
+    RF24NetworkHeader header1(node01); // Address where the data is going
     network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1, data2, data3};
     bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {

@@ -39,7 +39,7 @@ net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node){
 bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata){
   bool ok = false;
 
-  RF24NetworkHeader header(to_node); // (Address where the data is going)
+  RF24NetworkHeader header(to_node); // Address where the data is going
   ok = netw.write(header, &senddata, sizeof(senddata)); // Send the data
   if (!ok) {
     Serial.println(F("Retry sending message"));
