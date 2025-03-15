@@ -18,23 +18,17 @@ location SO148
 
 */
 
-#include "matrix.h"
 #include "networking.h"
-// #include "WiFiS3.h" // already included in networking.h
+#include "matrix.h"
 #include "RTC.h"
 #include "clock.h"
-// #include <NTPClient.h>
-#include <SPI.h>
 #include "webinterface.h"
 
 IPAddress IPhere;
 
-// WiFiUDP Udp; // A UDP instance to let us send and receive packets over UDP
-// NTPClient timeClient(Udp);
-
 void setup() {
   Serial.begin(115200);
-  Serial.println(F(" "));
+  Serial.println();
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
@@ -45,9 +39,11 @@ void setup() {
   SPI.begin();
 
   radio.begin();
+  network.begin(100, this_node); // (channel, node address)
+
   radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  network.begin(102, this_node); // (channel, node address)
+  //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
   Serial.print(F("Starting up UNO R4 WiFi"));
   Serial.flush();

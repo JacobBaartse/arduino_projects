@@ -18,8 +18,8 @@ struct net_payload {
 
 net_payload EmptyData = {0, 0, 0, 0, 0, 0, 0, 0};
 
-//===== Receiving =====//
-net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node){
+//===== Receiving Radio =====//
+net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
   net_payload incomingData = EmptyData;
 
   while (netw.available()) { // Is there any incoming data?
@@ -31,11 +31,15 @@ net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node){
       Serial.println(header.from_node);
       break;
     }
+    else{
+      Serial.print(F("Data received from network"));
+      Serial.println(id);
+    }
   }
   return incomingData;
 }
 
-//===== Sending =====//
+//===== Sending radio =====//
 bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata){
   bool ok = false;
 
@@ -52,34 +56,12 @@ bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata)
   return ok;
 }
 
-// //===== Signal via onboard LED =====//
-// // on board LED is in a PIN of the SPI interface, so should not be used
-// unsigned long knipper_duration = 5000;
-// unsigned long knipper_interval = 500;
-
-// bool knipperen(unsigned long milli_now, bool knip) {
-//     static unsigned long knippertime = 0;
-//     static unsigned long knipperuntil = 0;
-//     static bool action = false;
-
-//     if (knip) {
-//       if (!action) {
-//         knipperuntil = milli_now;
-//         knippertime = milli_now;
-//       }
-//       action = true;
-//     }
-
-//     if (action) {
-//       if ((unsigned long)(milli_now - knipperuntil) > knipper_duration) {
-//         action = false;
-//         //digitalWrite(LED_BUILTIN, LOW);
-//       }
-//       else {
-//         if (milli_now - knippertime < knipper_interval) return action;
-//         knippertime += knipper_interval;
-//         //digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-//       }
-//     }
-//     return action;
-// }
+//===== check activity, heartbeat =====//
+void activitytracker(uint8_t timingseconds=20){
+  static unsigned long beattime = 0;
+  if (((millis() - beattime)/1000) > timingseconds){
+    beattime = millis();
+    Serial.print(F("Running check: "));
+    Serial.println((beattime/1000));
+  }
+}
