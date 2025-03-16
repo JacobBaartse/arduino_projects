@@ -69,22 +69,22 @@ int HTMLresponseline(String requestline, int metadata) {
 
     // check the line for actions
 
-    if (currentLine.startsWith("GET /favicon.ico")) {
+    if (currentLine.startsWith(F("GET /favicon.ico"))) {
       client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
     } 
     // if (requestline.startsWith("POST /")) {  // text input follows
     // }    
     String remactionval = actionval;
-    if (requestline.startsWith("GET /action")) {  // action
-      actionval = "Action";
+    if (requestline.startsWith(F("GET /action"))) {  // action
+      actionval = F("Action");
       actiontiming = millis();
     } 
-    if (requestline.startsWith("GET /on")) {  // on
-      actionval = "On";
+    if (requestline.startsWith(F("GET /on"))) {  // on
+      actionval = F("On");
       actiontiming = millis();
     }     
-    if (requestline.startsWith("GET /off")) {  // off
-      actionval = "Off";
+    if (requestline.startsWith(F("GET /off"))) {  // off
+      actionval = F("Off");
     } 
 
     if (remactionval != actionval){
@@ -149,7 +149,7 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
     Serial.println(F("client disconnected"));
   }
 
-  if ((millis() - actiontiming) > 10000)
+  if ((millis() - actiontiming) > 10000) // remove actioanval, should be addressed by this time
   {
     actionval = "-";
   }

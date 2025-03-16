@@ -71,7 +71,7 @@ String findNetwork() {
   int numSsid = WiFi.scanNetworks();
   if (numSsid == -1) {
     Serial.println(F("Couldn't get WiFi information"));
-    while (true);
+    while (true) delay(10);
   }
 
   // print the list of networks seen:
@@ -95,7 +95,7 @@ String findNetwork() {
   String foundSSID = "";
   for (int thisNet = 0; thisNet < numSsid; thisNet++) {
     availSSID = WiFi.SSID(thisNet);
-    for (int storage = 0; knownnetworks[storage][0] != "EOR"; storage++){
+    for (int storage = 0; knownnetworks[storage][0] != F("EOR"); storage++){
       if (availSSID == knownnetworks[storage][0]){
         //if (foundSSID == "") { // collect only the first matching networkID (the strongest???)
         foundSSID = availSSID;
@@ -122,7 +122,7 @@ String getNetworkPassword(String SSID) {
 
 String getNetworkLocation(String SSID){
   String foundLocation = "";
-  for (int storage = 0; knownnetworks[storage][0] != "EOR"; storage++){
+  for (int storage = 0; knownnetworks[storage][0] != F("EOR"); storage++){
     if (SSID == knownnetworks[storage][0]){
       foundLocation = knownnetworks[storage][2];
       break;

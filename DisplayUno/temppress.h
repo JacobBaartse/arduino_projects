@@ -9,7 +9,7 @@ https://embedded-things.blogspot.com/2021/02/test-aht20bmp280-temperature-humidi
 
 */
 
-#include <Wire.h>
+//#include <Wire.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_AHTX0.h>
 
@@ -17,23 +17,23 @@ Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp;
 
 int sensor1_temp = 0;
-int sensor1_humi = 0;
-int sensor2_temp = 0;
-int sensor2_pres = 0;
+int sensor1_humi = 1;
+int sensor2_temp = 2;
+int sensor2_pres = 3;
 
 bool sensors_setup(){
 
   if (!aht.begin()) {
-    Serial.println("Could not find AHT20 sensor: Check wiring!");
+    Serial.println(F("Could not find AHT20 sensor: Check wiring!"));
     while(1) delay(10);
   }
-  Serial.println("AHT20 found");
+  Serial.println(F("AHT20 found"));
 
   if (!bmp.begin()) {
     Serial.println(F("Could not find a valid BMP280 sensor: check wiring!"));
     while(1) delay(10);
   }
-  Serial.println("BMP280 found");
+  Serial.println(F("BMP280 found"));
 
   /* Default settings from datasheet. */
   bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
@@ -51,21 +51,22 @@ bool read_sensors(){
   static int temp1_mem = 0;
   static int temp2_mem = 0;
 
-  bool changedetected = false;
   unsigned long timing = millis();
-  if(timing < sensortime) return changedetected;
+  if((sensortime - timing) > 0) return false;
+
   sensortime = timing + 60000; // once per minute
 
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp); // populate temp and humidity objects with fresh data
 
-  int sensor1_temp = int(temp.temperature * 10); // make it 1 digit after the .
-  int sensor1_humi = int(humidity.relative_humidity);
+  sensor1_temp = int(temp.temperature * 10); // make it 1 digit after the .
+  sensor1_humi = int(humidity.relative_humidity);
   float sensor2_tempe = bmp.readTemperature();
-  int sensor2_temp = int(sensor2_tempe * 10); // make it 1 digit after the .
+  sensor2_temp = int(sensor2_tempe * 10); // make it 1 digit after the .
   float sensor2_press = bmp.readPressure();
-  int sensor2_pres = int(sensor2_press / 100); // make it hPa
+  sensor2_pres = int(sensor2_press / 100); // make it hPa
 
+  bool changedetected = false;
   if (pressure_mem != sensor2_pres){
     pressure_mem = sensor2_pres;
     changedetected = true;
@@ -85,23 +86,23 @@ bool read_sensors(){
   if (changedetected){
     Serial.println(int(timing/1000));
 
-    Serial.print("Temperature 1: "); 
+    Serial.print(F("Temperature 1: ")); 
     Serial.print(sensor1_temp); 
-    Serial.println(" *C");
+    Serial.println(F(" *C"));
 
-    Serial.print("Humidity: "); 
+    Serial.print(F("Humidity: ")); 
     Serial.print(sensor1_humi); 
-    Serial.println("% rH");
+    Serial.println(F("% rH"));
 
     Serial.print(F("Temperature 2: "));
     Serial.print(sensor2_temp);
-    Serial.println(" *C");
+    Serial.println(F(" *C"));
 
     Serial.print(F("Pressure: "));
     Serial.print(sensor2_pres);
-    Serial.println(" hPa");
+    Serial.println(F(" hPa"));
 
-    Serial.println("----------------");
+    Serial.println(F("-------"));
   }
   return changedetected;
 }
