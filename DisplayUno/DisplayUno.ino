@@ -114,8 +114,6 @@ void loop() {
       int secs = currentTime.getSeconds();
       doshow1 = (secs != remsecs); // count the seconds on display
       if (doshow1){
-        //Serial.print(F("The RTC is: "));
-        //Serial.println(currentTime);
         timeinformation = bdisplay_readingtime((float)sensor1_temp/10, currentTime.getHour(), currentTime.getMinutes(), secs);
         remsecs = secs;
         doshow1 = false;
@@ -124,10 +122,9 @@ void loop() {
     }
     else{
       Serial.print(showdata);  
-      Serial.println(F(" ERROR xxxxxxxxxxxxxxxxxxxxxxxxxxxx"));  
+      Serial.println(F("ERROR xxxxxxxxxxxxxxxxxxxxxxxxxxxx"));  
     }
   }
 
   websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, timeinformation);
-  //websitehandling();
 }

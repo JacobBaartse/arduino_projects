@@ -45,7 +45,7 @@ bool sensors_setup(){
 }
 
 bool read_sensors(){
-  static unsigned long sensortime = 0;
+  static unsigned long sensortime = 0xffffffff; // start directly from first read_sensors
   static int humidity_mem = 0;
   static int pressure_mem = 0;
   static int temp1_mem = 0;
@@ -59,12 +59,12 @@ bool read_sensors(){
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp); // populate temp and humidity objects with fresh data
 
-  sensor1_temp = int(temp.temperature * 10); // make it 1 digit after the .
-  sensor1_humi = int(humidity.relative_humidity);
+  int sensor1_temp = int(temp.temperature * 10); // make it 1 digit after the .
+  int sensor1_humi = int(humidity.relative_humidity);
   float sensor2_tempe = bmp.readTemperature();
-  sensor2_temp = int(sensor2_tempe * 10); // make it 1 digit after the .
+  int sensor2_temp = int(sensor2_tempe * 10); // make it 1 digit after the .
   float sensor2_press = bmp.readPressure();
-  sensor2_pres = int(sensor2_press / 100); // make it hPa
+  int sensor2_pres = int(sensor2_press / 100); // make it hPa
 
   if (pressure_mem != sensor2_pres){
     pressure_mem = sensor2_pres;
@@ -83,11 +83,11 @@ bool read_sensors(){
     changedetected = true;
   }
   if (changedetected){
-    Serial.println(int(timing / 1000));
+    Serial.println(int(timing/1000));
 
     Serial.print("Temperature 1: "); 
     Serial.print(sensor1_temp); 
-    Serial.println(" degrees C");
+    Serial.println(" *C");
 
     Serial.print("Humidity: "); 
     Serial.print(sensor1_humi); 
