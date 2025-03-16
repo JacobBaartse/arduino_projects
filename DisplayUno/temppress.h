@@ -46,13 +46,13 @@ bool sensors_setup(){
 
 bool read_sensors(){
   static unsigned long sensortime = 0xffffffff; // start directly from first read_sensors
-  static int humidity_mem = 0;
-  static int pressure_mem = 0;
-  static int temp1_mem = 0;
-  static int temp2_mem = 0;
+  static int humidity_mem = 10;
+  static int pressure_mem = 11;
+  static int temp1_mem = 12;
+  static int temp2_mem = 13;
 
   unsigned long timing = millis();
-  if((sensortime - timing) > 0) return false;
+  if((sensortime - timing) < 60000) return false;
 
   sensortime = timing + 60000; // once per minute
 
