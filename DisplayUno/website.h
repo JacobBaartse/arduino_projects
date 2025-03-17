@@ -106,11 +106,14 @@ int HTMLresponseline(String requestline, int metadata) {
 }
 
 void websitehandling(float temp1, float temp2, int humid, int press, String timinfo) {
+  unsigned long prev_wifi_time = 0;
 
   client = server.available();              // listen for incoming clients
 
   if (client) {                             // if you get a client,
-    Serial.println(F("new client"));        // print a message out the serial port
+    prev_wifi_time = millis();
+    Serial.print(F("new client "));        // print a message out the serial port
+    Serial.println(prev_wifi_time);        // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
@@ -140,6 +143,10 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
         Serial.println(F("breaking from loop"));
         break; // break from loop and disconnect client
       }
+      if ((millis() - prev_wifi_time) > 5000){
+        Serial.println(F("timeout from client loop"));
+        break;
+      }
     } // while client.connected
 
     HTMLresponseline(currentLine, 9);
@@ -149,7 +156,7 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
     Serial.println(F("client disconnected"));
   }
 
-  if ((millis() - actiontiming) > 10000) // remove actioanval, should be addressed by this time
+  if ((millis() - actiontiming) > 10000) // remove actionval, should have been addressed by this time
   {
     actionval = "-";
   }
