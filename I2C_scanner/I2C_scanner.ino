@@ -13,12 +13,17 @@
 #define WIRE Wire
 
 void setup() {
-  WIRE.begin();
+  Serial.begin(115200);
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
 
-  Serial.begin(9600);
   while (!Serial)
      delay(10);
   Serial.println("\nI2C Scanner");
+
+  WIRE.begin();
 }
 
 

@@ -9,7 +9,7 @@
 
   https://howtomechatronics.com/tutorials/arduino/how-to-build-an-arduino-wireless-network-with-multiple-nrf24l01-modules/#h-base-00-source-code
 
-Target: UNO R4 Wifi, with RF24 module Long Range
+Target: UNO R4 Wifi, with RF24 module 
 nRF24L01 (CE,CSN) connected to pin 8, 7
 location SO148
 
@@ -18,42 +18,40 @@ location SO148
 
 */
 
-#include "matrix.h"
 #include "networking.h"
-// #include "WiFiS3.h" // already included in networking.h
+#include "matrix.h"
 #include "RTC.h"
 #include "clock.h"
-// #include <NTPClient.h>
-#include <SPI.h>
 #include "webinterface.h"
 
 IPAddress IPhere;
 
-// WiFiUDP Udp; // A UDP instance to let us send and receive packets over UDP
-// NTPClient timeClient(Udp);
-
 void setup() {
   Serial.begin(115200);
+  Serial.println();
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
+
   RTC.begin();
   matrix.begin();
   SPI.begin();
+
   radio.begin();
-  radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  network.begin(70, this_node); // (channel, node address)
+  network.begin(100, this_node); // (channel, node address)
+
+  radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
   radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
   Serial.print(F("Starting up UNO R4 WiFi"));
   Serial.flush();
 
-  String timestamp = __TIMESTAMP__;
-  Serial.print(F("Creation/build time: "));
-  Serial.println(timestamp);
-  Serial.flush(); 
-
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION){
-    Serial.println("Please upgrade the firmware for the WiFi module");
-  }
+  // String fv = WiFi.firmwareVersion();
+  // if (fv < WIFI_FIRMWARE_LATEST_VERSION){
+  //   Serial.println("Please upgrade the firmware for the WiFi module");
+  // }
 
   // attempt to connect to WiFi network:
   int wifistatus = WifiConnect();

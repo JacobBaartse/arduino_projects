@@ -1,13 +1,8 @@
 /*
-  Arduino Wireless Network - Multiple NRF24L01 Tutorial
-          == Base/Master Node 00 ==
-  by Dejan, www.HowToMechatronics.com
-  Libraries:
-  nRF24/RF24, https://github.com/nRF24/RF24
-  nRF24/RF24Network, https://github.com/nRF24/RF24Network
 
-
-  https://howtomechatronics.com/tutorials/arduino/how-to-build-an-arduino-wireless-network-with-multiple-nrf24l01-modules/#h-base-00-source-code
+AHT20   0x38
+Display 0x3C
+BMP280  0x77
 
 */
 
@@ -18,6 +13,7 @@
 #include "clock.h"
 #include "website.h"
 #include "bdisplay.h"
+#include "temppress.h"
 
 
 IPAddress IPhere;
@@ -25,20 +21,12 @@ IPAddress IPhere;
 void setup() {
   Serial.begin(115200);
   Serial.print(__FILE__);
-  Serial.print(F(" networkedSensorsActuators/rf_wifi_base_display, creation/build time: "));
+  Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
   
   RTC.begin();
   matrix.begin();
-  SPI.begin();
-  radio.begin();
-  radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  network.begin(radioChannel, base_node); // (channel, node address)
-  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-
-  //pinMode(TFT_BL, OUTPUT);
-  //tft_off();
 
   Serial.println(F("Starting up UNO R4 WiFi"));
   Serial.flush();
@@ -47,6 +35,8 @@ void setup() {
   // if (fv < WIFI_FIRMWARE_LATEST_VERSION){
   //   Serial.println("Please upgrade the firmware for the WiFi module");
   // }
+
+  bdisplay_setup();
 
   // attempt to connect to WiFi network:
   int wifistatus = WifiConnect();
@@ -57,22 +47,28 @@ void setup() {
   else{ // stop the wifi connection
     WiFi.disconnect();
   }
-  startupscrollingtext(String("-->: ") + IPhere.toString());
+  String ipaddresstext = IPhere.toString();
+  bdisplay_textline(ipaddresstext);
+  startupscrollingtext(String("-->: ") + ipaddresstext);
 
   Serial.println(F("\nStarting connection to get actual time from the internet"));
   get_time_from_hsdesign();
   // Retrieve the date and time from the RTC and print them
-  RTCTime currentTime;
   RTC.getTime(currentTime); 
-  Serial.println(F("The RTC is: "));
+  bdisplay_textline(currentTime);
+
+  Serial.print(F("The RTC is: "));
   Serial.println(currentTime);
 
-  bdisplay_setup();
+  sensors_setup();
 
   Serial.println();  
   Serial.println(F(" **************"));  
   Serial.println();  
   Serial.flush(); 
+  
+  delay(2000); // give time to read the time of the display
+  bdisplay_textline(""); // clear display
 }
 
 // void restart_arduino(){
@@ -86,36 +82,49 @@ bool alarming = true; // should become: false;
 bool sendDirect = false;
 unsigned int readaction = 0;
 unsigned int writeaction = 0;
+bool new_sensing = false;
+bool doshow0 = true;
+bool doshow1 = true;
+int remsecs = 0;
+String timeinformation = "-";
 
 void loop() {
-
-  network.update();
-
-  if(sendDirect){
-    Serial.print(F(" send direct about to happen")); 
-  }
-  else {
-    // Receive a message from base if available
-    readaction = receiveRFnetwork();
-    if(readaction > 0){
-
-
-    }
-  }
-
-  // Send to the base node every x seconds or immediate
-  writeaction = transmitRFnetwork(sendDirect);
 
   // show something on the LED matrix 
   if (alarming) {
     alarming = alarmingsequence();
+
+    bdisplay_loop();
   }
   else {
     loadsequencepicture();
+
+    read_sensors();
+    
+    int showdata = toggle_data(1, 4000);
+    if (showdata == 0){
+      if (doshow0){
+        bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
+        doshow0 = false;
+      }
+      doshow1 = true;
+    }
+    else if (showdata == 1){
+      RTC.getTime(currentTime); 
+      int secs = currentTime.getSeconds();
+      doshow1 = (secs != remsecs); // count the seconds on display
+      if (doshow1){
+        timeinformation = bdisplay_readingtime((float)sensor1_temp/10, currentTime.getHour(), currentTime.getMinutes(), secs);
+        remsecs = secs;
+        doshow1 = false;
+      }
+      doshow0 = true;
+    }
+    else{
+      Serial.print(showdata);  
+      Serial.println(F("ERROR xxxxxxxxxxxxxxxxxxxxxxxxxxxx"));  
+    }
   }
 
-  bdisplay_loop();
-
-  websitehandling();
-
+  websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, timeinformation);
 }

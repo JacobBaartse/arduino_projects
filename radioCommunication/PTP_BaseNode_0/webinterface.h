@@ -1,5 +1,8 @@
+/*
+ *
+ */
 
-#include "WiFiS3.h" 
+// #include "WiFiS3.h" 
 
 WiFiServer server(80);
 WiFiClient client;
@@ -116,7 +119,7 @@ void webinterfacing() {
   client = server.available();              // listen for incoming clients
 
   if (client) {                             // if you get a client,
-    Serial.println(F("client:"));           // print a message out the serial port
+    Serial.println(F("new client:"));       // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
@@ -129,11 +132,11 @@ void webinterfacing() {
             HTMLreply();
             //break;
           }
-          //else { // if there is a newline, then print, process and clear currentLine
+          else { // if there is a newline, then print, process and clear currentLine
             HTMLresponseline(currentLine, 10);
             // currentmeta = 1;
-            // currentLine = "";
-          //}
+            currentLine = "";
+          }
         }
         else if (c != '\r') {    // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine

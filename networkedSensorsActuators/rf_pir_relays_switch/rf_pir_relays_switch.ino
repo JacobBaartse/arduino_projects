@@ -76,6 +76,10 @@ void switchlight(bool plightON, bool plightOFF){
 
 void setup() {
   Serial.begin(115200);
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
   Serial.println(F(" *************>>"));  
 
   pinMode(pinPIR1, INPUT);
