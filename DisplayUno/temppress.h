@@ -20,27 +20,34 @@ int sensor1_temp = 0;
 int sensor1_humi = 1;
 int sensor2_temp = 2;
 int sensor2_pres = 3;
+bool ahtsensor = false;
+bool bmpsensor = false;
 
 bool sensors_setup(){
 
-  if (!aht.begin()) {
-    Serial.println(F("Could not find AHT20 sensor: Check wiring!"));
-    while(1) delay(10);
-  }
-  Serial.println(F("AHT20 found"));
+  ahtsensor = aht.begin();
+  // if (!aht.begin()) {
+  //   Serial.println(F("Could not find AHT20 sensor: Check wiring!"));
+  //   while(1) delay(10);
+  // }
+  if (ahtsensor)
+    Serial.println(F("AHT20 found"));
 
-  if (!bmp.begin()) {
-    Serial.println(F("Could not find a valid BMP280 sensor: check wiring!"));
-    while(1) delay(10);
-  }
-  Serial.println(F("BMP280 found"));
+  bmpsensor = bmp.begin();
+  // if (!bmp.begin()) {
+  //   Serial.println(F("Could not find a valid BMP280 sensor: check wiring!"));
+  //   while(1) delay(10);
+  // }
+  if (bmpsensor) {
+    Serial.println(F("BMP280 found"));
 
-  /* Default settings from datasheet. */
-  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
-                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
-                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
-                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
-                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+    /* Default settings from datasheet. */
+    bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+                    Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+                    Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+                    Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                    Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+  }
   return true;
 }
 
@@ -56,15 +63,19 @@ bool read_sensors(){
 
   sensortime = timing + 60000; // once per minute
 
-  sensors_event_t humidity, temp;
-  aht.getEvent(&humidity, &temp); // populate temp and humidity objects with fresh data
+  if (ahtsensor){
+    sensors_event_t humidity, temp;
+    aht.getEvent(&humidity, &temp); // populate temp and humidity objects with fresh data
 
-  sensor1_temp = int(temp.temperature * 10); // make it 1 digit after the .
-  sensor1_humi = int(humidity.relative_humidity);
-  float sensor2_tempe = bmp.readTemperature();
-  sensor2_temp = int(sensor2_tempe * 10); // make it 1 digit after the .
-  float sensor2_press = bmp.readPressure();
-  sensor2_pres = int(sensor2_press / 100); // make it hPa
+    sensor1_temp = int(temp.temperature * 10); // make it 1 digit after the .
+    sensor1_humi = int(humidity.relative_humidity);
+  }
+  if (bmpsensor){
+    float sensor2_tempe = bmp.readTemperature();
+    sensor2_temp = int(sensor2_tempe * 10); // make it 1 digit after the .
+    float sensor2_press = bmp.readPressure();
+    sensor2_pres = int(sensor2_press / 100); // make it hPa
+  }
 
   bool changedetected = false;
   if (pressure_mem != sensor2_pres){

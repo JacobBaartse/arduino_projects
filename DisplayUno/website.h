@@ -65,30 +65,32 @@ int HTMLresponseline(String requestline, int metadata) {
   if (requestline.length() > 0) {
     Serial.print(F("HTMLresp |"));
     Serial.print(requestline);
-    Serial.println(F("|"));
+    Serial.print(F("| action: "));
 
     // check the line for actions
+    if (requestline.startsWith(F("GET "))) { 
 
-    if (currentLine.startsWith(F("GET /favicon.ico"))) {
-      client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
-    } 
-    // if (requestline.startsWith("POST /")) {  // text input follows
-    // }    
-    String remactionval = actionval;
-    if (requestline.startsWith(F("GET /action"))) {  // action
-      actionval = F("Action");
-      actiontiming = millis();
-    } 
-    if (requestline.startsWith(F("GET /on"))) {  // on
-      actionval = F("On");
-      actiontiming = millis();
-    }     
-    if (requestline.startsWith(F("GET /off"))) {  // off
-      actionval = F("Off");
-    } 
+      if (currentLine.startsWith(F("GET /favicon.ico"))) {
+        client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
+      } 
+      // if (requestline.startsWith("POST /")) {  // text input follows
+      // }    
+      String remactionval = actionval;
+      if (requestline.startsWith(F("GET /action"))) {  // action
+        actionval = F("Action");
+        actiontiming = millis();
+      } 
+      if (requestline.startsWith(F("GET /on"))) {  // on
+        actionval = F("On");
+        actiontiming = millis();
+      }     
+      if (requestline.startsWith(F("GET /off"))) {  // off
+        actionval = F("Off");
+      } 
 
-    if (remactionval != actionval){
-      actiontiming = millis();
+      if (remactionval != actionval){
+        actiontiming = millis();
+      }
     }
 
     Serial.println(actionval);

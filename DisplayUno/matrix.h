@@ -95,7 +95,7 @@ const PROGMEM int sequencing[][2] = {
 };
 
 void loadsequencepicture(){
-  static long runningtime = 0;
+  static unsigned long runningtime = 0;
   static int pointer = 0;
   if(millis() < runningtime) return;
   loadstaticpicture(sequencing[pointer][0]);

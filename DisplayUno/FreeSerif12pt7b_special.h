@@ -262,6 +262,6 @@ const GFXglyph FreeSerif12pt7bGlyphs[] PROGMEM = {
 };
 
 const GFXfont FreeSerif12pt7b PROGMEM = {(uint8_t *)FreeSerif12pt7bBitmaps,    
-                                         (GFXglyph *)FreeSerif12pt7bGlyphs, 0x20, 0x81,     29};
+                                         (GFXglyph *)FreeSerif12pt7bGlyphs, 0x20, 0x81, 29};
 
 // Approx. 2511 bytes
