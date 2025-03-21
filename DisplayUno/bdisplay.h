@@ -89,8 +89,6 @@ bool oncecompleted = false;
 bool sensorvalues = false;
 
 void bdisplay_setup() {
-  //Serial.begin(115200);
-
   display.begin(i2c_Address, true); // Address 0x3C default
   displaystatus = setDisplay(DisplayState::Dim);
   display.clearDisplay();
@@ -102,8 +100,8 @@ void bdisplay_setup() {
 
   bx = display.width();
   by1 = 16;
-  by2 = 38;
-  by3 = 60;
+  by2 = 37;
+  by3 = 58;
   // minX = -128;
   bminX = -200; // depends on length of the text
   bminY = -22;
@@ -143,10 +141,10 @@ void bdisplay_readings(float temp1, float temp2, int humid, int pressure){
   display_oled(false, 0, 60, String(pressure) + " hPa");  
 }
 
+char buffer[8] = "";
 String bdisplay_readingtime(float temp1, int hours, int minutes, int secondes){
   display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
   //display.setTextWrap(true);
-  char buffer[8] = "";
   sprintf(buffer, "%02d:%02d:%02d", hours, minutes, secondes);
   //dateTime = buffer;
   //String timestampnow = sprintf("%02d:%02d:%02d", hours, minutes, secondes);

@@ -17,6 +17,7 @@ BMP280  0x77
 
 
 IPAddress IPhere;
+bool wifiactive = false;
 
 void setup() {
   Serial.begin(115200);
@@ -38,29 +39,34 @@ void setup() {
 
   bdisplay_setup();
 
+  sensors_setup();
+
   // attempt to connect to WiFi network:
   int wifistatus = WifiConnect();
   if (wifistatus == WL_CONNECTED){
-    server.begin();
     IPhere = printWifiStatus(connection);
+    wifiactive = true;
   }
   else{ // stop the wifi connection
     WiFi.disconnect();
+    Serial.println(F("\nWifi disconnected"));
   }
-  String ipaddresstext = IPhere.toString();
-  bdisplay_textline(ipaddresstext);
-  startupscrollingtext(String("-->: ") + ipaddresstext);
+  if (wifiactive){
+    server.begin();
 
-  Serial.println(F("\nStarting connection to get actual time from the internet"));
-  get_time_from_hsdesign();
+    String ipaddresstext = IPhere.toString();
+    bdisplay_textline(ipaddresstext);
+    startupscrollingtext(String("-->: ") + ipaddresstext);
+
+    Serial.println(F("\nStarting connection to get actual time from the internet"));
+    get_time_from_hsdesign();
+  }
   // Retrieve the date and time from the RTC and print them
   RTC.getTime(currentTime); 
   bdisplay_textline(currentTime);
 
   Serial.print(F("The RTC is: "));
   Serial.println(currentTime);
-
-  sensors_setup();
 
   Serial.println();  
   Serial.println(F(" **************"));  
@@ -85,12 +91,17 @@ unsigned int writeaction = 0;
 bool new_sensing = false;
 bool doshow0 = true;
 bool doshow1 = true;
+int secs = 0;
 int remsecs = 0;
+int showdata = 0;
 String timeinformation = "-";
 
 void loop() {
 
   // show something on the LED matrix 
+
+
+
   if (alarming) {
     alarming = alarmingsequence();
 
@@ -101,7 +112,7 @@ void loop() {
 
     read_sensors();
     
-    int showdata = toggle_data(1, 4000);
+    showdata = toggle_data(1, 4000);
     if (showdata == 0){
       if (doshow0){
         bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
@@ -111,7 +122,7 @@ void loop() {
     }
     else if (showdata == 1){
       RTC.getTime(currentTime); 
-      int secs = currentTime.getSeconds();
+      secs = currentTime.getSeconds();
       doshow1 = (secs != remsecs); // count the seconds on display
       if (doshow1){
         timeinformation = bdisplay_readingtime((float)sensor1_temp/10, currentTime.getHour(), currentTime.getMinutes(), secs);
@@ -126,5 +137,7 @@ void loop() {
     }
   }
 
-  websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, timeinformation);
+  if (wifiactive){
+    websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, timeinformation);
+  }
 }
