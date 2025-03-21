@@ -54,27 +54,27 @@ void restart_uno(){
 }
 
 void get_time_from_hsdesign(){
+  bool time_response_received = false;
+  int counter = 0;  
+  String httpResponseString = ""; 
   char c;
+
   RTC.begin();
   WiFiSSLClient client;
-  String httpResponseString; 
   char server[] = "www.tdic.nl";
 
-  bool time_response_received = false;
-  int counter = 0;
   client.setCACert(root_ca);
 
   while (!time_response_received){
     if (client.connect(server, 443)) {
       // send the HTTP request:
-      client.println("GET /localtime.php HTTP/1.1");
-      client.println("Host: www.tdic.nl");
-      client.println("Connection: close");
+      client.println(F("GET /localtime.php HTTP/1.1"));
+      client.println(F("Host: www.tdic.nl"));
+      client.println(F("Connection: close"));
       client.println();
       client.flush();
     };
 
-    counter += 1;
     for (int i=0; i<200; i++){
       delay(20);
       while (client.available()) {
@@ -82,11 +82,14 @@ void get_time_from_hsdesign(){
         httpResponseString += c;
         time_response_received = true;
       }
-      if (time_response_received) break;
-      if (i == 199) counter += 1;
+      if (time_response_received){ // break from the loops
+        i = 1000;
+        counter = 0;
+      }
+      if (i == 199) counter++;
     }
     if (counter > 60) restart_uno();
-  }
+  } 
   client.stop();
 
   // parse the httpResponseString to get the utc time and timeoffset.
@@ -104,7 +107,7 @@ void get_time_from_hsdesign(){
   // correct startup value for clock for internet lag..
   startup_unix_time_internet += 1;
   set_clock(startup_unix_time_internet);   
-  Serial.println("Time retrieved from the internet and set locally.");
+  Serial.println(F("Time retrieved from the internet and set locally."));
 }
 
 bool update_time(int toggle_time){

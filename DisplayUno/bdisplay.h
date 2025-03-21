@@ -9,7 +9,7 @@
  */
 
 #include <Wire.h>
-//#include <Adafruit_GFX.h> // already included from font file
+#include <Adafruit_GFX.h> // already included from font file
 #include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
 

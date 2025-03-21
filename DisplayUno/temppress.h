@@ -9,7 +9,7 @@ https://embedded-things.blogspot.com/2021/02/test-aht20bmp280-temperature-humidi
 
 */
 
-//#include <Wire.h>
+#include <Wire.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_AHTX0.h>
 
