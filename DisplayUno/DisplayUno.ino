@@ -17,6 +17,7 @@ BMP280  0x77
 
 
 IPAddress IPhere;
+bool wifiactive = false;
 
 void setup() {
   Serial.begin(115200);
@@ -40,23 +41,26 @@ void setup() {
 
   sensors_setup();
 
-  server.begin();
-
   // attempt to connect to WiFi network:
   int wifistatus = WifiConnect();
   if (wifistatus == WL_CONNECTED){
     IPhere = printWifiStatus(connection);
+    wifiactive = true;
   }
   else{ // stop the wifi connection
     WiFi.disconnect();
     Serial.println(F("\nWifi disconnected"));
   }
-  String ipaddresstext = IPhere.toString();
-  bdisplay_textline(ipaddresstext);
-  startupscrollingtext(String("-->: ") + ipaddresstext);
+  if (wifiactive){
+    server.begin();
 
-  Serial.println(F("\nStarting connection to get actual time from the internet"));
-  get_time_from_hsdesign();
+    String ipaddresstext = IPhere.toString();
+    bdisplay_textline(ipaddresstext);
+    startupscrollingtext(String("-->: ") + ipaddresstext);
+
+    Serial.println(F("\nStarting connection to get actual time from the internet"));
+    get_time_from_hsdesign();
+  }
   // Retrieve the date and time from the RTC and print them
   RTC.getTime(currentTime); 
   bdisplay_textline(currentTime);
@@ -95,6 +99,9 @@ String timeinformation = "-";
 void loop() {
 
   // show something on the LED matrix 
+
+
+
   if (alarming) {
     alarming = alarmingsequence();
 
@@ -130,5 +137,7 @@ void loop() {
     }
   }
 
-  websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, timeinformation);
+  if (wifiactive){
+    websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, timeinformation);
+  }
 }
