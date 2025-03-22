@@ -99,13 +99,17 @@ void loop() {
   else {
     loadsequencepicture();
   }
-
+  
+  RTC.getTime(currentTime); 
   mins = currentTime.getMinutes();
   if (remmins != mins){
     remmins = mins;
+    // Serial.print(F("Minutes now: "));
+    // Serial.println(mins);
+
     read_sensors();
   
-    bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, currentTime.getHour(), mins);
+    timeinformation = bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, currentTime.getHour(), mins);
   }
 
   if (wifiactive){

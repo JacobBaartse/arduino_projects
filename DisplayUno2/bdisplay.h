@@ -37,18 +37,6 @@ void display_oled(bool clear, int x, int y, String text) {
   display.display();
 }
 
-// move text, write old location in background color
-void display_move(int x, int y, int nx, int ny, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  display.setCursor(x, y);
-  display.setTextColor(SH110X_BLACK);
-  display.print(text);
-  display.setCursor(nx, ny);
-  display.setTextColor(SH110X_WHITE);
-  display.print(text);
-  display.display();
-}
-
 DisplayState setDisplay(DisplayState statustoset){
   static DisplayState displaystatus = DisplayState::Dim;
   switch(statustoset){
@@ -74,15 +62,11 @@ void clear_display(){
   display.display();
 }
 
-String Line1 = "Welkom"; 
-String Line2 = "Demo van 16 px font"; 
-String Line3 = "Whats up?";  
-String Line4 = "testing display content";  
-
-int bprevx, bx, bminX;
-int by1, by2, by3, by4, bminY;
-bool oncecompleted = false;
-bool sensorvalues = false;
+void bdisplay_textline(String textline){
+  display.setTextWrap(true);
+  display_oled(true, 0, 32, textline);  
+  display.setTextWrap(false);
+}
 
 void bdisplay_setup() {
   display.begin(i2c_Address, true); // Address 0x3C default
@@ -94,65 +78,17 @@ void bdisplay_setup() {
   display.setTextWrap(false);
   display.display();
 
-  bx = display.width();
-  by1 = 16;
-  by2 = 32;
-  by3 = 48;
-  by4 = 64;
-  // minX = -128;
-  bminX = -200; // depends on length of the text
-  bminY = -22;
-
-  display_oled(true, 0, by1, Line1); 
-  display_oled(false, bx, by2, Line2); 
-  display_oled(false, bx, by3, Line3);  
-  display_oled(false, bx, by4, Line4);  
-  bprevx = bx;
+  bdisplay_textline(F("Welkom")); 
 }
 
-void bdisplay_loop() {
-  if(!sensorvalues){
-    display_move(bprevx, by2, bx, by2, Line2);
-    if (!oncecompleted){
-      display_move(bprevx, by3, bx, by3, Line3);
-    }
-
-    bprevx = bx;
-    bx = bx - 3;
-    if (bx < bminX) bx = display.width();
-    if (bx < 12) oncecompleted = true;
-    //if (--bx < bminX) bx = display.width(); // this line is moving 1 pixel at the time, this can be too slow
-  }
-}
-
-void bdisplay_textline(String textline){
-  display.setTextWrap(true);
-  display_oled(true, 0, 32, textline);  
-  display.setTextWrap(false);
-}
-
-char buffer[8] = "";
-void bdisplay_readings(float temp1, float temp2, int humid, int pressure, int hours, int minutes){
-  sensorvalues = true;
+char buffer[5] = "";
+String bdisplay_readings(float temp1, float temp2, int humid, int pressure, int hours, int minutes){
   display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
   //display_oled(false, 75, 16, String(temp2, 1) + " \x7F"+"C");  
   display_oled(false, 0, 32, String(humid) + "% rH");  
   display_oled(false, 0, 48, String(pressure) + " hPa");
   sprintf(buffer, "%02d:%02d", hours, minutes);
   String timeformat = String(buffer);
-  display_oled(false, 0, 64, timeformat);   
-}
-
-String bdisplay_readingtime(float temp1, int hours, int minutes, int secondes){
-  display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
-  //display.setTextWrap(true);
-  sprintf(buffer, "%02d:%02d:%02d", hours, minutes, secondes);
-  //dateTime = buffer;
-  //String timestampnow = sprintf("%02d:%02d:%02d", hours, minutes, secondes);
-  //display_oled(false, 0, 38, timestampnow);  
-  String timeformat = String(buffer);
-  display_oled(false, 0, 49, timeformat);  
-  //display_oled(false, 0, 38, String(hours) + ":" + String(minutes) + ":" + String(secondes));  
-  //display_oled(false, 100, 38, minutes);  
-  return timeformat;
+  display_oled(false, 0, 64, timeformat);  
+  return timeformat; 
 }
