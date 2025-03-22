@@ -114,8 +114,8 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
 
   if (client) {                             // if you get a client,
     prev_wifi_time = millis();
-    Serial.print(F("new client "));        // print a message out the serial port
-    Serial.println(prev_wifi_time);        // print a message out the serial port
+    //Serial.print(F("new client "));        // print a message out the serial port
+    //Serial.println(prev_wifi_time);        // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
