@@ -102,12 +102,15 @@ void loop() {
   mins = currentTime.getMinutes();
   if (remmins != mins){
     remmins = mins;
-    // Serial.print(F("Minutes now: "));
-    // Serial.println(mins);
 
-    read_sensors();
-  
+    bool newval = read_sensors();
+
     timeinformation = bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, currentTime.getHour(), mins);
+    
+    if (newval){
+      Serial.print(F("Time now: "));
+      Serial.println(timeinformation);
+    }
   }
 
   if (wifiactive){
