@@ -29,26 +29,36 @@ void loop() {
 
   display.clearDisplay();
   display.setCursor(0,16);
-  display.print("0123456789AB");  
-  display.setCursor(0,32);
-  display.print("CDEFabcdefghij");
+  display.print("0123456789ABCDEFGHIJKLMN");  
   display.display();
   delay(10000);
 
 
   display.clearDisplay();
   display.setCursor(0,16);
-  display.print("klmnopqrstuvwxy");  
-  display.setCursor(0,32);
-  display.print("zGHIJKLMNOPQRS");
+  display.print("OPQRSTUVWXYZabcdefghijklm");  
   display.display();
   delay(10000);
 
   display.clearDisplay();
   display.setCursor(0,16);
-  display.print("TUVWXYZabc");  
+  display.print("nopqrstuvwxyz");  
   display.setCursor(0,32);
-  display.print("AaBbCcDdEe");
+  display.print("Het Is Goed");
+  display.display();
+  delay(10000);
+
+  display.clearDisplay();
+  display.setCursor(0,16);
+  display.print("!\"#$%&'()*+,-./:;<=>?@{|}~");  
+  display.display();
+  delay(10000);
+
+  display.clearDisplay();
+  display.setCursor(0,16);
+  display.print("[\]^_`Gg Pp Qq");  
+  display.setCursor(0,32);
+  display.print("Zo Veel Beter?");
   display.display();
   delay(10000);
 
