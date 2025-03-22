@@ -65,7 +65,7 @@ void setup() {
   RTC.getTime(currentTime); 
   bdisplay_textline(currentTime);
 
-  Serial.print(F("The RTC is: "));
+  Serial.print(F("The time is now: "));
   Serial.println(currentTime);
 
   Serial.println();  
@@ -77,48 +77,40 @@ void setup() {
   bdisplay_textline(""); // clear display
 }
 
-// void restart_arduino(){
-//   Serial.println("Restart the Arduino UNO R4 board...");
-//   delay(2000);
-//   NVIC_SystemReset();
-// }
-
 
 bool alarming = true; // should become: false;
 bool sendDirect = false;
-unsigned int readaction = 0;
-unsigned int writeaction = 0;
+int readaction = 0;
+int writeaction = 0;
 bool new_sensing = false;
 bool doshow0 = true;
 bool doshow1 = true;
 int secs = 0;
-int remsecs = 0;
+int remsecs = 60;
 int showdata = 0;
 String timeinformation = "-";
 
 void loop() {
 
   // show something on the LED matrix 
-
-
-
   if (alarming) {
     alarming = alarmingsequence();
 
-    bdisplay_loop();
+    bdisplay_loop(); // demo on display
   }
   else {
     loadsequencepicture();
 
     read_sensors();
     
-    showdata = toggle_data(1, 4000);
+    showdata = toggle_data(1, 5000);
     if (showdata == 0){
       if (doshow0){
         bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
         doshow0 = false;
       }
       doshow1 = true;
+      remsecs = 60;
     }
     else if (showdata == 1){
       RTC.getTime(currentTime); 
@@ -133,7 +125,7 @@ void loop() {
     }
     else{
       Serial.print(showdata);  
-      Serial.println(F("ERROR xxxxxxxxxxxxxxxxxxxxxxxxxxxx"));  
+      Serial.println(F(" ERROR xxxxxxxxxxxxxxxxxxxxxxxxxxxx"));  
     }
   }
 

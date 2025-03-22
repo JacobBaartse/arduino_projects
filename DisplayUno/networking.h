@@ -19,11 +19,11 @@ int initWiFi(char* pssid, char* ppass, int timeout=10000) {
   return WiFistatus;
 } 
 
-unsigned int connection = 0;
+int connection = 0;
 
 IPAddress printWifiStatus(int connect) {
   // print your board's IP address:
-  Serial.print(F("\n\nIP Address: "));
+  Serial.print(F("\nIP Address: "));
   IPAddress here = WiFi.localIP();
   Serial.print(here);
 
@@ -69,15 +69,15 @@ String findNetwork() {
   String foundSSID = "";
 
   // scan for nearby networks:
-  Serial.println(F("** Scan Networks **"));
+  Serial.println(F("** Scan for WiFi **"));
   int numSsid = WiFi.scanNetworks();
-  if (numSsid == -1) {
+  if (numSsid < 1) {
     Serial.println(F("Couldn't get WiFi information"));
     return foundSSID;
   }
 
   // print the list of networks seen:
-  Serial.print(F("number of available networks: "));
+  Serial.print(F("Number of available networks: "));
   Serial.println(numSsid);
 
   // print the network number and name for each network found:
@@ -97,10 +97,9 @@ String findNetwork() {
     availSSID = WiFi.SSID(thisNet);
     for (int storage = 0; knownnetworks[storage][0] != F("EOR"); storage++){
       if (availSSID == knownnetworks[storage][0]){
-        //if (foundSSID == "") { // collect only the first matching networkID (the strongest???)
-        foundSSID = availSSID;
-        break;
-        //}
+        if (foundSSID == "") { // collect only the first matching networkID (the strongest???)
+          foundSSID = availSSID;
+        }
       }
     }
   }
@@ -114,7 +113,6 @@ String getNetworkPassword(String SSID) {
   for (int storage = 0; knownnetworks[storage][0] != F("EOR"); storage++){
     if (SSID == knownnetworks[storage][0]){
       foundPWD = knownnetworks[storage][1];
-      break;
     }
   }
   return foundPWD;
@@ -125,7 +123,6 @@ String getNetworkLocation(String SSID){
   for (int storage = 0; knownnetworks[storage][0] != F("EOR"); storage++){
     if (SSID == knownnetworks[storage][0]){
       foundLocation = knownnetworks[storage][2];
-      break;
     }
   }
   return foundLocation;
@@ -147,16 +144,15 @@ int WifiConnect(){
   Serial.println(SSIDlocation);
 
   // attempt to connect to WiFi network:
-  unsigned int ssid_len = SSIDfound.length() + 1;
-  unsigned int pass_len = SSIDpwd.length() + 1;
+  int ssid_len = SSIDfound.length() + 1;
+  int pass_len = SSIDpwd.length() + 1;
   char ssid[ssid_len];
   char pass[pass_len];
   SSIDfound.toCharArray(ssid, ssid_len);
   SSIDpwd.toCharArray(pass, pass_len);
 
-  while (stat != WL_CONNECTED){
+  while ((stat != WL_CONNECTED)&&(++connection < 4)){
     stat = initWiFi(ssid, pass, 7000);
-    connection++;
-  }  
+  }
   return stat;
 }
