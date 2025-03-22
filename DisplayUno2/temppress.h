@@ -52,25 +52,29 @@ bool sensors_setup(){
 }
 
 bool read_sensors(){
-  static unsigned long sensortime = 0xffffffff; // start directly from first read_sensors
+  //static unsigned long sensortime = 0xffffffff; // start directly from first read_sensors
   static int humidity_mem = 10;
   static int pressure_mem = 11;
   static int temp1_mem = 12;
   static int temp2_mem = 13;
 
-  unsigned long timing = millis();
-  if((sensortime - timing) < 60000) return false;
+  // unsigned long timing = millis();
+  // if((sensortime - timing) < 60000) return false;
+  // sensortime = timing + 60000; // once per minute
 
-  sensortime = timing + 60000; // once per minute
-
+  Serial.print(F("AHT status: "));
   if (ahtsensor){
+    uint8_t aht_status = aht.getStatus();
+    Serial.print(aht_status);
     sensors_event_t humidity, temp;
     aht.getEvent(&humidity, &temp); // populate temp and humidity objects with fresh data
-
     sensor1_temp = int(temp.temperature * 10); // make it 1 digit after the .
     sensor1_humi = int(humidity.relative_humidity);
   }
+  Serial.print(F(", BMP status: "));
   if (bmpsensor){
+    uint8_t bmp_status = bmp.getStatus();
+    Serial.println(bmp_status);
     float sensor2_tempe = bmp.readTemperature();
     sensor2_temp = int(sensor2_tempe * 10); // make it 1 digit after the .
     float sensor2_press = bmp.readPressure();
@@ -95,8 +99,6 @@ bool read_sensors(){
     changedetected = true;
   }
   if (changedetected){
-    Serial.println(int(timing/1000));
-
     Serial.print(F("Temperature 1: ")); 
     Serial.print(sensor1_temp); 
     Serial.println(F(" *C"));
