@@ -23,7 +23,7 @@ int sensor2_pres = 3;
 bool ahtsensor = false;
 bool bmpsensor = false;
 
-void sensors_setup(){
+bool sensors_setup(){
 
   ahtsensor = aht.begin();
   // if (!aht.begin()) {
@@ -48,6 +48,7 @@ void sensors_setup(){
                     Adafruit_BMP280::FILTER_X16,      /* Filtering. */
                     Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
   }
+  return true;
 }
 
 bool read_sensors(){

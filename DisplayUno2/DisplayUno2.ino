@@ -85,8 +85,8 @@ int writeaction = 0;
 bool new_sensing = false;
 bool doshow0 = true;
 bool doshow1 = true;
-int secs = 0;
-int remsecs = 60;
+int mins = 0;
+int remmins = 60;
 int showdata = 0;
 String timeinformation = "-";
 
@@ -95,38 +95,17 @@ void loop() {
   // show something on the LED matrix 
   if (alarming) {
     alarming = alarmingsequence();
-
-    bdisplay_loop(); // demo on display
   }
   else {
     loadsequencepicture();
+  }
 
+  mins = currentTime.getMinutes();
+  if (remmins != mins){
+    remmins = mins;
     read_sensors();
-    
-    showdata = toggle_data(1, 3500);
-    if (showdata == 0){
-      if (doshow0){
-        bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
-        doshow0 = false;
-      }
-      doshow1 = true;
-      remsecs = 60;
-    }
-    else if (showdata == 1){
-      RTC.getTime(currentTime); 
-      secs = currentTime.getSeconds();
-      doshow1 = (secs != remsecs); // count the seconds on display
-      if (doshow1){
-        timeinformation = bdisplay_readingtime((float)sensor1_temp/10, currentTime.getHour(), currentTime.getMinutes(), secs);
-        remsecs = secs;
-        doshow1 = false;
-      }
-      doshow0 = true;
-    }
-    else{
-      Serial.print(showdata);  
-      Serial.println(F(" ERROR xxxxxxxxxxxxxxxxxxxxxxxxxxxx"));  
-    }
+  
+    bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, currentTime.getHour(), mins);
   }
 
   if (wifiactive){
