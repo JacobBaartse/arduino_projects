@@ -63,12 +63,12 @@ void HTMLreply() {
 int HTMLresponseline(String requestline, int metadata) {
 
   if (requestline.length() > 0) {
-    Serial.print(F("HTMLresp |"));
-    Serial.print(requestline);
-    Serial.print(F("| action: "));
-
     // check the line for actions
     if (requestline.startsWith(F("GET "))) { 
+
+      Serial.print(F("HTMLresp |"));
+      Serial.print(requestline);
+      Serial.print(F("| action: "));
 
       if (currentLine.startsWith(F("GET /favicon.ico"))) {
         client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
@@ -91,9 +91,8 @@ int HTMLresponseline(String requestline, int metadata) {
       if (remactionval != actionval){
         actiontiming = millis();
       }
+      Serial.println(actionval);
     }
-
-    Serial.println(actionval);
   }
 
   // if (metadata == 9){ // last line of response
@@ -108,15 +107,20 @@ int HTMLresponseline(String requestline, int metadata) {
 }
 
 void websitehandling(float temp1, float temp2, int humid, int press, String timinfo) {
-  unsigned long prev_wifi_time = 0;
+  //unsigned long prev_wifi_time = 0;
 
   client = server.available();              // listen for incoming clients
 
   if (client) {                             // if you get a client,
-    prev_wifi_time = millis();
-    //Serial.print(F("new client "));        // print a message out the serial port
-    //Serial.println(prev_wifi_time);        // print a message out the serial port
+    // prev_wifi_time = millis();
+    // Serial.print(prev_wifi_time);           // print a message out the serial port
+    Serial.println(F(" new client "));        // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
+    tempval1 = temp1;
+    tempval2 = temp2;
+    humidval = humid;
+    presval = press;
+    timval = timinfo;                      
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
         c = client.read();                  // read a byte, then
@@ -125,11 +129,6 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() < 1) {
-            tempval1 = temp1;
-            tempval2 = temp2;
-            humidval = humid;
-            presval = press;
-            timval = timinfo;
             HTMLreply();
           }
           else{
@@ -145,10 +144,10 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
         Serial.println(F("breaking from loop"));
         break; // break from loop and disconnect client
       }
-      if ((millis() - prev_wifi_time) > 5000){
-        Serial.println(F("timeout from client loop"));
-        break;
-      }
+      // if ((millis() - prev_wifi_time) > 5000){
+      //   Serial.println(F("timeout from client loop"));
+      //   break;
+      // }
     } // while client.connected
 
     HTMLresponseline(currentLine, 9);

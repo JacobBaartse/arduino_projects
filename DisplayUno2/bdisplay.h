@@ -81,15 +81,15 @@ void bdisplay_setup() {
   bdisplay_textline(F("Welkom")); 
 }
 
-char buffer[7] = "";
-String bdisplay_readings(float temp1, float temp2, int humid, int pressure, int hours, int minutes){
+char buffer[8] = "";
+String bdisplay_readings(float temp1, float temp2, int humid, int pressure, int hours, int minutes, int secs){
   //display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
-  display_oled(true, 0, 16, String(temp1, 1) + "C");  
+  display_oled(true, 0, 16, String(temp1, 1) + " C");  
   //display_oled(false, 75, 16, String(temp2, 1) + " \x7F"+"C");  
   display_oled(false, 64, 32, String(humid) + "% rH");  
   display_oled(false, 0, 48, String(pressure) + " hPa");
-  sprintf(buffer, "%02d : %02d", hours, minutes);
+  sprintf(buffer, "%02d:%02d:%02d", hours, minutes, secs);
   String timeformat = String(buffer);
-  display_oled(false, 64, 64, timeformat);  
+  display_oled(false, 52, 64, timeformat);  
   return timeformat; 
 }
