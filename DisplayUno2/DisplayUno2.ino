@@ -95,7 +95,7 @@ void loop() {
     loadsequencepicture();
   }
   
-  if (runningtiming - sensortiming > 12000){
+  if (runningtiming - sensortiming > 15000){
     sensortiming = runningtiming;
 
     bool newval = read_sensors();
