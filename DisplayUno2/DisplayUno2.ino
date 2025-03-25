@@ -79,53 +79,32 @@ void setup() {
 
 
 bool alarming = true; // should become: false;
-bool sendDirect = false;
-int readaction = 0;
-int writeaction = 0;
-bool new_sensing = false;
-bool doshow0 = true;
-bool doshow1 = true;
-int secs = 0;
-int remsecs = 60;
-int showdata = 0;
 String timeinformation = "-";
+unsigned long sensortiming = 0;
+unsigned long runningtiming = 0;
 
 void loop() {
+
+  runningtiming = millis();
 
   // show something on the LED matrix 
   if (alarming) {
     alarming = alarmingsequence();
-
-    bdisplay_loop(); // demo on display
   }
   else {
     loadsequencepicture();
+  }
+  
+  if (runningtiming - sensortiming > 15000){
+    sensortiming = runningtiming;
 
-    read_sensors();
-    
-    showdata = toggle_data(1, 3500);
-    if (showdata == 0){
-      if (doshow0){
-        bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres);
-        doshow0 = false;
-      }
-      doshow1 = true;
-      remsecs = 60;
-    }
-    else if (showdata == 1){
-      RTC.getTime(currentTime); 
-      secs = currentTime.getSeconds();
-      doshow1 = (secs != remsecs); // count the seconds on display
-      if (doshow1){
-        timeinformation = bdisplay_readingtime((float)sensor1_temp/10, currentTime.getHour(), currentTime.getMinutes(), secs);
-        remsecs = secs;
-        doshow1 = false;
-      }
-      doshow0 = true;
-    }
-    else{
-      Serial.print(showdata);  
-      Serial.println(F(" ERROR xxxxxxxxxxxxxxxxxxxxxxxxxxxx"));  
+    bool newval = read_sensors();
+    RTC.getTime(currentTime); 
+    timeinformation = bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, currentTime.getHour(), currentTime.getMinutes(), currentTime.getSeconds());
+
+    if (newval){
+      Serial.print(F("Time: "));
+      Serial.println(timeinformation);
     }
   }
 
