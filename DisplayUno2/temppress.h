@@ -51,6 +51,56 @@ bool sensors_setup(){
   return true;
 }
 
+void PrintAHTstatus(uint8_t status){
+  static uint16_t status_log[] = { 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff };
+  int found = 0xfff;
+
+  Serial.print(F("AHT status: 0x"));
+  Serial.print(status, HEX);
+  int i = 0;
+  for (; status_log[i] < 0x100; i++){ 
+    if (status_log[i] == status)
+      found = i; 
+  }
+  if (found > 0xff){ // not found the number
+    Serial.print(" setting index: ");
+    Serial.print(i);
+
+    status_log[i] = status;
+  }
+  Serial.print(F(", AHT status log: 0x("));
+  for (i=0; status_log[i] < 0x100; i++){  //  
+    Serial.print(status_log[i], HEX);
+    Serial.print(F(","));
+  }
+  Serial.println(F(")"));
+}
+
+void PrintBMPstatus(uint8_t status){
+  static uint16_t status_log[] = { 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff };
+  int found = 0xfff;
+  
+  Serial.print(F("BMP status: 0x"));
+  Serial.print(status, HEX);
+  int i = 0;
+  for (; status_log[i] < 0x100; i++){ 
+    if (status_log[i] == status)
+      found = i; 
+  }
+  if (found > 0xff){ // not found the number
+    Serial.print(" setting index: ");
+    Serial.print(i);
+
+    status_log[i] = status;
+  }
+  Serial.print(F(", BMP status log: 0x("));
+  for (i=0; status_log[i] < 0x100; i++){  //  
+    Serial.print(status_log[i], HEX);
+    Serial.print(F(","));
+  }
+  Serial.println(F(")"));
+}
+
 bool read_sensors(){
   //static unsigned long sensortime = 0xffffffff; // start directly from first read_sensors
   static int humidity_mem = 10;
@@ -91,10 +141,8 @@ bool read_sensors(){
   }
 
   if (changedetected){
-    Serial.print(F("AHT status: "));
-    Serial.print(aht_status);
-    Serial.print(F(", BMP status: "));
-    Serial.println(bmp_status);
+    PrintAHTstatus(aht_status);
+    PrintBMPstatus(bmp_status);
   }
   if (pressure_mem != sensor2_pres){
     pressure_mem = sensor2_pres;

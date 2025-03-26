@@ -63,6 +63,7 @@ void HTMLreply() {
 int HTMLresponseline(String requestline, int metadata) {
 
   if (requestline.length() > 0) {
+    
     // check the line for actions
     if (requestline.startsWith(F("GET "))) { 
 
@@ -107,12 +108,12 @@ int HTMLresponseline(String requestline, int metadata) {
 }
 
 void websitehandling(float temp1, float temp2, int humid, int press, String timinfo) {
-  //unsigned long prev_wifi_time = 0;
+  unsigned long prev_wifi_time = 0;
 
   client = server.available();              // listen for incoming clients
 
   if (client) {                             // if you get a client,
-    // prev_wifi_time = millis();
+    prev_wifi_time = millis();
     // Serial.print(prev_wifi_time);           // print a message out the serial port
     Serial.println(F(" new client "));        // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
@@ -144,10 +145,10 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
         Serial.println(F("breaking from loop"));
         break; // break from loop and disconnect client
       }
-      // if ((millis() - prev_wifi_time) > 5000){
-      //   Serial.println(F("timeout from client loop"));
-      //   break;
-      // }
+      if ((millis() - prev_wifi_time) > 5000){
+        Serial.println(F("timeout from client loop"));
+        break;
+      }
     } // while client.connected
 
     HTMLresponseline(currentLine, 9);
