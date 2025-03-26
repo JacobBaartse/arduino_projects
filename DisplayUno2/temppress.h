@@ -68,9 +68,9 @@ void PrintAHTstatus(uint8_t status){
 
     status_log[i] = status;
   }
-  Serial.print(F(", AHT status log: 0x("));
+  Serial.print(F(", AHT status log: 0b("));
   for (i=0; status_log[i] < 0x100; i++){  //  
-    Serial.print(status_log[i], HEX);
+    Serial.print(status_log[i], BIN);
     Serial.print(F(","));
   }
   Serial.println(F(")"));
@@ -93,9 +93,9 @@ void PrintBMPstatus(uint8_t status){
 
     status_log[i] = status;
   }
-  Serial.print(F(", BMP status log: 0x("));
+  Serial.print(F(", BMP status log: 0b("));
   for (i=0; status_log[i] < 0x100; i++){  //  
-    Serial.print(status_log[i], HEX);
+    Serial.print(status_log[i], BIN);
     Serial.print(F(","));
   }
   Serial.println(F(")"));
