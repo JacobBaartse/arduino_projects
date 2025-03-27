@@ -82,7 +82,8 @@ bool alarming = true; // should become: false;
 String timeinformation = "-";
 unsigned long sensortiming = 0;
 unsigned long runningtiming = 0;
-//unsigned long displaytiming = 0;
+// unsigned long displaytiming = 0;
+// bool presentationon = false;
 
 void loop() {
 
@@ -107,12 +108,16 @@ void loop() {
       Serial.print(F("Time: "));
       Serial.println(timeinformation);
     }
-    //displaytiming = runningtiming;
+    // displaytiming = runningtiming;
+    // presentationon = true;
   }
-  // if (runningtiming - displaytiming > 1500){
-  //   Serial.println(F("Clear Display"));
-  //   bdisplay_textline(" ");
-  //   displaytiming = runningtiming + 60000;
+
+  // if (presentationon){
+  //   if (runningtiming - displaytiming > 1500){
+  //     Serial.println(F("Clear Display"));
+  //     bdisplay_textline(" ");
+  //     presentationon = false;
+  //   }
   // }
 
   if (wifiactive){
