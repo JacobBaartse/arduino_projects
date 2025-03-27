@@ -83,8 +83,8 @@ void bdisplay_setup() {
 
 char buffer[8] = "";
 String bdisplay_readings(float temp1, float temp2, int humid, int pressure, int hours, int minutes, int secs){
-  //display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
-  display_oled(true, 0, 16, String(temp1, 1) + " C");  
+  display_oled(true, 0, 16, String(temp1, 1) + " \x7F"+"C");  // \x7F is converted to degrees in this special font.
+  //display_oled(true, 0, 16, String(temp1, 1) + " C");  
   //display_oled(false, 75, 16, String(temp2, 1) + " \x7F"+"C");  
   display_oled(false, 64, 32, String(humid) + "% rH");  
   display_oled(false, 0, 48, String(pressure) + " hPa");
