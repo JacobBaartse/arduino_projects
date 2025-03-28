@@ -57,6 +57,7 @@ void HTMLreply() {
 
   // The HTTP response ends with another blank line:
   client.println();
+  client.flush();
   Serial.println(F(" done"));  
 }
 
@@ -65,28 +66,33 @@ int HTMLresponseline(String requestline, int metadata) {
   if (requestline.length() > 0) {
     
     // check the line for actions
-    if (requestline.startsWith(F("GET "))) { 
+    if (requestline.startsWith(F("GET /"))) { 
 
       Serial.print(F("HTMLresp |"));
       Serial.print(requestline);
       Serial.print(F("| action: "));
 
-      if (currentLine.startsWith(F("GET /favicon.ico"))) {
+      //if (requestline.startsWith(F("GET /favicon.ico"))) {
+      if (requestline.indexOf(F("/favicon.ico")) > 0) {
         client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
       } 
       // if (requestline.startsWith("POST /")) {  // text input follows
       // }    
       String remactionval = actionval;
-      if (requestline.startsWith(F("GET /action"))) {  // action
+      //if (requestline.startsWith(F("GET /action"))) {  // action
+      if (requestline.indexOf(F("/action")) > 0) {
         actionval = F("Action");
         actiontiming = millis();
       } 
-      if (requestline.startsWith(F("GET /on"))) {  // on
+      //if (requestline.startsWith(F("GET /on"))) {  // on
+      if (requestline.indexOf(F("/on")) > 0) {  // on
         actionval = F("On");
         actiontiming = millis();
       }     
-      if (requestline.startsWith(F("GET /off"))) {  // off
+      //if (requestline.startsWith(F("GET /off"))) {  // off
+      if (requestline.indexOf(F("/off")) > 0) {  // off
         actionval = F("Off");
+        actiontiming = millis();
       } 
 
       if (remactionval != actionval){
@@ -131,6 +137,7 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() < 1) {
             HTMLreply();
+            Serial.println(F("Completed: HTMLreply()"));
           }
           else{
             HTMLresponseline(currentLine, 10);

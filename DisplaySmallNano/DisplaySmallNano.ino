@@ -9,8 +9,9 @@
  */
 
 #include <Wire.h>
-//#include <Adafruit_GFX.h> // already included from font file
-#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+#include <Adafruit_GFX.h> 
+//#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+#include "font_16pix_high.h"
 #include <Adafruit_SSD1306.h> // Adafruit SSD 1306 by Adafruit
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -83,12 +84,13 @@ void clear_display(){
 //    return ans;
 // }
 
-String Line1 = "Welcome \x81"; 
-String Line2 = "Demo \x81{small display} \x81"; 
-String Line3 = "Whats \x81 up?";  
+String Line1 = "Welcome George"; 
+String Line2 = "Demo {small display}"; 
+String Line3 = "Whats up?";  
+String Line4 = "Hello World!";  
 
 int prevx, x, minX;
-int y4, y2, y3, minY;
+int y1, y2, y3, y4, minY;
 bool oncecompleted = false;
 
 void setup() {
@@ -97,23 +99,26 @@ void setup() {
   display.begin(SSD1306_SWITCHCAPVCC, i2c_Address);
   displaystatus = setDisplay(DisplayState::Dim);
   display.clearDisplay();
-  display.setFont(&FreeSerif12pt7b);
+  //display.setFont(&FreeSerif12pt7b);
+  display.setFont(&font_16_pix);
   display.setTextSize(1); // 3 lines of 10-12 chars
   display.setTextColor(SSD1306_WHITE);
   display.setTextWrap(false); 
   display.display();
 
   x = display.width();
-  y4 = 16;
-  y2 = 38;
-  y3 = 60;
+  y1 = 16;
+  y2 = 32;
+  y3 = 48;
+  y4 = 64;
   // minX = -128;
   minX = -200; // depends on length of the text
   minY = -22;
 
-  display_oled(true, 0, y4, Line1); 
+  display_oled(true, 0, y1, Line1); 
   display_oled(false, x, y2, Line2); 
   display_oled(false, x, y3, Line3);  
+  display_oled(false, 0, y4, Line4);  
   prevx = x;
 }
 
