@@ -210,7 +210,7 @@ struct network_payload {
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE: 57600 (RF-NANO, micro USB), there is somewhere a mismatch in clock factor of 4
-  Serial.println(F(" "));
+  Serial.println();
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
@@ -223,13 +223,12 @@ void setup() {
 
   SPI.begin();
   radio.begin();
-  //radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  network.begin(80, this_node); // (channel, node address)
-  //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  network.begin(102, this_node); // (channel, node address)
+  radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
 
-  Serial.println(" ");  
-  Serial.println(" *************** ");  
-  Serial.println(" "); 
+  Serial.println(F("\n *************** "));  
+  Serial.println(); 
   Serial.flush(); 
 }
 
@@ -260,7 +259,7 @@ void messageStatus(unsigned long interval)
   Serial.print(droppedmsg);
   Serial.print(F(", failed: "));
   Serial.print(failedmsg);
-  Serial.println(" ");  
+  Serial.println();  
 }
 
 unsigned long sendingTimer = 0;
@@ -307,7 +306,7 @@ void loop() {
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
     if (header.from_node != repeaternode) {
-      Serial.print(F("received unexpected message, from_node: "));
+      Serial.print(F("Received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
     }
@@ -338,6 +337,7 @@ void loop() {
     }
     else {
       Serial.println(F("Keyword failure"));
+      Serial.println(incomingData.keyword, HEX);
       receivedcommand = command_none;
     }
     if (receivedcommand > command_none) {
@@ -346,7 +346,7 @@ void loop() {
   }
 
   //===== Sending =====//
-    // Meanwhile, every x seconds...
+  // Meanwhile, every x seconds...
   unsigned long currentmilli = millis();
   if(currentmilli - sendingTimer > 15000) {
     sendingTimer = currentmilli;

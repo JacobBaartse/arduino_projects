@@ -45,10 +45,10 @@ void setup() {
 
   radio1.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   radio2.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  //radio1.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  //radio2.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-  radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio1.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio2.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  //radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  //radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
   Serial.println(F("\n *************** "));  
   Serial.println(); 
@@ -58,13 +58,19 @@ void setup() {
 net_payload nw1Data = EmptyData;
 net_payload nw2Data = EmptyData;
 bool transmit = false;
+bool activitySignal = false;
 
 void loop() {
 
   network1.update();
   network2.update();
 
-  nw1Data = receiveRFnetwork(network1, base_node, 1);
+  if (activitySignal){ // stimulate a radio packet
+    nw1Data = DataForNW2;
+  }
+  else {
+    nw1Data = receiveRFnetwork(network1, base_node, 1);
+  }
   if (nw1Data.data1 != EmptyData.data1){
     Serial.println(F("nw1Data")); 
   }
@@ -78,7 +84,12 @@ void loop() {
   network1.update();
   network2.update();
 
-  nw2Data = receiveRFnetwork(network2, remote_node, 2);
+  if (activitySignal){ // stimulate a radio packet
+    nw2Data = DataForNW1;
+  }
+  else {
+    nw2Data = receiveRFnetwork(network2, remote_node, 2);
+  }
   if (nw2Data.data1 != EmptyData.data1){
     Serial.println(F("nw2Data")); 
   }
@@ -89,6 +100,9 @@ void loop() {
     }
   }
 
-  activitytracker(12);
+  if (activitySignal){
+    activitySignal = false;
+  }
+  activitySignal = activitytracker(12);
 
 }
