@@ -6,11 +6,6 @@ WiFiClient client;
 
 char c = '\n';
 String currentLine = "";
-
-float tempval1 = 0;
-float tempval2 = 0;
-int humidval = 0;
-int presval = 0;
 String timval = "-";
 String actionval = "-";
 unsigned long actiontiming = 0;
@@ -25,22 +20,22 @@ void HTMLreply() {
   client.println();
   // the content of the HTTP response follows the header:
   
-  client.print(F("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi with Display</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>"));
+  client.print(F("<HTML><HEAD><TITLE>Arduino UNO R4 WiFi with RTC module</TITLE><META content=\"text/html; charset=iso-8859-1\" http-equiv=Content-Type>"));
   client.print(F("<META HTTP-EQUIV=Expires CONTENT=\"Sun, 16-Apr-2028 01:00:00 GMT\"><link rel=\"icon\" href=\"data:,\"></HEAD>")); 
   client.print(F("<BODY TEXT=\"#006600\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
 
   client.print(F("<TABLE style=\"width:100%\"><TR style=\"height:150px; font-size:4em;\"><TH colspan=2 style=\"text-align: center\">Measured values</TH><TH>&nbsp;&nbsp;</TH></TR>"));
   client.print(F("<TR style=\"height:100px; font-size:4em;\"><TD style=\"text-align: right\">Temp 1</TD><TD style=\"text-align: right\">"));
-  client.print(tempval1);
+  //client.print(tempval1);
   client.print(F(" &deg;C</TD><TD>&nbsp;&nbsp;</TD></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Temp 2</TD><TD style=\"text-align: right\">"));
-  client.print(tempval2);
+  //client.print(tempval2);
   client.print(F(" &deg;C</TD><TD>&nbsp;&nbsp;</TD></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">rel. Humidity</TD><TD style=\"text-align: right\">"));
-  client.print(humidval);
+  //client.print(humidval);
   client.print(F("%</TD><TD>&nbsp;&nbsp;</TD></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD style=\"text-align: right\">Pressure</TD><TD style=\"text-align: right\">"));
-  client.print(presval);
+  //client.print(presval);
   client.print(F(" hPa</TD><TD>&nbsp;&nbsp;</TD></TR>"));
   client.print(F("<TR style=\"height:200px; font-size:4em;\"><TD colspan=2 style=\"text-align: center\">"));
   client.print(timval);
@@ -136,7 +131,7 @@ void HTMLresponseline(String requestline, int metadata){
   // }
 }
 
-void websitehandling(float temp1, float temp2, int humid, int press, String timinfo) {
+void webpagehandling(String timinfo) {
   unsigned long prev_wifi_time = 0;
 
   client = server.available();              // listen for incoming clients
@@ -145,11 +140,7 @@ void websitehandling(float temp1, float temp2, int humid, int press, String timi
     prev_wifi_time = millis();
     // Serial.print(prev_wifi_time);        // print a message out the serial port
     Serial.println(F("client"));            // print a message out the serial port
-    currentLine = "";                       // make a String to hold incoming data from the client
-    tempval1 = temp1;
-    tempval2 = temp2;
-    humidval = humid;
-    presval = press;
+    currentLine = "";                       // make a String to hold incoming data from the client                
     timval = timinfo;                      
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
