@@ -17,17 +17,21 @@ struct net_payload {
 };
 
 net_payload EmptyData = {0, 0, 0, 0, 0, 0, 0, 0};
+net_payload DataForNW1 = {0xab000001, 1, 1, 1, 1, 1, 1, 1};
+net_payload DataForNW2 = {0xab000002, 2, 2, 2, 2, 2, 2, 2};
 
 //===== Receiving Radio =====//
 net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
   net_payload incomingData = EmptyData;
 
   while (netw.available()) { // Is there any incoming data?
+    Serial.print(F("Receiving on network"));
+    Serial.println(id);
     RF24NetworkHeader header;
     netw.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
     if (header.from_node != from_node) {
       incomingData = EmptyData;
-      Serial.print(F("received unexpected message, from_node: "));
+      Serial.print(F("r\Received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
     }
@@ -57,11 +61,14 @@ bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata)
 }
 
 //===== check activity, heartbeat =====//
-void activitytracker(uint8_t timingseconds=20){
+bool activitytracker(uint8_t timingseconds=20){
   static unsigned long beattime = 0;
+  bool timing = false;
   if (((millis() - beattime)/1000) > timingseconds){
     beattime = millis();
+    timing = true;
     Serial.print(F("Running check: "));
     Serial.println((beattime/1000));
   }
+  return timing;
 }
