@@ -164,8 +164,8 @@ int WifiConnect(){
 
 //===== Radio =====//
 
-const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
-const uint16_t node01 = 01;      // Address of the other node in Octal format
+const uint16_t base_node = 00;   // Address of this node in Octal format (04, 031, etc.)
+const uint16_t node01 = 01;      // Address of the repeater node in Octal format
 
 RF24 radio(8, 7);                // nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
@@ -227,8 +227,9 @@ unsigned int receiveRFnetwork(){
     RF24NetworkHeader header;
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
+    Serial.println(incomingData.keyword, HEX);
     if (header.from_node != node01) {
-      Serial.print(F("received unexpected message, from_node: "));
+      Serial.print(F("Received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
     }

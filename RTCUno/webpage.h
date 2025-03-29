@@ -141,7 +141,7 @@ void webpagehandling(String timinfo) {
     // Serial.print(prev_wifi_time);        // print a message out the serial port
     Serial.println(F("client"));            // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client                
-    timval = timinfo;                      
+    //timval = timinfo;                      
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
         c = client.read();                  // read a byte, then
