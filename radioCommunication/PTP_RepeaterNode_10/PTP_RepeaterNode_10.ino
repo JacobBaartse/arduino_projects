@@ -28,7 +28,8 @@ const uint16_t remote_node = 00;   // Address of the other, remote node in Octal
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE: 57600 (RF-NANO, micro USB), there is somewhere a mismatch in clock factor of 4
-  Serial.println(F(" "));
+  Serial.println();
+  Serial.flush(); 
   Serial.println(__TIMESTAMP__);
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
@@ -49,9 +50,8 @@ void setup() {
   radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
   radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
 
-  Serial.println(" ");  
-  Serial.println(" *************** ");  
-  Serial.println(" "); 
+  Serial.println(F("\n *************** "));  
+  Serial.println(); 
   Serial.flush();  
 }
 
@@ -62,25 +62,33 @@ bool transmit = false;
 void loop() {
 
   network1.update();
+  network2.update();
 
   nw1Data = receiveRFnetwork(network1, base_node, 1);
+  if (nw1Data.data1 != EmptyData.data1){
+    Serial.println(F("nw1Data")); 
+  }
   if (nw1Data.data1 > 0xab000000) { // data1 should be the keyword
     transmit = transmitRFnetwork(network2, remote_node, nw1Data);
     if (transmit) {
-      Serial.println("nw1, base -> nw2, remote"); 
+      Serial.println(F("nw1, base -> nw2, remote")); 
     }
   }
 
+  network1.update();
   network2.update();
 
   nw2Data = receiveRFnetwork(network2, remote_node, 2);
+  if (nw2Data.data1 != EmptyData.data1){
+    Serial.println(F("nw2Data")); 
+  }
   if (nw2Data.data1 > 0xab000000) { // data1 should be the keyword
     transmit = transmitRFnetwork(network1, base_node, nw2Data);
     if (transmit) {
-      Serial.println("nw2, remote -> nw1, base"); 
+      Serial.println(F("nw2, remote -> nw1, base")); 
     }
   }
 
-  activitytracker(25);
+  activitytracker(12);
 
 }
