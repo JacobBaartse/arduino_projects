@@ -138,7 +138,7 @@ String get_clock(){
     Serial.print(mytimeinformation);
     Serial.print(F(", ")); 
     Serial.println(rtcnow.unixtime());
-    return mytimeinformation;
+    return timeinformation;
 }
 
 void restart_uno(){

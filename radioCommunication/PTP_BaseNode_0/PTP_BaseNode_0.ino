@@ -37,7 +37,6 @@ void setup() {
   RTC.begin();
   matrix.begin();
   SPI.begin();
-
   radio.begin();
   network.begin(100, this_node); // (channel, node address)
 

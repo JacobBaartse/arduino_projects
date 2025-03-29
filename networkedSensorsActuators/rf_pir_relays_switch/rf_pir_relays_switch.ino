@@ -3,7 +3,7 @@
  */
 
 #include "networking.h"
-// #include <SPI.h>
+#include <SPI.h>
 
 // #########################################################
 
@@ -87,6 +87,7 @@ void setup() {
   pinMode(pinLight, OUTPUT);
   pinMode(pinPressButton, INPUT_PULLUP);
 
+  SPI.begin();
   radio.begin();
   radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   network.begin(radioChannel, this_node); // (channel, node address)
