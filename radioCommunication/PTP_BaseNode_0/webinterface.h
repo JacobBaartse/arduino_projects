@@ -2,8 +2,6 @@
  *
  */
 
-// #include "WiFiS3.h" 
-
 WiFiServer server(80);
 WiFiClient client;
 
@@ -57,51 +55,52 @@ int HTMLresponseline(String requestline, int metadata){
     Serial.println(F("|"));
 
     // check the line for actions
+    if (currentLine.startsWith("GET /")) {
 
-    if (currentLine.startsWith("GET /favicon.ico")) {
-      client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
-    } 
+      if (currentLine.startsWith("GET /favicon.ico")) {
+        client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
+      } 
+      if (requestline.startsWith("GET /C0")) {  // color item
+        postedcolors = postedcolors | 0x0200;
+      } 
+      if (requestline.startsWith("GET /C1")) {  // color item
+        postedcolors = postedcolors | 0b00000001;
+      }     
+      if (requestline.startsWith("GET /C2")) {  // color item
+        postedcolors = postedcolors | 0b00000010;
+      } 
+      if (requestline.startsWith("GET /C3")) {  // color item
+        postedcolors = postedcolors | 0b00000100;
+      }     
+      if (requestline.startsWith("GET /C4")) {  // color item
+        postedcolors = postedcolors | 0b00001000;
+      }     
+      if (requestline.startsWith("GET /C5")) {  // color item
+        postedcolors = postedcolors | 0b00010000;
+      }     
+      if (requestline.startsWith("GET /C6")) {  // color item
+        postedcolors = postedcolors | 0b00100000;
+      } 
+      if (requestline.startsWith("GET /C7")) {  // color item
+        postedcolors = postedcolors | 0b01000000;
+      } 
+      if (requestline.startsWith("GET /C8")) {  // color item
+        postedcolors = postedcolors | 0b10000000;
+      } 
+      if (requestline.startsWith("GET /C9")) {  // color item
+        postedcolors = postedcolors | 0x0100;
+        //actiontext = ""; // clear text
+      }  
+      if (requestline.startsWith("GET /SL")) {  // size item
+        //if (text_size > 1) text_size--;
+      }
+      if (requestline.startsWith("GET /SU")) {  // size item
+        //if (text_size < 6) text_size++;
+      }
+    }
     if (requestline.startsWith("POST /")) {  // text input follows
       postedtext = true;
-    }    
-    if (requestline.startsWith("GET /C0")) {  // color item
-      postedcolors = postedcolors | 0x0200;
     } 
-    if (requestline.startsWith("GET /C1")) {  // color item
-      postedcolors = postedcolors | 0b00000001;
-    }     
-    if (requestline.startsWith("GET /C2")) {  // color item
-      postedcolors = postedcolors | 0b00000010;
-    } 
-    if (requestline.startsWith("GET /C3")) {  // color item
-      postedcolors = postedcolors | 0b00000100;
-    }     
-    if (requestline.startsWith("GET /C4")) {  // color item
-      postedcolors = postedcolors | 0b00001000;
-    }     
-    if (requestline.startsWith("GET /C5")) {  // color item
-      postedcolors = postedcolors | 0b00010000;
-    }     
-    if (requestline.startsWith("GET /C6")) {  // color item
-      postedcolors = postedcolors | 0b00100000;
-    } 
-    if (requestline.startsWith("GET /C7")) {  // color item
-      postedcolors = postedcolors | 0b01000000;
-    } 
-    if (requestline.startsWith("GET /C8")) {  // color item
-      postedcolors = postedcolors | 0b10000000;
-    } 
-    if (requestline.startsWith("GET /C9")) {  // color item
-      postedcolors = postedcolors | 0x0100;
-      //actiontext = ""; // clear text
-    }  
-    if (requestline.startsWith("GET /SL")) {  // size item
-      //if (text_size > 1) text_size--;
-    }
-    if (requestline.startsWith("GET /SU")) {  // size item
-      //if (text_size < 6) text_size++;
-    }
-
   }
   if (metadata == 9){ // last line of response
     Serial.print(F("posted colors: "));
@@ -143,7 +142,7 @@ void webinterfacing() {
         }
       }
       else {
-        Serial.println(F("\nbreaking from loop"));
+        Serial.println(F("\nBreaking from loop"));
         break; // break from loop and disconnect client
       }
     } // while client.connected

@@ -2,7 +2,7 @@
 
 Form a repeater between the base node and the remote node.
 
-Base <- 100 -> Repeater <----- 102 ------> Remote
+Base <- 98 -> Repeater <----- 102 ------> Remote
  00               01                         00
 
 Target: RF-NANO with additional RF24 module Long Range
@@ -14,7 +14,6 @@ location schuur SO 148
 #include <SPI.h>
 #include <RF24.h>
 #include <RF24Network.h>
-
 #include "repeater.h"
 
 RF24 radio1(10, 9);              // onboard nRF24L01 (CE, CSN)
@@ -39,18 +38,24 @@ void setup() {
   SPI.begin();
 
   radio1.begin();
+  radio1.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  //radio1.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio1.setChannel(98);
+  radio1.setAutoAck(true);                                              
+  radio1.enableDynamicPayloads();  
+  network1.begin(repeater_node); 
+
   radio2.begin();
-  network1.begin(100, repeater_node); // (channel, node address)
-  network2.begin(102, repeater_node); // (channel, node address)
+  radio2.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  //radio2.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio2.setChannel(102);
+  radio2.setAutoAck(true);                                              
+  radio2.enableDynamicPayloads(); 
+  network2.begin(repeater_node); 
 
-  radio1.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  radio2.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  radio1.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  radio2.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  //radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-  //radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-
-  Serial.println(F("\n *************** "));  
+  Serial.println(F("\n ******"));  
   Serial.println(); 
   Serial.flush();  
 }
@@ -69,14 +74,14 @@ void loop() {
     nw1Data = DataForNW2;
   }
   else {
-    network1.update();
+    //network1.update();
     nw1Data = receiveRFnetwork(network1, base_node, 1);
   }
   if (nw1Data.data1 != EmptyData.data1){
     Serial.println(F("nw1Data")); 
   }
   if (nw1Data.data1 > 0xab000000) { // data1 should be the keyword
-    transmit = transmitRFnetwork(network2, remote_node, nw1Data);
+    transmit = transmitRFnetwork(network2, remote_node, nw1Data, 2);
     if (transmit) {
       Serial.println(F("nw1, base -> nw2, remote")); 
     }
@@ -89,14 +94,14 @@ void loop() {
     nw2Data = DataForNW1;
   }
   else {
-    network2.update();
+    //network2.update();
     nw2Data = receiveRFnetwork(network2, remote_node, 2);
   }
   if (nw2Data.data1 != EmptyData.data1){
     Serial.println(F("nw2Data")); 
   }
   if (nw2Data.data1 > 0xab000000) { // data1 should be the keyword
-    transmit = transmitRFnetwork(network1, base_node, nw2Data);
+    transmit = transmitRFnetwork(network1, base_node, nw2Data, 1);
     if (transmit) {
       Serial.println(F("nw2, remote -> nw1, base")); 
     }

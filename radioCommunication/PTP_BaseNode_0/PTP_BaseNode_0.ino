@@ -18,6 +18,12 @@ location SO148
 
 */
 
+#include <SPI.h>
+#include <RF24.h>
+#include <RF24Network.h>
+
+#include "WiFiS3.h"
+#include "networkdata.h"
 #include "networking.h"
 #include "matrix.h"
 #include "RTC.h"
@@ -38,11 +44,13 @@ void setup() {
   matrix.begin();
   SPI.begin();
   radio.begin();
-  network.begin(100, base_node); // (channel, node address)
-
-  radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  //radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio.setChannel(98);
+  radio.setAutoAck(true);                                              
+  radio.enableDynamicPayloads(); 
+  network.begin(base_node);
 
   Serial.print(F("Starting up UNO R4 WiFi"));
   Serial.flush();
@@ -71,8 +79,7 @@ void setup() {
   Serial.println(F("The RTC is: "));
   Serial.println(currentTime);
 
-  Serial.println();  
-  Serial.println(F(" **************"));  
+  Serial.println(F("\n ******"));  
   Serial.println();  
   Serial.flush(); 
 }
@@ -114,7 +121,7 @@ unsigned int transmitaction = 0;
 
 void loop() {
 
-  // network.update();
+  network.update();
 
   if (messageStatus(60000)) { // request remote status when local status is printed
     commanding = command_status;
@@ -133,7 +140,9 @@ void loop() {
   else {
     loadsequencepicture();
   }
-  
+
+  network.update();
+
   webinterfacing();
   
 }

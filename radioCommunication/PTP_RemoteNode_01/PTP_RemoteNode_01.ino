@@ -203,8 +203,8 @@ struct network_payload {
   unsigned long command;
   unsigned long response;
   unsigned long data1;
-  unsigned long data2;
-  unsigned long data3;
+  //unsigned long data2;
+  //unsigned long data3;
 };
 
 
@@ -224,10 +224,14 @@ void setup() {
   SPI.begin();
   radio.begin();
   radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  network.begin(102, this_node); // (channel, node address)
-  radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio.setChannel(102);
+  radio.setAutoAck(true);
+  radio.enableDynamicPayloads();  
+  network.begin(this_node); // (channel, node address)
 
-  Serial.println(F("\n *************** "));  
+  Serial.println(F("\n ******"));  
   Serial.println(); 
   Serial.flush(); 
 }
@@ -375,7 +379,7 @@ void loop() {
       commandfrombase = command_none;
     }
 
-    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commanding, responding, data1, data2, data3};
+    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commanding, responding, data1};//, data2, data3};
     bool ok = network.write(headerR, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {
       Serial.print(F("Retry sending message: "));

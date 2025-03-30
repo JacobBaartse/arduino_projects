@@ -2,13 +2,6 @@
  * 
  */
 
-#include <SPI.h>
-#include <RF24.h>
-#include <RF24Network.h>
-
-#include "WiFiS3.h"
-#include "networkdata.h"
-
 int initWiFi(char* pssid, char* ppass, int timeout=10000) {
   long endTime = millis() + timeout;
   int WiFistatus = WL_IDLE_STATUS;
@@ -191,8 +184,8 @@ struct network_payload {
   unsigned long command;
   unsigned long response;
   unsigned long data1;
-  unsigned long data2;
-  unsigned long data3;
+  //unsigned long data2;
+  //unsigned long data3;
 };
 
 unsigned long receivedmsg = 0;
@@ -226,6 +219,7 @@ unsigned int receiveRFnetwork(){
   network.update();
 
   while (network.available()) { // Is there any incoming data?
+    Serial.println(F("Receiving on RF network"));
     RF24NetworkHeader header;
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
@@ -268,8 +262,8 @@ unsigned int receiveRFnetwork(){
     if (responsefromremote > response_none) {
       // Serial.print(F("responsefromremote: "));
       // Serial.println(responsefromremote, HEX);
-      unsigned long fails = incomingData.data2 & 0xffff;
-      unsigned long drops = (incomingData.data2 >> 16) & 0xffff;
+      unsigned long fails = 1;//incomingData.data2 & 0xffff;
+      unsigned long drops = 2;//(incomingData.data2 >> 16) & 0xffff;
       unsigned long rsend = incomingData.data1;
       unsigned long rcoll = incomingData.response;
       Serial.print(F("Remote network messages "));
@@ -299,9 +293,9 @@ unsigned int transmitRFnetwork(unsigned long commandtx){
     sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
     RF24NetworkHeader header1(node01); // Address where the data is going
-    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1, data2, data3};
+    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1};//, data2, data3};
 
-    network.update();
+    //network.update();
 
     bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {
