@@ -24,7 +24,7 @@ net_payload DataForNW2 = {0xab000002, 2, 2, 2, 2, 2, 2, 2};
 net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
   net_payload incomingData = EmptyData;
 
-  netw.update();
+  //netw.update();
   
   while (netw.available()) { // Is there any incoming data?
     Serial.print(F("Receiving on network"));
@@ -49,7 +49,7 @@ net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
 bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata){
   bool ok = false;
 
-  netw.update();
+  //netw.update();
 
   RF24NetworkHeader header(to_node); // Address where the data is going
   ok = netw.write(header, &senddata, sizeof(senddata)); // Send the data

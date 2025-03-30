@@ -69,6 +69,7 @@ void loop() {
     nw1Data = DataForNW2;
   }
   else {
+    network1.update();
     nw1Data = receiveRFnetwork(network1, base_node, 1);
   }
   if (nw1Data.data1 != EmptyData.data1){
@@ -88,6 +89,7 @@ void loop() {
     nw2Data = DataForNW1;
   }
   else {
+    network2.update();
     nw2Data = receiveRFnetwork(network2, remote_node, 2);
   }
   if (nw2Data.data1 != EmptyData.data1){
