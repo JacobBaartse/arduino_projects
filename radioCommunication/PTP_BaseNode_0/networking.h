@@ -223,6 +223,8 @@ unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrapp
 unsigned int receiveRFnetwork(){
   unsigned int reaction = 0;
 
+  network.update();
+
   while (network.available()) { // Is there any incoming data?
     RF24NetworkHeader header;
     network_payload incomingData;
@@ -298,6 +300,9 @@ unsigned int transmitRFnetwork(unsigned long commandtx){
     sendingCounter = updatecounter(sendingCounter); 
     RF24NetworkHeader header1(node01); // Address where the data is going
     network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1, data2, data3};
+
+    network.update();
+
     bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {
       Serial.print(F("Retry sending message: "));

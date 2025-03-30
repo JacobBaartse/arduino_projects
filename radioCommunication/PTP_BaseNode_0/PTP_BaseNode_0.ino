@@ -114,7 +114,7 @@ unsigned int transmitaction = 0;
 
 void loop() {
 
-  network.update();
+  // network.update();
 
   if (messageStatus(60000)) { // request remote status when local status is printed
     commanding = command_status;

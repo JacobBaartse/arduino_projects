@@ -62,8 +62,8 @@ bool activitySignal = false;
 
 void loop() {
 
-  network1.update();
-  network2.update();
+  //network1.update();
+  //network2.update();
 
   if (activitySignal){ // stimulate a radio packet
     nw1Data = DataForNW2;
@@ -81,8 +81,8 @@ void loop() {
     }
   }
 
-  network1.update();
-  network2.update();
+  //network1.update();
+  //network2.update();
 
   if (activitySignal){ // stimulate a radio packet
     nw2Data = DataForNW1;
@@ -100,9 +100,6 @@ void loop() {
     }
   }
 
-  if (activitySignal){
-    activitySignal = false;
-  }
   activitySignal = activitytracker(12);
 
 }
