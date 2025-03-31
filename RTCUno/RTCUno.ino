@@ -17,7 +17,6 @@ https://adafruit.github.io/RTClib/html/class_date_time.html
 
 #include "matrix.h"
 #include "networking.h"
-// #include "WiFiS3.h" // already included in networking.h
 #include "RTC.h"
 #include "clock.h"
 #include "webpage.h"
@@ -33,10 +32,10 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
   
+  matrix.begin();
   RTC.begin();
   Wire.begin();
   myRTC.begin();
-  matrix.begin();
 
   Serial.println(F("Starting up UNO R4 WiFi"));
   Serial.flush();
@@ -71,8 +70,7 @@ void setup() {
   Serial.print(F("The time is now: "));
   Serial.println(currentTime); 
 
-  Serial.println();  
-  Serial.println(F(" **************"));  
+  Serial.println(F("\n ********"));  
   Serial.println();  
   Serial.flush(); 
 }
@@ -95,7 +93,7 @@ void loop() {
     loadsequencepicture();
   }
   
-  if (runningtiming - gettiming > 10000){
+  if ((unsigned long)(runningtiming - gettiming) > 10000){
     gettiming = runningtiming;
     timeinformation = get_clock();
   }

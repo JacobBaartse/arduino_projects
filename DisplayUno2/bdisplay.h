@@ -20,6 +20,9 @@
 //#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
 #define OLED_RESET -1
 
+// font width of "characters 0 - 9 and ":"
+int PROGMEM FontWidth[11] = { 12, 6, 11, 11, 10, 11, 11, 10, 11, 11, 4}; 
+
 enum DisplayState {
     Off = 0,
     Dim = 1,
@@ -27,6 +30,17 @@ enum DisplayState {
 };
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+uint8_t calcfontwidthtime(int h, int m, int s){
+  uint8_t calclen = 2 * FontWidth[10]; // 2 times the ":""character"
+  calclen += FontWidth[(h % 10)];
+  calclen += FontWidth[(h / 10)];
+  calclen += FontWidth[(m % 10)];
+  calclen += FontWidth[(m / 10)];
+  calclen += FontWidth[(s % 10)];
+  calclen += FontWidth[(s / 10)];
+  return calclen;
+}
 
 bool displaystatus = DisplayState::Off;
 void display_oled(bool clear, int x, int y, String text) {
@@ -88,8 +102,9 @@ String bdisplay_readings(float temp1, float temp2, int humid, int pressure, int 
   //display_oled(false, 75, 16, String(temp2, 1) + " \x7F"+"C");  
   display_oled(false, 64, 32, String(humid) + "% rH");  
   display_oled(false, 0, 48, String(pressure) + " hPa");
+  uint8_t timeleng = calcfontwidthtime(hours, minutes, secs);
   sprintf(buffer, "%02d:%02d:%02d", hours, minutes, secs);
   String timeformat = String(buffer);
-  display_oled(false, 42, 64, timeformat);  
+  display_oled(false, (SCREEN_WIDTH - timeleng - 2), 64, timeformat);  
   return timeformat; 
 }

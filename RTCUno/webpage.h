@@ -1,6 +1,4 @@
 
-#include "WiFiS3.h"
-
 WiFiServer server(80);
 WiFiClient client;
 

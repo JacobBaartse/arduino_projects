@@ -222,28 +222,3 @@ int toggle_data(int choises, int toggle_time){
   }
   return datatracking;
 }
-
-// int prev_second;
-// const int hour = 60*60;
-
-// int Hour = 0;
-// int Minutes = 0;
-// int Seconds = -1;
-
-// void update_clock(){
-//   RTC.getTime(currentTime);
-//   if (currentTime.getSeconds() != prev_second){
-//     prev_second = currentTime.getSeconds();
-//     unsigned long unix_time = currentTime.getUnixTime();
-//     unsigned long elapsed_seconds = unix_time - startup_unix_time_rtc;
-//     elapsed_seconds -= elapsed_seconds/53;
-//     // elapsed_seconds += elapsed_seconds/3400;  // additional correction if required.
-
-//     unsigned long corrected_unix_time = startup_unix_time_rtc + elapsed_seconds;
-//     Minutes = (corrected_unix_time / 60) % 60;
-//     Hour = (corrected_unix_time / hour) % 24;
-//     Seconds = corrected_unix_time % 60;
-
-//     if (currentTime.getHour()== 4 && (millis()/1000/hour)>2) restart_uno();  //restart every night at 4 a clock once.
-//   }
-// }
