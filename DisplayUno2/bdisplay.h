@@ -90,6 +90,6 @@ String bdisplay_readings(float temp1, float temp2, int humid, int pressure, int 
   display_oled(false, 0, 48, String(pressure) + " hPa");
   sprintf(buffer, "%02d:%02d:%02d", hours, minutes, secs);
   String timeformat = String(buffer);
-  display_oled(false, 52, 64, timeformat);  
+  display_oled(false, 42, 64, timeformat);  
   return timeformat; 
 }
