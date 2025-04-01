@@ -3,12 +3,22 @@
 DS3231 RTC Module on a UNO R4 WiFi
 
 https://www.jackyb.be/arduino/arduino/real-time-clock-ds3231.php
+Module heeft ook een temperatuur sensor en EEPROM (AT24C32) default address 0x50
+32kb (4K x 8bits: 4096 bytes)
 
 https://howtomechatronics.com/tutorials/arduino/arduino-ds3231-real-time-clock-tutorial/
 
+
 https://www.instructables.com/How-to-Create-a-Clock-Using-Arduino-DS3231-RTC-Mod/
+clock.forceConversion();
+Serial.print("Temperature: "); 
+<br>Serial.println(clock.readTemperature());
+
 
 https://www.vdrelectronics.com/ds3231-precisie-rtc-module-gebruiken-met-arduino
+table with the I2C adress jumpers for the EEPROM
+code voor EEPROM write and read 
+
 
 https://adafruit.github.io/RTClib/html/class_date_time.html
 
