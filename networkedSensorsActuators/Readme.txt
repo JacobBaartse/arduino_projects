@@ -12,6 +12,7 @@ radio modules to interact together.
 2. RF-Nano or Nano with RF module for sensors and activators
 
 
+
 -------------------------------------------
 
 . rf_pir_relays_switch

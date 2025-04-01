@@ -22,12 +22,12 @@ int volumePin = A0;
 
 // noten van de melodie
 int melody[] = {
-  NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4
+  NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4, 0
 };
 
 // duur van de noten: 4 = kwart noot, 8 = achtste noot etc.
 int noteDurations[] = {
-  4, 8, 8, 4, 4, 4, 4, 4
+  4, 8, 8, 4, 4, 4, 4, 4, 0
 };
 
 void setup(void) {
@@ -55,7 +55,7 @@ void playMelody() {
    * kan teruggeven waardoor er een geheugenfout ontstaat. Hierdoor kan de buzzer na de melodie nog
    * een bibberend geluid blijven geven. De 8 staat voor het totaal aantal noten.
    */
-  for (int i = 0; i < 8; i++) {
+  for (int i=0; noteDurations[i] != 0 && melody[i] != 0; i++){  //  
 
     // om de lengte van de noten te berekenen nemen we 1 seconden en delen deze door het type noot
     // bijv. een kwart noot = 1000 / 4, een achtste noot = 1000/8, etc. 

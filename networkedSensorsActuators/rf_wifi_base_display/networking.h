@@ -2,6 +2,7 @@
  * 
  */
 
+#include <SPI.h>
 #include <RF24Network.h>
 #include <RF24.h>
 #include "WiFiS3.h"

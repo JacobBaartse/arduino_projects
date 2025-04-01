@@ -1,19 +1,35 @@
 /*
 
-AHT20   0x38
-Display 0x3C
-BMP280  0x77
+DS3231 RTC Module on a UNO R4 WiFi
+
+https://www.jackyb.be/arduino/arduino/real-time-clock-ds3231.php
+Module heeft ook een temperatuur sensor en EEPROM (AT24C32) default address 0x50
+32kb (4K x 8bits: 4096 bytes)
+
+https://howtomechatronics.com/tutorials/arduino/arduino-ds3231-real-time-clock-tutorial/
+
+
+https://www.instructables.com/How-to-Create-a-Clock-Using-Arduino-DS3231-RTC-Mod/
+clock.forceConversion();
+Serial.print("Temperature: "); 
+<br>Serial.println(clock.readTemperature());
+
+
+https://www.vdrelectronics.com/ds3231-precisie-rtc-module-gebruiken-met-arduino
+table with the I2C adress jumpers for the EEPROM
+code voor EEPROM write and read 
+
+
+https://adafruit.github.io/RTClib/html/class_date_time.html
+
 
 */
 
 #include "matrix.h"
 #include "networking.h"
-// #include "WiFiS3.h" // already included in networking.h
 #include "RTC.h"
 #include "clock.h"
-#include "website.h"
-#include "bdisplay.h"
-#include "temppress.h"
+#include "webpage.h"
 
 
 IPAddress IPhere;
@@ -26,8 +42,10 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
   
-  RTC.begin();
   matrix.begin();
+  RTC.begin();
+  Wire.begin();
+  myRTC.begin();
 
   Serial.println(F("Starting up UNO R4 WiFi"));
   Serial.flush();
@@ -36,10 +54,6 @@ void setup() {
   // if (fv < WIFI_FIRMWARE_LATEST_VERSION){
   //   Serial.println("Please upgrade the firmware for the WiFi module");
   // }
-
-  bdisplay_setup();
-
-  sensors_setup();
 
   // attempt to connect to WiFi network:
   int wifistatus = WifiConnect();
@@ -55,7 +69,6 @@ void setup() {
     server.begin();
 
     String ipaddresstext = IPhere.toString();
-    bdisplay_textline(ipaddresstext);
     startupscrollingtext(String("-->: ") + ipaddresstext);
 
     Serial.println(F("\nStarting connection to get actual time from the internet"));
@@ -63,27 +76,20 @@ void setup() {
   }
   // Retrieve the date and time from the RTC and print them
   RTC.getTime(currentTime); 
-  bdisplay_textline(currentTime);
 
   Serial.print(F("The time is now: "));
-  Serial.println(currentTime);
+  Serial.println(currentTime); 
 
-  Serial.println();  
-  Serial.println(F(" **************"));  
+  Serial.println(F("\n ********"));  
   Serial.println();  
   Serial.flush(); 
-  
-  delay(2000); // give time to read the time of the display
-  bdisplay_textline(""); // clear display
 }
 
 
 bool alarming = true; // should become: false;
 String timeinformation = "-";
-unsigned long sensortiming = 0;
 unsigned long runningtiming = 0;
-// unsigned long displaytiming = 0;
-// bool presentationon = false;
+unsigned long gettiming = 0;
 
 void loop() {
 
@@ -97,30 +103,12 @@ void loop() {
     loadsequencepicture();
   }
   
-  if (runningtiming - sensortiming > 15000){
-    sensortiming = runningtiming;
-
-    bool newval = read_sensors();
-    RTC.getTime(currentTime); 
-    timeinformation = bdisplay_readings((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, currentTime.getHour(), currentTime.getMinutes(), currentTime.getSeconds());
-
-    if (newval){
-      Serial.print(F("Time: "));
-      Serial.println(timeinformation);
-    }
-    // displaytiming = runningtiming;
-    // presentationon = true;
+  if ((unsigned long)(runningtiming - gettiming) > 10000){
+    gettiming = runningtiming;
+    timeinformation = get_clock();
   }
 
-  // if (presentationon){
-  //   if (runningtiming - displaytiming > 1500){
-  //     Serial.println(F("Clear Display"));
-  //     bdisplay_textline(" ");
-  //     presentationon = false;
-  //   }
-  // }
-
   if (wifiactive){
-    websitehandling((float)sensor1_temp/10, (float)sensor2_temp/10, sensor1_humi, sensor2_pres, timeinformation);
+    webpagehandling(timeinformation);
   }
 }

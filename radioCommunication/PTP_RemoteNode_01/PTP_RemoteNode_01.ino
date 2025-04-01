@@ -22,9 +22,9 @@ location JWF21
 
 */
 
-#include <RF24Network.h>
-#include <RF24.h>
 #include <SPI.h>
+#include <RF24.h>
+#include <RF24Network.h>
 
 #define buttonPinGreen 7  
 #define buttonPinRed 8  
@@ -203,14 +203,14 @@ struct network_payload {
   unsigned long command;
   unsigned long response;
   unsigned long data1;
-  unsigned long data2;
-  unsigned long data3;
+  //unsigned long data2;
+  //unsigned long data3;
 };
 
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE: 57600 (RF-NANO, micro USB), there is somewhere a mismatch in clock factor of 4
-  Serial.println(F(" "));
+  Serial.println();
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
@@ -223,13 +223,16 @@ void setup() {
 
   SPI.begin();
   radio.begin();
-  //radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  network.begin(80, this_node); // (channel, node address)
+  radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio.setChannel(102);
+  radio.setAutoAck(true);
+  radio.enableDynamicPayloads();  
+  network.begin(this_node); // (channel, node address)
 
-  Serial.println(" ");  
-  Serial.println(" *************** ");  
-  Serial.println(" "); 
+  Serial.println(F("\n ******"));  
+  Serial.println(); 
   Serial.flush(); 
 }
 
@@ -260,7 +263,7 @@ void messageStatus(unsigned long interval)
   Serial.print(droppedmsg);
   Serial.print(F(", failed: "));
   Serial.print(failedmsg);
-  Serial.println(" ");  
+  Serial.println();  
 }
 
 unsigned long sendingTimer = 0;
@@ -307,7 +310,7 @@ void loop() {
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
     if (header.from_node != repeaternode) {
-      Serial.print(F("received unexpected message, from_node: "));
+      Serial.print(F("Received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
     }
@@ -338,6 +341,7 @@ void loop() {
     }
     else {
       Serial.println(F("Keyword failure"));
+      Serial.println(incomingData.keyword, HEX);
       receivedcommand = command_none;
     }
     if (receivedcommand > command_none) {
@@ -346,7 +350,7 @@ void loop() {
   }
 
   //===== Sending =====//
-    // Meanwhile, every x seconds...
+  // Meanwhile, every x seconds...
   unsigned long currentmilli = millis();
   if(currentmilli - sendingTimer > 15000) {
     sendingTimer = currentmilli;
@@ -375,7 +379,7 @@ void loop() {
       commandfrombase = command_none;
     }
 
-    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commanding, responding, data1, data2, data3};
+    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commanding, responding, data1};//, data2, data3};
     bool ok = network.write(headerR, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {
       Serial.print(F("Retry sending message: "));
