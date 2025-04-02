@@ -2,6 +2,11 @@
 
 DS3231 RTC Module on a UNO R4 WiFi
 
+Scanning...
+I2C device found at address 0x57  !
+I2C device found at address 0x68  !
+done
+
 https://www.jackyb.be/arduino/arduino/real-time-clock-ds3231.php
 Module heeft ook een temperatuur sensor en EEPROM (AT24C32) default address 0x50
 32kb (4K x 8bits: 4096 bytes)
