@@ -47,13 +47,15 @@ net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
   return returnData;
 }
 
+char mtypeval[3] = {"012"};
+
 //===== Sending radio =====//
 bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata, uint8_t id){
   bool ok = false;
 
   //netw.update();
   
-  RF24NetworkHeader header(to_node); // Address where the data is going
+  RF24NetworkHeader header(to_node, mtypeval[id]); // Address where the data is going
   ok = netw.write(header, &senddata, sizeof(senddata)); // Send the data
   if (ok) {
     Serial.print(F("Send nw: "));
