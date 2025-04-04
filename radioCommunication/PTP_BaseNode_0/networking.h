@@ -216,7 +216,7 @@ unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrapp
 unsigned int receiveRFnetwork(){
   unsigned int reaction = 0;
 
-  network.update();
+  //network.update();
 
   while (network.available()) { // Is there any incoming data?
     Serial.println(F("Receiving on RF network"));
@@ -292,7 +292,7 @@ unsigned int transmitRFnetwork(unsigned long commandtx){
   if(currentmilli - sendingTimer > 5000) {
     sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header1(node01); // Address where the data is going
+    RF24NetworkHeader header1(node01, 'B'); // Address where the data is going
     network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1};//, data2, data3};
 
     //network.update();

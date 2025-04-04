@@ -55,7 +55,8 @@ bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata,
 
   //netw.update();
   
-  RF24NetworkHeader header(to_node, mtypeval[id]); // Address where the data is going
+  char messageType = mtypeval[id];
+  RF24NetworkHeader header(to_node, messageType); // Address where the data is going
   ok = netw.write(header, &senddata, sizeof(senddata)); // Send the data
   if (ok) {
     Serial.print(F("Send nw: "));
