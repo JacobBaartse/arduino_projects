@@ -278,6 +278,8 @@ unsigned int receiveRFnetwork(){
       Serial.println(F("-"));  
       responsefromremote = response_none;
     }
+
+    network.update();
   }
   return reaction;
 }

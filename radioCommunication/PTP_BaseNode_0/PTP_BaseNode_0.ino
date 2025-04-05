@@ -44,12 +44,12 @@ void setup() {
   matrix.begin();
   SPI.begin();
   radio.begin();
-  radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
   //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-  radio.setChannel(98);
-  radio.setAutoAck(true);                                              
-  radio.enableDynamicPayloads(); 
+  //radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio.setChannel(100);
+  // radio.setAutoAck(true);                                              
+  // radio.enableDynamicPayloads(); 
   network.begin(base_node);
 
   Serial.print(F("Starting up UNO R4 WiFi"));
@@ -118,6 +118,10 @@ bool messageStatus(unsigned long interval)
 bool alarming = true; // should become: false;
 unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
+
+// prototypes
+unsigned int receiveRFnetwork();
+unsigned int transmitRFnetwork(unsigned long commandtx);
 
 void loop() {
 

@@ -47,7 +47,7 @@ net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
   return returnData;
 }
 
-char mtypeval[3] = {"012"};
+char mtypeval[] = {"012"};
 
 //===== Sending radio =====//
 bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata, uint8_t id){
