@@ -76,7 +76,7 @@ void setup() {
   // Retrieve the date and time from the RTC and print them
   RTCTime currentTime;
   RTC.getTime(currentTime); 
-  Serial.println(F("The RTC is: "));
+  Serial.println(F("The current time is: "));
   Serial.println(currentTime);
 
   Serial.println(F("\n ******"));  

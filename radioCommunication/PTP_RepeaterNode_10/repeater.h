@@ -21,7 +21,7 @@ net_payload DataForNW1 = {0xab000001, 1, 1, 1, 1, 1};//, 1, 1};
 net_payload DataForNW2 = {0xab000002, 2, 2, 2, 2, 2};//, 2, 2};
 
 //===== Receiving Radio =====//
-net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
+net_payload receiveRFnetwork(RF24Network& netw, uint16_t from_node, uint8_t id){
   net_payload returnData = EmptyData;
 
   netw.update();
@@ -50,7 +50,7 @@ net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
 char mtypeval[] = {"012"};
 
 //===== Sending radio =====//
-bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata, uint8_t id){
+bool transmitRFnetwork(RF24Network& netw, uint16_t to_node, net_payload senddata, uint8_t id){
   bool ok = false;
 
   //netw.update();

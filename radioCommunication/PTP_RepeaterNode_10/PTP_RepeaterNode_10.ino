@@ -2,7 +2,7 @@
 
 Form a repeater between the base node and the remote node.
 
-Base <- 98 -> Repeater <----- 102 ------> Remote
+Base <- 100 -> Repeater <----- 102 ------> Remote
  00               01                         00
 
 Target: RF-NANO with additional RF24 module Long Range
@@ -40,19 +40,19 @@ void setup() {
   radio1.begin();
   radio1.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   //radio1.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-  radio1.setChannel(98);
-  radio1.setAutoAck(true);                                              
-  radio1.enableDynamicPayloads();  
+  //radio1.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio1.setChannel(100);
+  // radio1.setAutoAck(true);                                              
+  // radio1.enableDynamicPayloads();  
   network1.begin(repeater_node); 
 
   radio2.begin();
   radio2.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   //radio2.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  //radio2.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
   radio2.setChannel(102);
-  radio2.setAutoAck(true);                                              
-  radio2.enableDynamicPayloads(); 
+  // radio2.setAutoAck(true);                                              
+  // radio2.enableDynamicPayloads(); 
   network2.begin(repeater_node); 
 
   Serial.println(F("\n ******"));  

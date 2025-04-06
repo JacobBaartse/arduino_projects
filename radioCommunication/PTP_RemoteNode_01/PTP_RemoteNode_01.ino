@@ -178,7 +178,6 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
 }
 
 RF24 radio(10, 9);               // onboard nRF24L01 (CE, CSN)
-// RF24 radio(8, 7);             // external nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
 //const uint16_t this_node = 00;   // Address of our node in Octal format (04, 031, etc.)
 //const uint16_t repeaternode = 01;    // Address of the other node in Octal format
@@ -292,8 +291,6 @@ LEDState RedIndication = LEDState::LEDOff;
 
 void loop() {
   
-  network.update();
-
   currentMillis = millis();   // capture the value of millis() only once in the loop
 
   GreenIndication = greenledprocessing(currentMillis, buttonGreenPressed);
@@ -306,6 +303,8 @@ void loop() {
     messageStatus(0);
     printstatus = false;
   }
+
+  network.update();
 
   //===== Receiving =====//
   while (network.available()) { // any incoming data?

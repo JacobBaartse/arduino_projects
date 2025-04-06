@@ -420,7 +420,7 @@ void loop() {
   // strftime(output_time, sizeof(output_time), "%H:%M:%S", currentTime);
   //String TimeMoment = String(&currentTime, "%H:%M:%S");
   //display_oled(true, 0, dy1, output_time); 
-  float tempval = (float)(millis() % 1000000) / (float)1000;
+  float tempval = (float)((millis() % 1000000) / 1000);
   display_oled(true, 4, dy3, String(tempval, 3) + " s");
 
 }
