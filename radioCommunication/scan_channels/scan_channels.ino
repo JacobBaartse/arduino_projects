@@ -5,6 +5,8 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2 as published by the Free Software Foundation.
+ *
+ * https://nrf24.github.io/RF24/examples_2scanner_2scanner_8ino-example.html
  */
 
 /*
@@ -34,8 +36,10 @@
 // Hardware configuration
 //
 
-#define CE_PIN 7
-#define CSN_PIN 8
+// #define CE_PIN 7
+// #define CSN_PIN 8
+#define CE_PIN 10
+#define CSN_PIN 9
 // instantiate an object for the nRF24L01 transceiver
 RF24 radio(CE_PIN, CSN_PIN);
 
@@ -52,7 +56,7 @@ uint8_t values[num_channels];      // the array to store summary of signal count
 const uint8_t noiseAddress[][2] = { { 0x55, 0x55 }, { 0xAA, 0xAA }, { 0xA0, 0xAA }, { 0xAB, 0xAA }, { 0xAC, 0xAA }, { 0xAD, 0xAA } };
 
 const int num_reps = 100;   // number of passes for each scan of the entire spectrum
-bool constCarrierMode = 0;  // this flag controls example behavior (scan mode is default)
+bool constCarrierMode = false;  // this flag controls example behavior (scan mode is default)
 
 void printHeader();  // prototype function for printing the channels' header
 
@@ -64,10 +68,14 @@ void setup(void) {
     // some boards need this to wait for Serial connection
   }
   Serial.println(F("RF24/examples/scanner/"));
+  Serial.print(__FILE__);
+  Serial.print(F(",\ncreation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush();
 
-  // Setup and configure rf radio
+  // Setup and configure RF radio
   if (!radio.begin()) {
-    Serial.println(F("radio hardware not responding!"));
+    Serial.println(F("Radio hardware not responding!"));
     while (true) {
       // hold in an infinite loop
     }
@@ -81,13 +89,15 @@ void setup(void) {
   }
 
   // set the data rate
-  Serial.print(F("Select your Data Rate. "));
-  Serial.print(F("Enter '1' for 1 Mbps, '2' for 2 Mbps, '3' for 250 kbps. "));
-  Serial.println(F("Defaults to 1Mbps."));
-  while (!Serial.available()) {
-    // wait for user input
-  }
-  uint8_t dataRate = Serial.parseInt();
+  uint8_t dataRate = 0; // set some default
+
+  // Serial.print(F("Select your Data Rate. "));
+  // Serial.print(F("Enter '1' for 1 Mbps, '2' for 2 Mbps, '3' for 250 kbps. "));
+  // Serial.println(F("Defaults to 1Mbps."));
+  // while (!Serial.available()) {
+  //   // wait for user input
+  // }
+  // dataRate = Serial.parseInt();
   if (dataRate == 50) {
     Serial.println(F("Using 2 Mbps."));
     radio.setDataRate(RF24_2MBPS);
@@ -98,8 +108,8 @@ void setup(void) {
     Serial.println(F("Using 1 Mbps."));
     radio.setDataRate(RF24_1MBPS);
   }
-  Serial.println(F("***Enter a channel number to emit a constant carrier wave."));
-  Serial.println(F("***Enter a negative number to switch back to scanner mode."));
+  // Serial.println(F("***Enter a channel number to emit a constant carrier wave."));
+  // Serial.println(F("***Enter a negative number to switch back to scanner mode."));
 
   // Get into standby mode
   radio.startListening();
@@ -115,6 +125,7 @@ void setup(void) {
 }
 
 void loop(void) {
+
   /****************************************/
   // Send a number over Serial to begin Constant Carrier Wave output
   // Configure the power amplitude level below
@@ -122,19 +133,19 @@ void loop(void) {
     int8_t c = Serial.parseInt();
     if (c >= 0) {
       c = min((int8_t)125, c);  // clamp channel to supported range
-      constCarrierMode = 1;
+      constCarrierMode = true;
       radio.stopListening();
       delay(2);
-      Serial.print("\nStarting Carrier Wave Output on channel ");
+      Serial.print(F("\nStarting Carrier Wave Output on channel "));
       Serial.println(c);
       // for non-plus models, startConstCarrier() changes address on pipe 0 and sets address width to 5
       radio.startConstCarrier(RF24_PA_LOW, c);
     } else {
-      constCarrierMode = 0;
+      constCarrierMode = false;
       radio.stopConstCarrier();
       radio.setAddressWidth(2);                   // reset address width
       radio.openReadingPipe(0, noiseAddress[0]);  // ensure address is looking for noise
-      Serial.println("\nStopping Carrier Wave Output");
+      Serial.println(F("\nStopping Carrier Wave Output"));
       printHeader();
     }
 
@@ -150,7 +161,7 @@ void loop(void) {
 
   /****************************************/
 
-  if (constCarrierMode == 0) {
+  if (!constCarrierMode) {
     // Clear measurement values
     memset(values, 0, sizeof(values));
 
@@ -185,7 +196,7 @@ void loop(void) {
     }
     Serial.println();
 
-  }  // if constCarrierMode == 0
+  }  // if !constCarrierMode
   else {
     // show some output to prove that the program isn't bricked
     Serial.print(F("."));
