@@ -107,7 +107,7 @@ String findNetwork() {
       }
     }
   }
-  Serial.print("foundSSID: ");
+  Serial.print(F("foundSSID: "));
   Serial.println(foundSSID);
   return foundSSID;
 }
