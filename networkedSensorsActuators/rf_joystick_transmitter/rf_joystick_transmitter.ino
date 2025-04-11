@@ -110,12 +110,13 @@ void transmitRFnetwork(bool fresh){
       w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     }
     if (w_ok){
-      Serial.print(F("Message send "));
+      Serial.print(F("Message send "));  
     }    
     else{
       Serial.print(F("Message not send "));
     }
     Serial.println(currentmilli);
+    // print data using &Txdata, sizeof(Txdata)
   }
 }
 
@@ -140,7 +141,7 @@ void loop() {
 
   // calculate trigger, difference with previous measurements
   // this did not work when put in 1 line in the if statement
-  // the abs value wass printed several times < 0 (which should never happen)
+  // the abs value was printed several times < 0 (which should never happen)
   // that is why it is now over multiple lines
   divXr = xValue - remx;
   divYr = yValue - remy;
@@ -183,6 +184,7 @@ void joyButton(){
   static unsigned long buttontime = 0;
   static int buttonstate = HIGH;
   static int counter = 0;
+
   if (currentmilli - buttontime > 500){ // debounce to one press per second
     buttontime = currentmilli;
     counter++;
@@ -191,7 +193,7 @@ void joyButton(){
     Serial.print(F(": "));
     buttonstate = digitalRead(SW_PIN);
     if (buttonstate == HIGH) bValue = 0; // button not pressed
-    else bValue = 0xff; // button pressed
+    else bValue = 0xfedc; // button pressed
     Serial.println(bValue);
     newdata = true;
   }
