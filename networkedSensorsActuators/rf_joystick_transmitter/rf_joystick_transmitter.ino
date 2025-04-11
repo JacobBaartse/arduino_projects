@@ -5,6 +5,7 @@
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
+#include "print.h"
 
 #define radioChannel 106
 
@@ -118,6 +119,13 @@ void transmitRFnetwork(bool fresh){
     Serial.println(currentmilli);
     // print data using &Txdata, sizeof(Txdata)
     Serial.println((char*)&Txdata);
+    Serial.println(F("--:"));
+    for(int i = 0; i < sizeof(Txdata); i++)
+    {
+      Serial.print(((char*)&Txdata)[i]);
+      //printf("%02x ",((char*)&p1)[i]);
+    }
+    Serial.println(F("<--"));
   }
 }
 
