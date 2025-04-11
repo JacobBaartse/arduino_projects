@@ -25,8 +25,8 @@ RF24Network network(radio); // Include the radio in the network
 const uint16_t node01 = 01; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t node00 = 00; // Address of the other node in Octal format
 
-unsigned long const keywordvalM = 0xfeebbeef; 
-unsigned long const keywordvalS = 0xbeeffeeb; 
+unsigned long const keywordvalM = 0xfeedbeef; 
+unsigned long const keywordvalS = 0xbeeffeed; 
 
 typedef struct {
   unsigned long keyword;
@@ -117,6 +117,7 @@ void transmitRFnetwork(bool fresh){
     }
     Serial.println(currentmilli);
     // print data using &Txdata, sizeof(Txdata)
+    Serial.println((char*)&Txdata);
   }
 }
 
