@@ -5,7 +5,7 @@
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
-#include "print.h"
+#include "printf.h"
 
 #define radioChannel 106
 
@@ -29,13 +29,40 @@ const uint16_t node00 = 00; // Address of the other node in Octal format
 unsigned long const keywordvalM = 0xfeedbeef; 
 unsigned long const keywordvalS = 0xbeeffeed; 
 
-typedef struct {
+// typedef struct {
+//   unsigned long keyword;
+//   unsigned long timing;
+//   unsigned int xvalue;
+//   unsigned int yvalue;
+//   unsigned int bvalue;
+// } joystick_payload;
+
+// struct joystick_payload{
+//   unsigned long keyword;
+//   unsigned long timing;
+//   unsigned int xvalue;
+//   unsigned int yvalue;
+//   unsigned int bvalue;
+// };
+
+struct joystick_payload{
   unsigned long keyword;
   unsigned long timing;
-  unsigned int xvalue;
-  unsigned int yvalue;
-  unsigned int bvalue;
-} network_payload;
+  unsigned long xvalue;
+  unsigned long yvalue;
+  unsigned long bvalue;
+};
+
+struct network_payload {
+  unsigned long keyword;
+  unsigned long counter;
+  unsigned long timing;
+  unsigned long command;
+  unsigned long response;
+  unsigned long data1;
+  unsigned long data2;
+  unsigned long data3;
+};
 
 void setup() {
   Serial.begin(115200);
@@ -61,6 +88,8 @@ void setup() {
   //pinMode(SW_PIN, INPUT); // this toggles too much
   pinMode(SW_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(SW_PIN), joyButton, FALLING);
+
+  printf_begin();
 }
  
 unsigned long receiveTimer = 0;
@@ -98,12 +127,12 @@ void transmitRFnetwork(bool fresh){
   if ((fresh)||(currentmilli - sendingTimer > 5000)){
     sendingTimer = currentmilli;
 
-    network_payload Txdata;
+    joystick_payload Txdata;
     Txdata.keyword = keywordvalM;
-    Txdata.timing = 10; //currentmilli;
-    Txdata.xvalue = 11; //xValue;
-    Txdata.yvalue = 12; //yValue;
-    Txdata.bvalue = 13; //bValue;
+    Txdata.timing = currentmilli;
+    Txdata.xvalue = xValue;
+    Txdata.yvalue = yValue;
+    Txdata.bvalue = bValue;
     RF24NetworkHeader header0(node00, 'J'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
@@ -117,15 +146,23 @@ void transmitRFnetwork(bool fresh){
       Serial.print(F("Message not send "));
     }
     Serial.println(currentmilli);
-    // print data using &Txdata, sizeof(Txdata)
-    Serial.println((char*)&Txdata);
-    Serial.println(F("--:"));
-    for(int i = 0; i < sizeof(Txdata); i++)
-    {
-      Serial.print(((char*)&Txdata)[i]);
-      //printf("%02x ",((char*)&p1)[i]);
-    }
-    Serial.println(F("<--"));
+    // // print data using &Txdata, sizeof(Txdata)
+    // //Serial.println((char*)&Txdata);
+    // Serial.println(F("--:"));
+    // char buff[3] = "";
+    // uint8_t* ptr = (uint8_t*)&Txdata;
+    // for (size_t i = 0; i < sizeof(Txdata); i++)
+    // {
+    //   printf(buff, "%02x", (*(ptr + i)));
+    //   Serial.print(buff);
+    // }
+    // // for(int i = 0; i < sizeof(Txdata); i++)
+    // // {
+    // //   char byteval = ((char*)&Txdata)[i];
+    // //   printf(buff, "%02X", (uint8_t)byteval);
+    // //   Serial.print(buff);
+    // // }
+    // Serial.println(F("<--"));
   }
 }
 
@@ -183,6 +220,10 @@ void loop() {
   //************************ sensors ****************//
 
   transmitRFnetwork(newdata);
+  if (bValue < 1){
+    newdata = false;
+    bValue++;
+  }
   newdata = false;
 
   //delay(500); // for debugging, this can be removed in practice
