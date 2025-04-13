@@ -193,7 +193,7 @@ void setup() {
   displaystatus = setDisplay(DisplayState::Dim);
   display.clearDisplay();
   display.setFont(&font_16_pix);
-  display.setTextSize(1); // 3 lines of 10-12 chars
+  display.setTextSize(1); // 4 lines of 13-16 chars
   display.setTextColor(SH110X_WHITE);
   display.setTextWrap(false);
   display.display();
@@ -343,36 +343,37 @@ void loop() {
         // Serial.println(F("<--"));
         break;
       // Display the incoming millis() values from sensor nodes
-      case 'M': 
-        payload_from_slave payload;
-        network.read(header, &payload, sizeof(payload));
-        Serial.print(F("Received from Slave nodeId: "));
-        Serial.print(payload.nodeId);
-        Serial.print(F(", timing: "));
-        Serial.println(payload.timing);
-        if (payload.keyword == keywordvalS) {
-          if(payload.nodeId == 1){
-            Serial.print(F("presence: "));
-            Serial.print(payload.detection);
-            String distanceString = "Dist.: ";
-            distanceString += payload.distance;
-            distanceString += " cm";
-            Serial.print(F(", "));
-            Serial.println(distanceString);
+
+      // case 'M': 
+      //   payload_from_slave payload;
+      //   network.read(header, &payload, sizeof(payload));
+      //   Serial.print(F("Received from Slave nodeId: "));
+      //   Serial.print(payload.nodeId);
+      //   Serial.print(F(", timing: "));
+      //   Serial.println(payload.timing);
+      //   if (payload.keyword == keywordvalS) {
+      //     if(payload.nodeId == 1){
+      //       Serial.print(F("presence: "));
+      //       Serial.print(payload.detection);
+      //       String distanceString = "Dist.: ";
+      //       distanceString += payload.distance;
+      //       distanceString += " cm";
+      //       Serial.print(F(", "));
+      //       Serial.println(distanceString);
               
-            display_oled(true, 0, dy1, distanceString); 
-            if (payload.detection > 0){
-              display_oled(false, 50, dy3, "O"); 
-            }
-            else{
-              display_oled(false, 20, dy3, "--"); 
-            }  
-          }        
-        }
-        else{
-          Serial.println("Wrong keyword"); 
-        }
-        break;
+      //       display_oled(true, 0, dy1, distanceString); 
+      //       if (payload.detection > 0){
+      //         display_oled(false, 50, dy3, "O"); 
+      //       }
+      //       else{
+      //         display_oled(false, 20, dy3, "--"); 
+      //       }  
+      //     }        
+      //   }
+      //   else{
+      //     Serial.println("Wrong keyword"); 
+      //   }
+      //   break;
       default: 
         network.read(header, 0, 0);
         Serial.print(F("TBD header.type: "));

@@ -123,13 +123,13 @@ void transmitRFnetwork(bool fresh){
   static bool w_ok;
 
   // Every 5 seconds, or on new data
-  unsigned long currentmilli = millis();
-  if ((fresh)||(currentmilli - sendingTimer > 5000)){
-    sendingTimer = currentmilli;
+  unsigned long currentRFmilli = millis();
+  if ((fresh)||(currentRFmilli - sendingTimer > 5000)){
+    sendingTimer = currentRFmilli;
 
     joystick_payload Txdata;
     Txdata.keyword = keywordvalM;
-    Txdata.timing = currentmilli;
+    Txdata.timing = currentRFmilli;
     Txdata.xvalue = xValue;
     Txdata.yvalue = yValue;
     Txdata.bvalue = bValue;
@@ -145,7 +145,7 @@ void transmitRFnetwork(bool fresh){
     else{
       Serial.print(F("Message not send "));
     }
-    Serial.println(currentmilli);
+    Serial.println(currentRFmilli);
     // // print data using &Txdata, sizeof(Txdata)
     // //Serial.println((char*)&Txdata);
     // Serial.println(F("--:"));
