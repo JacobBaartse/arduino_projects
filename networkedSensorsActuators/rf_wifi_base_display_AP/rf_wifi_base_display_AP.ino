@@ -331,7 +331,7 @@ void loop() {
           clear_display();
         }
 
-        display_oled(true, xpos, ypos, "o"); 
+        display_oled(false, xpos, ypos, "o"); 
 
         //Serial.println((char*)&jpayload);
         // Serial.println(F("--:"));
