@@ -20,7 +20,7 @@ unsigned int remx = 0;
 unsigned int remy = 0;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(7, 8); // nRF24L01 (CE, CSN)
+RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t node01 = 01; // Address of this node in Octal format (04, 031, etc.)
@@ -199,7 +199,7 @@ void loop() {
   //   Serial.print(F(", dY: "));
   //   Serial.println(divY);
   // }
-  if ((divY > 2)||(divX > 2)){
+  if ((divY > 4)||(divX > 4)){
     Serial.println(F("----"));  
     Serial.print(F("X: "));
     Serial.print(xValue);
