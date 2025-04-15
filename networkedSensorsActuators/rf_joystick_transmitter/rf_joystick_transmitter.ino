@@ -13,11 +13,11 @@
 #define VRY_PIN  A0 // Arduino pin connected to VRY pin
 #define SW_PIN   2  // Arduino pin connected to SW  pin, supporting interrupts
 
-unsigned int xValue = 0; // To store value of the X axis
-unsigned int yValue = 0; // To store value of the Y axis
-unsigned int bValue = 0; // To store value of the button
-unsigned int remx = 0;
-unsigned int remy = 0;
+uint16_t xValue = 0; // To store value of the X axis
+uint16_t yValue = 0; // To store value of the Y axis
+uint8_t bValue = 0; // To store value of the button
+uint16_t remx = 0;
+uint16_t remy = 0;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
@@ -29,29 +29,14 @@ const uint16_t node00 = 00; // Address of the other node in Octal format
 unsigned long const keywordvalM = 0xfeedbeef; 
 unsigned long const keywordvalS = 0xbeeffeed; 
 
-// typedef struct {
-//   unsigned long keyword;
-//   unsigned long timing;
-//   unsigned int xvalue;
-//   unsigned int yvalue;
-//   unsigned int bvalue;
-// } joystick_payload;
-
-// struct joystick_payload{
-//   unsigned long keyword;
-//   unsigned long timing;
-//   unsigned int xvalue;
-//   unsigned int yvalue;
-//   unsigned int bvalue;
-// };
-
 struct joystick_payload{
-  unsigned long keyword;
-  unsigned long timing;
-  unsigned long xvalue;
-  unsigned long yvalue;
-  unsigned long bvalue;
+  uint32_t keyword;
+  uint32_t timing;
+  uint16_t xvalue;
+  uint16_t yvalue;
+  uint8_t bvalue;
 };
+
 
 struct network_payload {
   unsigned long keyword;
@@ -140,10 +125,12 @@ void transmitRFnetwork(bool fresh){
       w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     }
     if (w_ok){
-      Serial.print(F("Message send "));  
+      Serial.print(F("Message send ")); 
+      bValue = 0; 
     }    
     else{
       Serial.print(F("Message not send "));
+      if(!fresh) bValue = 0; // clear button status always after 5 seconds
     }
     Serial.println(currentRFmilli);
     // // print data using &Txdata, sizeof(Txdata)
@@ -220,10 +207,6 @@ void loop() {
   //************************ sensors ****************//
 
   transmitRFnetwork(newdata);
-  if (bValue < 1){
-    newdata = false;
-    bValue++;
-  }
   newdata = false;
 
   //delay(500); // for debugging, this can be removed in practice
@@ -242,8 +225,7 @@ void joyButton(){
     Serial.print(counter);
     Serial.print(F(": "));
     buttonstate = digitalRead(SW_PIN);
-    if (buttonstate == HIGH) bValue = 0; // button not pressed
-    else bValue = 0xfedc; // button pressed
+    if (buttonstate == LOW) bValue = 0xfe; // button pressed
     Serial.println(bValue);
     newdata = true;
   }

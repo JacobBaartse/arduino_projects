@@ -77,14 +77,13 @@ struct payload_from_slave {
 // } joystick_payload; // payload_from_joystick;
 
 // Payload from/for joystick
-typedef struct {
-  unsigned long keyword;
-  unsigned long timing;
-  unsigned long xvalue;
-  unsigned long yvalue;
-  unsigned long bvalue;
-} joystick_payload; // payload_from_joystick;
-
+struct joystick_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint16_t xvalue;
+  uint16_t yvalue;
+  uint8_t bvalue;
+};
 
 unsigned long displayTimer = 0;
 uint32_t counter = 0;
@@ -292,8 +291,8 @@ unsigned long acounter = 0;
 unsigned long remacounter = 0;
 bool sendDirect = false;
 unsigned long looptiming = 0;
-int xpos = 0;
-int ypos = 0;
+uint16_t xpos = 0;
+uint16_t ypos = 0;
 
 void loop() {
 
