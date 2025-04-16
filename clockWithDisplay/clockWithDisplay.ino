@@ -59,8 +59,9 @@ void loop () {
   // Serial.println("d");
 
   String the_time = "";
-  if (now.hour()<10) the_time += String(" ");
-  the_time += String(now.hour()+2);
+  int hour = (now.hour() +2 ) % 24;
+  if ( hour < 10) the_time += String(" ");
+  the_time += String(hour);
   the_time += String(":") ;
   if (now.minute()<10) the_time += String("0");
   the_time += String(now.minute());
