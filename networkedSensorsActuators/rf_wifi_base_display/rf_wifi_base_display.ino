@@ -24,6 +24,8 @@ IPAddress IPhere;
 
 void setup() {
   Serial.begin(115200);
+  Serial.println(F("Starting up UNO R4 WiFi"));
+  Serial.flush();
   Serial.print(__FILE__);
   Serial.print(F(" networkedSensorsActuators/rf_wifi_base_display, creation/build time: "));
   Serial.println(__TIMESTAMP__);
@@ -35,13 +37,10 @@ void setup() {
   radio.begin();
   radio.setPALevel(RF24_PA_MIN, 0); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   network.begin(radioChannel, base_node); // (channel, node address)
-  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
 
   //pinMode(TFT_BL, OUTPUT);
   //tft_off();
-
-  Serial.println(F("Starting up UNO R4 WiFi"));
-  Serial.flush();
 
   // String fv = WiFi.firmwareVersion();
   // if (fv < WIFI_FIRMWARE_LATEST_VERSION){

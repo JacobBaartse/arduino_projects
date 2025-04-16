@@ -2,6 +2,11 @@
  * 
  */
 
+#include <RF24Network.h>
+#include <RF24.h>
+#include "WiFiS3.h"
+#include "networkdata.h"
+
 int initWiFi(char* pssid, char* ppass, int timeout=10000) {
   long endTime = millis() + timeout;
   int WiFistatus = WL_IDLE_STATUS;
@@ -15,6 +20,23 @@ int initWiFi(char* pssid, char* ppass, int timeout=10000) {
   // Serial.println(" !");
   return WiFistatus;
 } 
+
+IPAddress printWiFiStatus() {
+  // print the SSID of the network you're hosting (Access Point mode)
+  Serial.print("SSID: ");
+  Serial.print(WiFi.SSID());
+
+  // print your AP IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print(", IP address: ");
+  Serial.print(ip);
+
+  // print where to go in a browser:
+  Serial.print(", browse to http://");
+  Serial.println(ip);
+  
+  return ip;
+}
 
 unsigned int connection = 0;
 
@@ -157,15 +179,17 @@ int WifiConnect(){
 
 //===== Radio =====//
 
-const uint16_t base_node = 00;   // Address of this node in Octal format (04, 031, etc.)
-const uint16_t node01 = 01;      // Address of the repeater node in Octal format
+const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
+const uint16_t node01 = 01;      // Address of the other node in Octal format
 
-RF24 radio(8, 7);                // nRF24L01 (CE, CSN)
-RF24Network network(radio);      // Include the radio in the network
+/**** Configure the nrf24l01 CE and CSN pins ****/
+// for the UNO/NANO with external RF24 module:
+RF24 radio(7, 8); // nRF24L01 (CE, CSN)
+RF24Network network(radio); // Include the radio in the network
 
 const uint16_t wrappingcounter = 255;
 
-unsigned long const keywordval = 0xabcdfedc; 
+unsigned long const keywordval= 0xabcdfedc; 
 unsigned long const command_none = 0x00; 
 unsigned long const command_clear_counters = 0x01; 
 unsigned long const command_status = 0x02; 
@@ -184,8 +208,8 @@ struct network_payload {
   unsigned long command;
   unsigned long response;
   unsigned long data1;
-  //unsigned long data2;
-  //unsigned long data3;
+  unsigned long data2;
+  unsigned long data3;
 };
 
 unsigned long receivedmsg = 0;
@@ -216,16 +240,12 @@ unsigned long updatecounter(unsigned long countval, unsigned long wrapping=wrapp
 unsigned int receiveRFnetwork(){
   unsigned int reaction = 0;
 
-  //network.update();
-
   while (network.available()) { // Is there any incoming data?
-    Serial.println(F("Receiving on RF network"));
     RF24NetworkHeader header;
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
-    Serial.println(incomingData.keyword, HEX);
-    if (header.from_node != node01) {
-      Serial.print(F("Received unexpected message, from_node: "));
+    if (header.from_node != 1) {
+      Serial.print(F("received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
     }
@@ -262,8 +282,8 @@ unsigned int receiveRFnetwork(){
     if (responsefromremote > response_none) {
       // Serial.print(F("responsefromremote: "));
       // Serial.println(responsefromremote, HEX);
-      unsigned long fails = 1;//incomingData.data2 & 0xffff;
-      unsigned long drops = 2;//(incomingData.data2 >> 16) & 0xffff;
+      unsigned long fails = incomingData.data2 & 0xffff;
+      unsigned long drops = (incomingData.data2 >> 16) & 0xffff;
       unsigned long rsend = incomingData.data1;
       unsigned long rcoll = incomingData.response;
       Serial.print(F("Remote network messages "));
@@ -278,8 +298,6 @@ unsigned int receiveRFnetwork(){
       Serial.println(F("-"));  
       responsefromremote = response_none;
     }
-
-    network.update();
   }
   return reaction;
 }
@@ -294,11 +312,8 @@ unsigned int transmitRFnetwork(unsigned long commandtx){
   if(currentmilli - sendingTimer > 5000) {
     sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header1(node01, 'B'); // Address where the data is going
-    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1};//, data2, data3};
-
-    //network.update();
-
+    RF24NetworkHeader header1(node01); // (Address where the data is going)
+    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1, data2, data3};
     bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {
       Serial.print(F("Retry sending message: "));

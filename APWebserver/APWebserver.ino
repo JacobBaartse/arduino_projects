@@ -91,6 +91,14 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+  Serial.println(F("Starting UNO R4 WiFi"));
+  Serial.flush();
+
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
+
   Serial.println(F("Access Point Web Server"));
   matrix.begin();
 
@@ -103,15 +111,10 @@ void setup() {
     while (true);
   }
 
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the WiFi firmware");
-  }
-
-  String timestamp = __TIMESTAMP__;
-  Serial.print(F("Creation/build time: "));
-  Serial.println(timestamp);
-  Serial.flush(); 
+  // String fv = WiFi.firmwareVersion();
+  // if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
+  //   Serial.println("Please upgrade the WiFi firmware");
+  // }
 
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));

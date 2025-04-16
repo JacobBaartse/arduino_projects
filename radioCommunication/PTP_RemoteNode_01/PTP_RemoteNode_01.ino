@@ -178,10 +178,11 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
 }
 
 RF24 radio(10, 9);               // onboard nRF24L01 (CE, CSN)
-// RF24 radio(8, 7);             // external nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
-const uint16_t this_node = 00;   // Address of our node in Octal format (04, 031, etc.)
-const uint16_t repeaternode = 01;    // Address of the other node in Octal format
+//const uint16_t this_node = 00;   // Address of our node in Octal format (04, 031, etc.)
+//const uint16_t repeaternode = 01;    // Address of the other node in Octal format
+const uint16_t this_node = 01;   // Address of our node in Octal format (04, 031, etc.)
+const uint16_t repeaternode = 00;    // Address of the other node in Octal format
 const uint16_t wrappingcounter = 255;
 
 unsigned long const keywordval = 0xabcdfedc; 
@@ -223,12 +224,13 @@ void setup() {
 
   SPI.begin();
   radio.begin();
-  radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  //radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
   //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
-  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-  radio.setChannel(102);
-  radio.setAutoAck(true);
-  radio.enableDynamicPayloads();  
+  //radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
+  radio.setChannel(100);////
+  // radio.setAutoAck(true);
+  // radio.enableDynamicPayloads();  
   network.begin(this_node); // (channel, node address)
 
   Serial.println(F("\n ******"));  
@@ -289,8 +291,6 @@ LEDState RedIndication = LEDState::LEDOff;
 
 void loop() {
   
-  network.update();
-
   currentMillis = millis();   // capture the value of millis() only once in the loop
 
   GreenIndication = greenledprocessing(currentMillis, buttonGreenPressed);
@@ -303,6 +303,8 @@ void loop() {
     messageStatus(0);
     printstatus = false;
   }
+
+  network.update();
 
   //===== Receiving =====//
   while (network.available()) { // any incoming data?
@@ -347,6 +349,9 @@ void loop() {
     if (receivedcommand > command_none) {
       commandfrombase = receivedcommand;
     }
+
+    network.update();
+
   }
 
   //===== Sending =====//
@@ -355,7 +360,7 @@ void loop() {
   if(currentmilli - sendingTimer > 15000) {
     sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader headerR(repeaternode); // address where the data is going
+    RF24NetworkHeader headerR(repeaternode, "E"); // address where the data is going
 
     if (commandfrombase > command_none) {
       if ((commandfrombase & command_clear_counters) > 0) {

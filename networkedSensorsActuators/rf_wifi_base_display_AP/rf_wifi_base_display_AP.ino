@@ -8,13 +8,15 @@
 #include "RTC.h"
 #include "clock.h"
 
+#include "RF24Network.h"
 #include "RF24.h"
 #include <SPI.h>
 
 #include <Wire.h>
-//#include <Adafruit_GFX.h> // already included from font file
-#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+#include <Adafruit_GFX.h> // already included from font file
+#include "font_16pix_high.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
+#include "printf.h"
 
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -31,18 +33,19 @@ enum DisplayState {
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-#define radioChannel 96
-/** User Configuration per 'slave' node: nodeID **/
-// #define slavenodeID 3
-// #define masterNodeID 0
+#define radioChannel 106
 
 #define LEDpin1 4
 #define LEDpin2 5
 #define LEDpin3 6
 
+int status = WL_IDLE_STATUS;
+
 WiFiServer server(80);
 IPAddress IPhere;
 
+char ssid[] = "UNO_R4_AP_RF"; // your network SSID (name)
+uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
 
 unsigned long const keywordvalM = 0xfeebbeef; 
 unsigned long const keywordvalS = 0xbeeffeeb; 
@@ -64,23 +67,34 @@ struct payload_from_slave {
   uint8_t distance;
 };
  
+// // Payload from/for joystick
+// typedef struct {
+//   unsigned long keyword;
+//   unsigned long timing;
+//   unsigned int xvalue;
+//   unsigned int yvalue;
+//   unsigned int bvalue;
+// } joystick_payload; // payload_from_joystick;
+
+// Payload from/for joystick
+struct joystick_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint16_t xvalue;
+  uint16_t yvalue;
+  uint8_t bvalue;
+};
+
 unsigned long displayTimer = 0;
 uint32_t counter = 0;
 bool relay1 = false;
 bool relay2 = false;
 bool meshrunning = false;
 
-void restart_arduino(){
-  Serial.println(F("Restart the arduino UNO board..."));
-  delay(2000);
-  NVIC_SystemReset();
-}
-
-// bool meshstartup(){
-//   if (meshrunning){
-//     Serial.println(F("Radio issue, turn up PA level?"));
-//   }
-//   return mesh.begin(radioChannel, RF24_250KBPS);
+// void restart_arduino(){
+//   Serial.println(F("Restart the arduino UNO board..."));
+//   delay(2000);
+//   NVIC_SystemReset();
 // }
 
 void LEDstatustext(bool LEDon, unsigned long count){
@@ -146,17 +160,13 @@ void clear_display(){
   display.display();
 }
 
-// String leftrotate(String str, int d){
-//    String ans = str.substring(d, str.length() - d) + str.substring(0, d);
-//    return ans;
-// }
-
-String Line1 = "Welcome \x81"; 
-String Line2 = "Demo \x81{characters} \x81"; 
-String Line3 = "Whats \x81 up?";  
+String Line1 = "Welcome George"; 
+String Line2 = "Demo for RF24"; 
+String Line3 = "Whats up?";  
+String Line4 = "Lets go!";  
 
 int prevx, x, minX;
-int dy1, dy2, dy3, minY;
+int dy1, dy2, dy3, dy4, minY;
 bool oncecompleted = false;
 
 void setup() {
@@ -169,110 +179,213 @@ void setup() {
   while (!Serial) {
     // some boards need this because of native USB capability
   }
+  delay(1000);
+  Serial.println(F("Starting UNO R4 WiFi"));
+  Serial.flush();
 
+  Serial.print(__FILE__);
+  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
+  
   display.begin(i2c_Address, true); // Address 0x3C default
   displaystatus = setDisplay(DisplayState::Dim);
   display.clearDisplay();
-  display.setFont(&FreeSerif12pt7b);
-  display.setTextSize(1); // 3 lines of 10-12 chars
+  display.setFont(&font_16_pix);
+  display.setTextSize(1); // 4 lines of 13-16 chars
   display.setTextColor(SH110X_WHITE);
   display.setTextWrap(false);
   display.display();
 
   x = display.width();
   dy1 = 16;
-  dy2 = 38;
-  dy3 = 60;
+  dy2 = 32;
+  dy3 = 48;
+  dy4 = 64;
   // minX = -128;
   minX = -200; // depends on length of the text
   minY = -22;
 
   display_oled(true, 0, dy1, Line1); 
-  display_oled(false, 2, dy2, Line2); 
-  display_oled(false, 4, dy3, Line3);  
+  display_oled(false, 0, dy2, Line2); 
+  display_oled(false, 0, dy3, Line3);  
+  display_oled(false, 0, dy4, Line4);  
   //display.display();
   prevx = x;
 
-  RTC.begin();
+  //RTC.begin();
   matrix.begin();
   SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware not responding."));
-    while (1) {
+    while (true) {
       // hold in an infinite loop
     }
   }
   radio.setPALevel(RF24_PA_MIN, 0);
-  radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
-  radio.enableAckPayload();
-  radio.setRetries(5,5); // delay, count
-  // 5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload
-  radio.openWritingPipe(slaveAddress);
+  radio.setDataRate(RF24_1MBPS); 
+  network.begin(radioChannel, this_node);
 
   digitalWrite(LEDpin1, HIGH);
-  Serial.println(F("Starting UNO R4 WiFi"));
-  Serial.flush();
 
-  String timestamp = __TIMESTAMP__;
-  Serial.print(F("Creation/build time: "));
-  Serial.println(timestamp);
-  Serial.flush(); 
+  // String fv = WiFi.firmwareVersion();
+  // if (fv < WIFI_FIRMWARE_LATEST_VERSION){
+  //   Serial.println(F("Please upgrade the firmware for the WiFi module"));
+  // }
 
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION){
-    Serial.println(F("Please upgrade the firmware for the WiFi module"));
+  // print the network name (SSID);
+  Serial.print(F("Creating access point named: "));
+  Serial.println(ssid);
+
+  // by default the local IP address will be 192.168.4.1
+  // you can override it with the following:
+  WiFi.config(IPAddress(192,168,12,3));
+  // Create open network. Change this line if you want to create an WEP network:
+  //status = WiFi.beginAP(ssid, pass);
+  //status = WiFi.beginAP(ssid); // no password needed
+  status = WiFi.beginAP(ssid, WiFichannel);
+  if (status != WL_AP_LISTENING) {
+    Serial.println("Creating access point failed");
+    // don't continue
+    while (true);
   }
 
-  // attempt to connect to WiFi network:
-  int wifistatus = WifiConnect();
-  if (wifistatus == WL_CONNECTED){
-    server.begin();
-    IPhere = printWifiStatus(connection);
-  }
-  else{ // stop the wifi connection
-    WiFi.disconnect();
-  }
+  // wait 10 seconds for connection:
+  delay(10000);
+  // start the web server on port 80
+  server.begin();
+  // you're connected now, so print out the status
+  IPhere = printWiFiStatus();
+
+  Serial.println(F("Created access point available"));
+
   startupscrollingtext(String("-->: ") + IPhere.toString());
 
-  Serial.println(F("\nStart connection to time reference"));
-  get_time_from_hsdesign();
+  //Serial.println(F("\nStart connection to time reference"));
+  //get_time_from_hsdesign();
   // Retrieve the date and time from the RTC and print them
-  RTC.getTime(currentTime); 
+  //RTCTime currentTime;
+  //RTC.getTime(currentTime); 
   digitalWrite(LEDpin3, HIGH);
-  Serial.println(F("The RTC was just set to: "));
-  Serial.println(currentTime);
+  //Serial.println(F("The time was just set to: "));
+  //Serial.println(currentTime);
 
-  display.setTextWrap(true);
-  display_oled(true, 0, dy1, currentTime); 
-  delay(1500);
+  // display.setTextWrap(true);
+  // display_oled(true, 0, dy1, currentTime); 
+  // delay(1500);
 
-  Serial.println();  
-  Serial.println(F(" ***************"));  
-  Serial.println();  
+  Serial.println(F("\n ***************\n"));  
   Serial.flush(); 
 
+  display_oled(true, 0, dy2, IPhere.toString());
   display.setTextWrap(false);
-  clear_display();
+  //clear_display();
+
+  printf_begin();
 }
  
-unsigned int mesherror = 0;
-uint8_t meshupdaterc = 0;
-uint8_t rem_meshupdaterc = 200;
-
 WiFiClient client;
 char c = '\n';
 String currentLine = "";
 unsigned long acounter = 0;
 unsigned long remacounter = 0;
 bool sendDirect = false;
+unsigned long looptiming = 0;
+uint16_t xpos = 0;
+uint16_t ypos = 0;
 
 void loop() {
 
-  transmitRFnetwork();
+  looptiming = millis();
+
+  network.update();
+ 
+  // Check for incoming data from the sensors
+  while (network.available()) {
+    RF24NetworkHeader header;
+    network.peek(header);
+  
+    switch(header.type) {
+      case 'J': // Message received from Joystick 
+        Serial.print(F("Message received from Joystick: "));
+        joystick_payload jpayload;
+        network.read(header, &jpayload, sizeof(jpayload));
+        Serial.println(looptiming);
+
+        // Serial.print(F("Keyword: 0x"));
+        // Serial.print(jpayload.keyword, HEX);
+        // Serial.print(F(", timing: "));
+        // Serial.print(jpayload.timing);
+        Serial.print(F("xvalue: "));
+        Serial.print(jpayload.xvalue);
+        Serial.print(F(", yvalue: "));
+        Serial.print(jpayload.yvalue);
+        Serial.print(F(", bvalue: "));
+        Serial.println(jpayload.bvalue);
+
+        xpos = map(jpayload.xvalue, 0, 1023, 0, 110);
+        ypos = map(jpayload.yvalue, 0, 1023, 10, 64);
+        if (jpayload.bvalue > 10){
+          Serial.print(F("clear_display"));
+          clear_display();
+        }
+
+        display_oled(false, xpos, ypos, "o"); 
+
+        //Serial.println((char*)&jpayload);
+        // Serial.println(F("--:"));
+        // for(int i = 0; i < sizeof(jpayload); i++)
+        // {
+        //   //Serial.print(((char*)&jpayload)[i]);
+        //   Serial.printf("%02x ",((char*)&jpayload)[i]);
+        // }
+        // Serial.println(F("<--"));
+        break;
+      // Display the incoming millis() values from sensor nodes
+
+      // case 'M': 
+      //   payload_from_slave payload;
+      //   network.read(header, &payload, sizeof(payload));
+      //   Serial.print(F("Received from Slave nodeId: "));
+      //   Serial.print(payload.nodeId);
+      //   Serial.print(F(", timing: "));
+      //   Serial.println(payload.timing);
+      //   if (payload.keyword == keywordvalS) {
+      //     if(payload.nodeId == 1){
+      //       Serial.print(F("presence: "));
+      //       Serial.print(payload.detection);
+      //       String distanceString = "Dist.: ";
+      //       distanceString += payload.distance;
+      //       distanceString += " cm";
+      //       Serial.print(F(", "));
+      //       Serial.println(distanceString);
+              
+      //       display_oled(true, 0, dy1, distanceString); 
+      //       if (payload.detection > 0){
+      //         display_oled(false, 50, dy3, "O"); 
+      //       }
+      //       else{
+      //         display_oled(false, 20, dy3, "--"); 
+      //       }  
+      //     }        
+      //   }
+      //   else{
+      //     Serial.println("Wrong keyword"); 
+      //   }
+      //   break;
+      default: 
+        network.read(header, 0, 0);
+        Serial.print(F("TBD header.type: "));
+        Serial.println(header.type);
+    }
+
+  }
+  // end of while network.available
 
   client = server.available();   // listen for incoming clients
+
   if (client) {                             // if you get a client,
-    Serial.println(F("new client"));        // print a message out the serial port
+    Serial.println(F("reading from client"));        // print a message out the serial port
     currentLine = "";                       // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
@@ -299,10 +412,10 @@ void loop() {
             client.print(F("<TR><TD>2</TD><TD><a href=\"/2H\">ON</a></TD><TD><a href=\"/2L\">off</a></TD></TR>"));
             client.print(F("<TR><TD>3</TD><TD><a href=\"/3H\">ON</a></TD><TD><a href=\"/3L\">off</a></TD></TR>"));
 
-            client.print(F("</TABLE><TABLE><TR><TH colspan=3><a href=\"/Z\">RELAYs</a></TH></TR>"));
-            client.print(F("<TR><TD>1</TD><TD><a href=\"/1R\">ON</a></TD><TD><a href=\"/1K\">off</a></TD></TR>"));
-            client.print(F("<TR><TD>2</TD><TD><a href=\"/2R\">ON</a></TD><TD><a href=\"/2K\">off</a></TD></TR>"));
-            client.print(F("</TABLE></BODY></HTML>"));
+            // client.print(F("</TABLE><TABLE><TR><TH colspan=3><a href=\"/Z\">RELAYs</a></TH></TR>"));
+            // client.print(F("<TR><TD>1</TD><TD><a href=\"/1R\">ON</a></TD><TD><a href=\"/1K\">off</a></TD></TR>"));
+            // client.print(F("<TR><TD>2</TD><TD><a href=\"/2R\">ON</a></TD><TD><a href=\"/2K\">off</a></TD></TR>"));
+            // client.print(F("</TABLE></BODY></HTML>"));
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -402,25 +515,5 @@ void loop() {
     //delay(1000); // make sure the disconnection is detected
   
   }
-
-  // RTC.getTime(currentTime); 
-  // //currentTime = RTC.getTmTime(); 
-  // //Serial.println(&currentTime, "%H:%M:%S");
-  // // struct tm timeinfo;
-  // // getLocalTime(&timeinfo);
-  // Serial.print(currentTime.getHour(), DEC);
-  // Serial.print(':');
-  // Serial.print(currentTime.getMinutes(), DEC);
-  // Serial.print(':');
-  // Serial.println(currentTime.getSeconds(), DEC);
-  // RTCDateTime dt = RTC.getDateTime();
-  // Serial.println(CurrentTime(dt.hour,dt.minute));
-
-  // char output_time [9];
-  // strftime(output_time, sizeof(output_time), "%H:%M:%S", currentTime);
-  //String TimeMoment = String(&currentTime, "%H:%M:%S");
-  //display_oled(true, 0, dy1, output_time); 
-  float tempval = (float)((millis() % 1000000) / 1000);
-  display_oled(true, 4, dy3, String(tempval, 3) + " s");
 
 }

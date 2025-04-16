@@ -21,7 +21,7 @@ net_payload DataForNW1 = {0xab000001, 1, 1, 1, 1, 1};//, 1, 1};
 net_payload DataForNW2 = {0xab000002, 2, 2, 2, 2, 2};//, 2, 2};
 
 //===== Receiving Radio =====//
-net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
+net_payload receiveRFnetwork(RF24Network& netw, uint16_t from_node, uint8_t id){
   net_payload returnData = EmptyData;
 
   netw.update();
@@ -47,13 +47,16 @@ net_payload receiveRFnetwork(RF24Network netw, uint16_t from_node, uint8_t id){
   return returnData;
 }
 
+char mtypeval[] = {"012"};
+
 //===== Sending radio =====//
-bool transmitRFnetwork(RF24Network netw, uint16_t to_node, net_payload senddata, uint8_t id){
+bool transmitRFnetwork(RF24Network& netw, uint16_t to_node, net_payload senddata, uint8_t id){
   bool ok = false;
 
   //netw.update();
   
-  RF24NetworkHeader header(to_node); // Address where the data is going
+  char messageType = mtypeval[id];
+  RF24NetworkHeader header(to_node, messageType); // Address where the data is going
   ok = netw.write(header, &senddata, sizeof(senddata)); // Send the data
   if (ok) {
     Serial.print(F("Send nw: "));
