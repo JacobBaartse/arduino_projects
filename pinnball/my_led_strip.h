@@ -51,30 +51,52 @@ void SetupTotallyRandomPalette();
 void SetupBlackAndWhiteStripedPalette();
 
 
+void score_onleds(bool left1hit, bool left2hit, bool left3hit){
+    // Serial.print("Show leds score");
+    FastLED.clear();
+    if (left3hit) {  leds[8] = CRGB::Green;  leds[9] = CRGB::Green;}
+    if (left2hit) { leds[10] = CRGB::Red; leds[11] = CRGB::Red;}
+    if (left1hit) { leds[12] = CRGB::Blue; leds[13] = CRGB::Blue;}
+    FastLED.show();
+}
+
 void ledstrip_setup() {
-    delay( 1000 ); // power-up safety delay
+
+    // delay( 3000 ); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(  BRIGHTNESS );
-    
+    FastLED.clear();
+    FastLED.show();
+
     currentPalette = RainbowColors_p;
     currentBlending = LINEARBLEND;
 }
 
-
-void show_leds_reandom()
+void show_leds_rainbow()
 {
-    ChangePaletteRandom();
+    currentPalette = RainbowStripeColors_p;   
+    currentBlending = LINEARBLEND;
+    FillLEDsFromPaletteColors( 0 );
+    FastLED.show();
+}
 
-    static uint8_t startIndex = 0;
-    startIndex = startIndex + 1; /* motion speed */
-    
-    FillLEDsFromPaletteColors( startIndex);
-    
-    FastLED.show();
-    FastLED.delay(1000 / UPDATES_PER_SECOND);
-    delay(1000);
-    FastLED.clear();
-    FastLED.show();
+
+void show_leds_reandom(int count, bool clear)
+{
+    for (int i=0; i<count; i++)
+    {
+        ChangePaletteRandom();
+        
+        FillLEDsFromPaletteColors( 0 );
+        FastLED.show();
+
+        // FastLED.delay(1000 / UPDATES_PER_SECOND);
+        delay(100);
+    }
+    if (clear){
+        FastLED.clear();
+        FastLED.show();
+    }
 }
 
 void FillLEDsFromPaletteColors( uint8_t colorIndex)
@@ -181,6 +203,16 @@ const TProgmemPalette16 myRedWhiteBluePalette_p FL_PROGMEM =
     CRGB::Black
 };
 
+
+void blink_leds(bool left1hit, bool left2hit, bool left3hit){
+    for (int i=0; i<5; i++){
+      score_onleds(left1hit, left2hit, left3hit);
+      delay(50);
+      FastLED.clear();
+      FastLED.show();
+      delay(50);
+    }
+}
 
 
 // Additional notes on FastLED compact palettes:
