@@ -7,7 +7,7 @@
 #include <SPI.h>
 
 #include <Wire.h>
-//#include <Adafruit_GFX.h> // already included from font file
+#include <Adafruit_GFX.h> // already included from font file
 //#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
 
@@ -19,12 +19,12 @@ enum DisplayState {
 
 // #########################################################
 
-#define radioChannel 106
+#define radioChannel 100
 /** User Configuration per 'slave' node: nodeID **/
 // #define slaveNodeID 5
 // #define masterNodeID 0
 
-const uint16_t node01 = 01;   // Address of this node in Octal format (04, 031, etc.)
+const uint16_t node01 = 02;   // Address of this node in Octal format (04, 031, etc.)
 const uint16_t node00 = 00;   // Address of the other node in Octal format
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -82,7 +82,7 @@ void clear_display(){
 
 // #########################################################
 
-String Line1 = "Welcome a"; 
+String Line1 = "Welcome George!"; 
 String Line2 = "Demo B"; 
 String Line3 = "Whats c up?"; 
 
@@ -92,19 +92,25 @@ char dataToSend[10] = "Sender1 0";
 char rxNum = '0';
 
 void setup() {
-  // Serial.begin(115200);
-  // Serial.println(F(" ***************"));  
-
-  //SPI.begin();
+  Serial.begin(115200);
+  Serial.println();
+  Serial.flush(); 
+  Serial.println(__TIMESTAMP__);
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
+  
+  SPI.begin();
   if (!radio.begin()){
-    //Serial.println(F("Radio hardware error."));
+    Serial.println(F("Radio hardware error."));
     while (1) {
       // hold in an infinite loop
     }
   }
   radio.setPALevel(RF24_PA_MIN, 0);
   //Serial.println("SimpleRxAckPayload Starting");
-  radio.setDataRate( RF24_250KBPS );
+  radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, node01);
 
   //Wire.begin();

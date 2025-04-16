@@ -160,7 +160,7 @@ void clear_display(){
   display.display();
 }
 
-String Line1 = "Welcome George"; 
+String Line1 = "Welcome George!"; 
 String Line2 = "Demo for RF24"; 
 String Line3 = "Whats up?";  
 String Line4 = "Lets go!";  
@@ -293,6 +293,7 @@ bool sendDirect = false;
 unsigned long looptiming = 0;
 uint16_t xpos = 0;
 uint16_t ypos = 0;
+bool continuousclear = false;
 
 void loop() {
 
@@ -328,9 +329,10 @@ void loop() {
         if (jpayload.bvalue > 10){
           Serial.print(F("clear_display"));
           clear_display();
+          continuousclear = !continuousclear;
         }
 
-        display_oled(false, xpos, ypos, "o"); 
+        display_oled(continuousclear, xpos, ypos, "o"); 
 
         //Serial.println((char*)&jpayload);
         // Serial.println(F("--:"));

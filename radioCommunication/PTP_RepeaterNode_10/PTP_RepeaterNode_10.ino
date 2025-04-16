@@ -44,7 +44,7 @@ void setup() {
   //radio1.setChannel(100);
   // radio1.setAutoAck(true);                                              
   // radio1.enableDynamicPayloads();  
-  network1.begin(100, repeater_node); 
+  network1.begin(110, repeater_node); 
 
   radio2.begin();
   radio2.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
@@ -53,7 +53,7 @@ void setup() {
   //radio2.setChannel(102);
   // radio2.setAutoAck(true);                                              
   // radio2.enableDynamicPayloads(); 
-  network2.begin(102, repeater_node); 
+  network2.begin(100, repeater_node); 
 
   Serial.println(F("\n ******"));  
   Serial.println(); 
