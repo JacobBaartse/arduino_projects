@@ -5,17 +5,21 @@
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
-#include "printf.h"
+//#include "printf.h"
 
 #define radioChannel 106
 
 #define VRX_PIN  A1 // Arduino pin connected to VRX pin
 #define VRY_PIN  A0 // Arduino pin connected to VRY pin
 #define SW_PIN   2  // Arduino pin connected to SW  pin, supporting interrupts
+#define SW_PIN1  4  // Arduino pin connected to button 1
+#define SW_PIN2  6  // Arduino pin connected to button 2
 
 uint16_t xValue = 0; // To store value of the X axis
 uint16_t yValue = 0; // To store value of the Y axis
 uint8_t bValue = 0; // To store value of the button
+uint8_t sw1Value = 0; // To store value of switch1
+uint8_t sw2Value = 0; // To store value of switch2
 uint16_t remx = 0;
 uint16_t remy = 0;
 
@@ -35,6 +39,8 @@ struct joystick_payload{
   uint16_t xvalue;
   uint16_t yvalue;
   uint8_t bvalue;
+  uint8_t sw1value;
+  uint8_t sw2value;
 };
 
 
@@ -48,6 +54,48 @@ struct network_payload {
   unsigned long data2;
   unsigned long data3;
 };
+
+uint8_t checkSwitchButton1(uint8_t DigPin){
+  static bool remval = false;
+  static uint8_t b1val = 0;
+
+  bool pressval = (digitalRead(DigPin) == LOW);
+  if (pressval){
+    if (remval){
+      if (b1val < 0xff) b1val++;
+    }
+    else {
+      Serial.println(F(" button 1"));
+      b1val = 100; // debouncing
+    }
+  }
+  else {
+    if (b1val > 0) b1val--;
+  }
+  remval = pressval;
+  return b1val;
+}
+
+uint8_t checkSwitchButton2(uint8_t DigPin){
+  static bool remval = false;
+  static uint8_t b2val = 0;
+
+  bool pressval = (digitalRead(DigPin) == LOW);
+  if (pressval){
+    if (remval){
+      if (b2val < 0xff) b2val++;
+    }
+    else {
+      Serial.println(F(" button 2"));
+      b2val = 100; // debouncing
+    }
+  }
+  else {
+    if (b2val > 0) b2val--;
+  }
+  remval = pressval;
+  return b2val;
+}
 
 void setup() {
   Serial.begin(115200);
@@ -70,11 +118,13 @@ void setup() {
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, node01);
 
-  //pinMode(SW_PIN, INPUT); // this toggles too much
   pinMode(SW_PIN, INPUT_PULLUP);
+  pinMode(SW_PIN1, INPUT_PULLUP);
+  pinMode(SW_PIN2, INPUT_PULLUP);
+
   attachInterrupt(digitalPinToInterrupt(SW_PIN), joyButton, FALLING);
 
-  printf_begin();
+  //printf_begin();
 }
  
 unsigned long receiveTimer = 0;
@@ -109,7 +159,7 @@ void transmitRFnetwork(bool fresh){
 
   // Every 5 seconds, or on new data
   unsigned long currentRFmilli = millis();
-  if ((fresh)||(currentRFmilli - sendingTimer > 5000)){
+  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
     sendingTimer = currentRFmilli;
 
     joystick_payload Txdata;
@@ -118,6 +168,8 @@ void transmitRFnetwork(bool fresh){
     Txdata.xvalue = xValue;
     Txdata.yvalue = yValue;
     Txdata.bvalue = bValue;
+    Txdata.sw1value = sw1Value;
+    Txdata.sw2value = sw2Value;
     RF24NetworkHeader header0(node00, 'J'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
@@ -160,6 +212,9 @@ int divYr = 0;
 bool newdata = false;
 
 void loop() {
+
+  sw1Value = checkSwitchButton1(SW_PIN1);
+  sw2Value = checkSwitchButton2(SW_PIN2);
 
   network.update();
 
@@ -210,23 +265,23 @@ void loop() {
   newdata = false;
 
   //delay(500); // for debugging, this can be removed in practice
-
 }
 
 void joyButton(){
   static unsigned long buttontime = 0;
-  static int buttonstate = HIGH;
-  static int counter = 0;
+  //static int buttonstate = HIGH;
+  static unsigned long counter = 0;
 
-  if (currentmilli - buttontime > 500){ // debounce to one press per second
+  if (currentmilli - buttontime > 500){ // debounce to smaller than one press and processing per second
     buttontime = currentmilli;
     counter++;
-    Serial.print(F("Button pressed "));
-    Serial.print(counter);
-    Serial.print(F(": "));
-    buttonstate = digitalRead(SW_PIN);
-    if (buttonstate == LOW) bValue = 0xfe; // button pressed
-    Serial.println(bValue);
+    Serial.print(F("Button press "));
+    Serial.println(counter);
+    //Serial.print(F(": "));
+    //buttonstate = digitalRead(SW_PIN);
+    //if (buttonstate == LOW) bValue = 0xfe; // button pressed
+    bValue = 0xfe; // button pressed
+    //Serial.println(bValue);
     newdata = true;
   }
 }

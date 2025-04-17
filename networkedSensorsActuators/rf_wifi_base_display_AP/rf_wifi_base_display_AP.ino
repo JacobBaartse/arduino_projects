@@ -83,6 +83,8 @@ struct joystick_payload{
   uint16_t xvalue;
   uint16_t yvalue;
   uint8_t bvalue;
+  uint8_t sw1value;
+  uint8_t sw2value;
 };
 
 unsigned long displayTimer = 0;
@@ -286,6 +288,7 @@ void setup() {
  
 WiFiClient client;
 char c = '\n';
+char displaychar = 'o';
 String currentLine = "";
 unsigned long acounter = 0;
 unsigned long remacounter = 0;
@@ -294,6 +297,7 @@ unsigned long looptiming = 0;
 uint16_t xpos = 0;
 uint16_t ypos = 0;
 bool continuousclear = false;
+unsigned long chartimer = 0;
 
 void loop() {
 
@@ -322,7 +326,11 @@ void loop() {
         Serial.print(F(", yvalue: "));
         Serial.print(jpayload.yvalue);
         Serial.print(F(", bvalue: "));
-        Serial.println(jpayload.bvalue);
+        Serial.print(jpayload.bvalue);
+        Serial.print(F(", sw1value: "));
+        Serial.print(jpayload.sw1value);        
+        Serial.print(F(", sw2value: "));
+        Serial.println(jpayload.sw2value);
 
         xpos = map(jpayload.xvalue, 0, 1023, 0, 110);
         ypos = map(jpayload.yvalue, 0, 1023, 10, 64);
@@ -331,8 +339,20 @@ void loop() {
           clear_display();
           continuousclear = !continuousclear;
         }
+        if (jpayload.sw1value > 0){
+          if (looptiming > chartimer){
+            chartimer = looptiming + 7000;
+            displaychar = '+';
+          }
+        }
+        if (jpayload.sw2value > 0){
+          if (looptiming > chartimer){
+            chartimer = looptiming + 7000;
+            displaychar = '|';
+          }
+        }
 
-        display_oled(continuousclear, xpos, ypos, "o"); 
+        display_oled(continuousclear, xpos, ypos, displaychar); 
 
         //Serial.println((char*)&jpayload);
         // Serial.println(F("--:"));
