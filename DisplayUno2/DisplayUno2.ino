@@ -21,6 +21,9 @@ bool wifiactive = false;
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
+  Serial.println(F("Starting UNO R4 WiFi"));
+  Serial.flush();
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
