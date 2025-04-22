@@ -1,0 +1,2 @@
+ find . -type d|grep -v git|grep -v idea|sort -u|cut -c 3-
+
