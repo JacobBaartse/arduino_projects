@@ -26,6 +26,7 @@ void buzzer_setup()
   cute.init(BUZZER_PIN);
   pinMode(volumePin, OUTPUT);         // stel de volumePin in als uitvoer
   analogWrite(volumePin, volume);     // apply the volume
+  cute.play(1);
 }
 
 void cute_buzzer(int i){
