@@ -45,6 +45,8 @@ WiFiServer server(80);
 IPAddress IPhere;
 
 char ssid[] = "UNO_R4_AP_RF"; // your network SSID (name)
+char pass[] = "TBD PW for UNO_R4_AP_RF"; // your network password
+
 uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
 
 unsigned long const keywordvalM = 0xfeebbeef; 
@@ -237,19 +239,21 @@ void setup() {
 
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
-  Serial.println(ssid);
+  Serial.print(ssid);
+  Serial.print(F(", password: '"));
+  Serial.print(pass);
+  Serial.println(F("'"));
 
   // by default the local IP address will be 192.168.4.1
   // you can override it with the following:
   WiFi.config(IPAddress(192,168,12,3));
   // Create open network. Change this line if you want to create an WEP network:
-  //status = WiFi.beginAP(ssid, pass);
-  //status = WiFi.beginAP(ssid); // no password needed
-  status = WiFi.beginAP(ssid, WiFichannel);
+  status = WiFi.beginAP(ssid, WiFichannel); // no password needed
+  //status = WiFi.beginAP(ssid, pass, WiFichannel); // password required
   if (status != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
     // don't continue
-    while (true);
+    while (true) delay(1000);
   }
 
   // wait 10 seconds for connection:
@@ -288,7 +292,7 @@ void setup() {
  
 WiFiClient client;
 char c = '\n';
-char displaychar = 'o';
+String displaychar = "o";
 String currentLine = "";
 unsigned long acounter = 0;
 unsigned long remacounter = 0;
@@ -342,13 +346,13 @@ void loop() {
         if (jpayload.sw1value > 0){
           if (looptiming > chartimer){
             chartimer = looptiming + 7000;
-            displaychar = '+';
+            displaychar = "_";
           }
         }
         if (jpayload.sw2value > 0){
           if (looptiming > chartimer){
             chartimer = looptiming + 7000;
-            displaychar = '|';
+            displaychar = "|";
           }
         }
 
@@ -539,3 +543,22 @@ void loop() {
   }
 
 }
+
+
+// void PrintString(const char *str) {
+//     const char *p;
+//     p = str;
+//     while (*p) {
+//         Serial.print(*p);
+//         p++;
+//     }
+// }
+
+// void PrintString(const char *str) {
+// const char *p;
+// p = str;
+// while (*p) {
+// Serial.print(*p);
+// p++;
+// }
+// }

@@ -10,7 +10,8 @@
 
 // Include the EEPROM library
 #include <EEPROM.h>
-#include "EEPROMAnything.h"
+//#include "EEPROMAnything.h"
+#include "EEPROMfunctions.h"
 
 #include <Wire.h>
 #include <DS3231.h>
@@ -25,12 +26,12 @@ struct MyObject {
 };
 
 // maybe use a TLV type structure, T: 1 byte, L: 1 byte, V: L bytes 
-// (depending on the tag, the amount of bytes needed for carrieing a value can differ)
-struct tl_t
-{
-  byte tag;
-  byte len;
-} tlv;
+// (depending on the tag, the amount of bytes needed for carrying a value can differ)
+// struct tl_t
+// {
+//   byte tag;
+//   byte len;
+// } tlv;
 
 RTClib myRTC;
 
@@ -78,18 +79,25 @@ void setup () {
   else {
     Serial.println("RTC module EEPROM already contains data");
   }
+  Serial.println();
 
-  int eloc = EEPROM_readAnything(1000, tlv);
-  Serial.print("eloc after 1000: ");
-  Serial.println(eloc);
-  Serial.println(tlv.tag);
-  Serial.println(tlv.len);
-  tlv.tag = 0x12;
-  tlv.len = 33;
+  // int eloc = EEPROM_readAnything(1000, tlv);
+  // Serial.print("eloc after 1000: ");
+  // Serial.println(eloc);
+  // Serial.println(tlv.tag);
+  // Serial.println(tlv.len);
+  // tlv.tag = 0x12;
+  // tlv.len = 33;
+  byte* chararray = ReadBytesEEPROM(1000, 2);
+  // for(int j=0; j < 2; j++)  
+  //   Serial.print(chararray[j], HEX);
+  printchararray(chararray);
 
-  eloc = EEPROM_writeAnything(1000, tlv);
-  Serial.print("eloc after 1000: ");
-  Serial.println(eloc);
+  // eloc = EEPROM_writeAnything(1000, tlv);
+  // Serial.print("eloc after 1000: ");
+  // Serial.println(eloc);
+
+  Serial.println();
 }
 
 void loop() {
