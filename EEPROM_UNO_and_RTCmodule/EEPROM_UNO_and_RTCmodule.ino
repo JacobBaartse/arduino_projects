@@ -23,6 +23,8 @@ struct MyObject {
   char name[50];
 };
 
+// maybe use a TLV type structure, T byte, L byte, V multiple bytes (depending on tag value)
+
 RTClib myRTC;
 
 void setup () {
@@ -45,6 +47,14 @@ void setup () {
   }
   else {
     Serial.println("UNO EEPROM contains already data");
+    MyObject customRead; 
+    EEPROM.read(1, customRead);
+    Serial.print("Data: ");
+    Serial.print(customRead.field1);
+    Serial.print(", ");
+    Serial.print(customRead.field2);
+    Serial.print(", ");
+    Serial.println(customRead.name);
   }
 
   byte readByte = i2c_eeprom_read_byte(RTC_EEPROM_ADDRESS, 0);
@@ -126,7 +136,7 @@ byte i2c_eeprom_read_byte(int deviceAddress, unsigned int eeAddress){
   Wire.write((int)(eeAddress >> 8)); // MSB
   Wire.write((int)(eeAddress & 0xFF)); // LSB
   Wire.endTransmission();
-  Wire.requestFrom(deviceAddress,1);
+  Wire.requestFrom(deviceAddress, 1);
   if (Wire.available()) readData = Wire.read();
   return readData;
 }
