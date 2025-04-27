@@ -61,6 +61,7 @@ uint8_t checkSwitchButton1(uint8_t DigPin){
 
   bool pressval = (digitalRead(DigPin) == LOW);
   if (pressval){
+
     if (remval){
       if (b1val < 0xff) b1val++;
     }
@@ -99,20 +100,17 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
   Serial.println(F(" ***** <> *****"));  
-  Serial.flush();
-
-  Serial.print(__FILE__);
-  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__FILE__);
+  Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
   SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
-    while (true) {
-      // hold in an infinite loop
-    }
+    while (true) delay(1000);
   }
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS);
