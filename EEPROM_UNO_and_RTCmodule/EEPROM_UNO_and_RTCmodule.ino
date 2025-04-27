@@ -92,6 +92,11 @@ void setup () {
   // for(int j=0; j < 2; j++)  
   //   Serial.print(chararray[j], HEX);
   printchararray(chararray);
+  chararray[1] = 0x45;
+  WriteBytesEEPROM(1010, chararray, 4);
+  printchararray(chararray);
+  byte* chararray2 = ReadBytesEEPROM(1010, 6);
+  printchararray(chararray2);
 
   // eloc = EEPROM_writeAnything(1000, tlv);
   // Serial.print("eloc after 1000: ");
