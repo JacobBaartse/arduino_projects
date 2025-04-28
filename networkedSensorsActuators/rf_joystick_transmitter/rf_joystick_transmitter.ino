@@ -61,7 +61,6 @@ uint8_t checkSwitchButton1(uint8_t DigPin){
 
   bool pressval = (digitalRead(DigPin) == LOW);
   if (pressval){
-
     if (remval){
       if (b1val < 0xff) b1val++;
     }
@@ -177,12 +176,19 @@ void transmitRFnetwork(bool fresh){
     if (w_ok){
       Serial.print(F("Message send ")); 
       bValue = 0; 
+      sw1Value = 0;
+      sw2Value = 0;
     }    
     else{
       Serial.print(F("Message not send "));
-      if(!fresh) bValue = 0; // clear button status always after 5 seconds
     }
     Serial.println(currentRFmilli);
+    if(!fresh){ // clear buttons status always after 5 seconds
+      bValue = 0; 
+      sw1Value = 0;
+      sw2Value = 0;
+    }
+
     // // print data using &Txdata, sizeof(Txdata)
     // //Serial.println((char*)&Txdata);
     // Serial.println(F("--:"));
