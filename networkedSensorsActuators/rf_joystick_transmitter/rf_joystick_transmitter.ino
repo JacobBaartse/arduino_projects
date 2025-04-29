@@ -43,7 +43,6 @@ struct joystick_payload{
   uint8_t sw2value;
 };
 
-
 struct network_payload {
   unsigned long keyword;
   unsigned long counter;
@@ -54,6 +53,8 @@ struct network_payload {
   unsigned long data2;
   unsigned long data3;
 };
+
+bool newdata = false;
 
 uint8_t checkSwitchButton1(uint8_t DigPin){
   static bool remval = false;
@@ -67,6 +68,7 @@ uint8_t checkSwitchButton1(uint8_t DigPin){
     else {
       Serial.println(F(" button 1"));
       b1val = 100; // debouncing
+      newdata = true;
     }
   }
   else {
@@ -88,6 +90,7 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
     else {
       Serial.println(F(" button 2"));
       b2val = 100; // debouncing
+      newdata = true;
     }
   }
   else {
@@ -213,7 +216,6 @@ int divX = 0;
 int divY = 0;
 int divXr = 0;
 int divYr = 0;
-bool newdata = false;
 
 void loop() {
 
@@ -279,7 +281,7 @@ void joyButton(){
   if (currentmilli - buttontime > 500){ // debounce to smaller than one press and processing per second
     buttontime = currentmilli;
     counter++;
-    Serial.print(F("Button press "));
+    Serial.print(F("Joy button press: "));
     Serial.println(counter);
     //Serial.print(F(": "));
     //buttonstate = digitalRead(SW_PIN);

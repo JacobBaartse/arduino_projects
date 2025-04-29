@@ -345,13 +345,13 @@ void loop() {
         }
         if (jpayload.sw1value > 0){
           if (looptiming > chartimer){
-            chartimer = looptiming + 7000;
+            chartimer = looptiming + 3000;
             displaychar = "_";
           }
         }
         if (jpayload.sw2value > 0){
           if (looptiming > chartimer){
-            chartimer = looptiming + 7000;
+            chartimer = looptiming + 3000;
             displaychar = "|";
           }
         }
