@@ -8,7 +8,7 @@
 #include "networkdata.h"
 
 int initWiFi(char* pssid, char* ppass, int timeout=10000) {
-  long endTime = millis() + timeout;
+  unsigned long endTime = millis() + timeout;
   int WiFistatus = WL_IDLE_STATUS;
   WiFi.begin(pssid, ppass);
   // Serial.print("Connecting to WiFi...");

@@ -1,7 +1,11 @@
 /*
  *  https://www.circuitbasics.com/how-to-set-up-a-keypad-on-an-arduino/
  *
- *  connect to RF-NANO and send button data over RF to UNO controller
+ *
+ * Install the Keypad library by Mark Stanley and Alexander Brevig
+ *
+ * Idea: - connect to RF-NANO, battery powered and send button data over RF to UNO controller
+ *       - feedback LED that the information is received (ACK)
  */
 
 #include <Keypad.h>
@@ -19,7 +23,26 @@ char hexaKeys[ROWS][COLS] = {
 byte rowPins[ROWS] = {9, 8, 7, 6}; 
 byte colPins[COLS] = {5, 4, 3, 2}; 
 
+// byte rowPins[ROWS] = {9, 8, 7, 6}; 
+// byte colPins[COLS] = {5, 4, 3, 2}; 
+
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
+
+
+const uint8_t maxkeys = 10;
+char keytracking[11]; // 10 characters + room for the null terminator
+const uint16_t maxtime = 2000; // maximum time to type a multidigit number
+unsigned long keyingtime = 0;
+unsigned long runningtime = 0;
+uint8_t keyindex = 0;
+bool transmit = false;
+
+void clearkeypadcache(){
+  for (int i=0;i<=maxkeys;i++){
+    keytracking[i] = 0; // place null character
+  }
+  keyindex = 0;
+}
 
 void setup(){
   Serial.begin(115200);
@@ -34,12 +57,35 @@ void setup(){
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
+  clearkeypadcache();
 }
-  
+
 void loop(){
+
+  runningtime = millis();
+
   char customKey = customKeypad.getKey();
-  
   if (customKey){
+    if (keyindex == 0){ // start timing
+      keyingtime = runningtime + maxtime;
+    }
     Serial.println(customKey);
+    if (keyindex < maxkeys){
+      keytracking[keyindex++] = customKey;
+    }
+  }
+
+  if (keyindex > 0){
+    transmit = runningtime > keyingtime;
+  }
+
+  if (transmit){
+    if (keyindex > 0){
+      Serial.print(F("Data collected: '"));
+      Serial.print(keytracking);
+      Serial.println(F("'"));
+      clearkeypadcache();
+    }
+    transmit = false;
   }
 }
