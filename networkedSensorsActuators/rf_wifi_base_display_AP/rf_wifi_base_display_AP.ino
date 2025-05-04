@@ -17,7 +17,7 @@
 #include "font_16pix_high.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
 #include "printf.h"
-
+#include <Servo.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -32,6 +32,9 @@ enum DisplayState {
 };
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+Servo ServoRotate; // 360 degrees servo
+Servo ServoDirection; // 180 degrees servo
 
 #define radioChannel 106
 
@@ -178,6 +181,8 @@ void setup() {
   pinMode(LEDpin2, OUTPUT);
   pinMode(LEDpin3, OUTPUT);
   digitalWrite(LEDpin2, HIGH);
+  ServoRotate.attach(9);  // attaches the servo on pin 9 to the servo object
+  ServoDirection.attach(10);  // attaches the servo on pin 10 to the servo object
 
   Serial.begin(115200);
   while (!Serial) {
@@ -300,6 +305,8 @@ bool sendDirect = false;
 unsigned long looptiming = 0;
 uint16_t xpos = 0;
 uint16_t ypos = 0;
+uint16_t sxpos = 0;
+uint16_t sypos = 0;
 bool continuousclear = false;
 unsigned long chartimer = 0;
 
@@ -335,6 +342,11 @@ void loop() {
         Serial.print(jpayload.sw1value);        
         Serial.print(F(", sw2value: "));
         Serial.println(jpayload.sw2value);
+
+        sxpos = map(jpayload.xvalue, 0, 1023, 0, 180);
+        sypos = map(jpayload.yvalue, 0, 1023, 0, 180);
+        ServoRotate.write(sypos);
+        ServoDirection.write(sxpos);
 
         xpos = map(jpayload.xvalue, 0, 1023, 0, 110);
         ypos = map(jpayload.yvalue, 0, 1023, 10, 64);
