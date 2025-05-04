@@ -17,7 +17,7 @@
 #include "font_16pix_high.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
 #include "printf.h"
-
+#include <Servo.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -33,6 +33,9 @@ enum DisplayState {
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+Servo ServoRotate; // 360 degrees servo
+Servo ServoDirection; // 180 degrees servo
+
 #define radioChannel 106
 
 #define LEDpin1 4
@@ -45,6 +48,8 @@ WiFiServer server(80);
 IPAddress IPhere;
 
 char ssid[] = "UNO_R4_AP_RF"; // your network SSID (name)
+char pass[] = "TBD PW for UNO_R4_AP_RF"; // your network password
+
 uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
 
 unsigned long const keywordvalM = 0xfeebbeef; 
@@ -176,6 +181,8 @@ void setup() {
   pinMode(LEDpin2, OUTPUT);
   pinMode(LEDpin3, OUTPUT);
   digitalWrite(LEDpin2, HIGH);
+  ServoRotate.attach(9);  // attaches the servo on pin 9 to the servo object
+  ServoDirection.attach(10);  // attaches the servo on pin 10 to the servo object
 
   Serial.begin(115200);
   while (!Serial) {
@@ -237,19 +244,21 @@ void setup() {
 
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
-  Serial.println(ssid);
+  Serial.print(ssid);
+  Serial.print(F(", password: '"));
+  Serial.print(pass);
+  Serial.println(F("'"));
 
   // by default the local IP address will be 192.168.4.1
   // you can override it with the following:
   WiFi.config(IPAddress(192,168,12,3));
   // Create open network. Change this line if you want to create an WEP network:
-  //status = WiFi.beginAP(ssid, pass);
-  //status = WiFi.beginAP(ssid); // no password needed
-  status = WiFi.beginAP(ssid, WiFichannel);
+  status = WiFi.beginAP(ssid, WiFichannel); // no password needed
+  //status = WiFi.beginAP(ssid, pass, WiFichannel); // password required
   if (status != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
     // don't continue
-    while (true);
+    while (true) delay(1000);
   }
 
   // wait 10 seconds for connection:
@@ -288,7 +297,7 @@ void setup() {
  
 WiFiClient client;
 char c = '\n';
-char displaychar = 'o';
+String displaychar = "o";
 String currentLine = "";
 unsigned long acounter = 0;
 unsigned long remacounter = 0;
@@ -296,6 +305,8 @@ bool sendDirect = false;
 unsigned long looptiming = 0;
 uint16_t xpos = 0;
 uint16_t ypos = 0;
+uint16_t sxpos = 0;
+uint16_t sypos = 0;
 bool continuousclear = false;
 unsigned long chartimer = 0;
 
@@ -332,6 +343,11 @@ void loop() {
         Serial.print(F(", sw2value: "));
         Serial.println(jpayload.sw2value);
 
+        sxpos = map(jpayload.xvalue, 0, 1023, 0, 180);
+        sypos = map(jpayload.yvalue, 0, 1023, 0, 180);
+        ServoRotate.write(sypos);
+        ServoDirection.write(sxpos);
+
         xpos = map(jpayload.xvalue, 0, 1023, 0, 110);
         ypos = map(jpayload.yvalue, 0, 1023, 10, 64);
         if (jpayload.bvalue > 10){
@@ -341,14 +357,14 @@ void loop() {
         }
         if (jpayload.sw1value > 0){
           if (looptiming > chartimer){
-            chartimer = looptiming + 7000;
-            displaychar = '+';
+            chartimer = looptiming + 3000;
+            displaychar = "_";
           }
         }
         if (jpayload.sw2value > 0){
           if (looptiming > chartimer){
-            chartimer = looptiming + 7000;
-            displaychar = '|';
+            chartimer = looptiming + 3000;
+            displaychar = "|";
           }
         }
 
@@ -539,3 +555,22 @@ void loop() {
   }
 
 }
+
+
+// void PrintString(const char *str) {
+//     const char *p;
+//     p = str;
+//     while (*p) {
+//         Serial.print(*p);
+//         p++;
+//     }
+// }
+
+// void PrintString(const char *str) {
+// const char *p;
+// p = str;
+// while (*p) {
+// Serial.print(*p);
+// p++;
+// }
+// }

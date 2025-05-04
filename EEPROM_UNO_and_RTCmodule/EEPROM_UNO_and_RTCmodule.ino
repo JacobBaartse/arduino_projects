@@ -10,6 +10,8 @@
 
 // Include the EEPROM library
 #include <EEPROM.h>
+//#include "EEPROMAnything.h"
+#include "EEPROMfunctions.h"
 
 #include <Wire.h>
 #include <DS3231.h>
@@ -23,16 +25,34 @@ struct MyObject {
   char name[50];
 };
 
+// maybe use a TLV type structure, T: 1 byte, L: 1 byte, V: L bytes 
+// (depending on the tag, the amount of bytes needed for carrying a value can differ)
+// struct tl_t
+// {
+//   byte tag;
+//   byte len;
+// } tlv;
+
 RTClib myRTC;
+
 
 void setup () {
   Serial.begin(115200);
+  delay(1000);
+  Serial.println(F("Starting UNO R4 WiFi"));
+  Serial.flush();
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
+
   Wire.begin();
   delay(500);
   Serial.println("Ready!");
   Serial.flush();
 
   byte readvalue = EEPROM.read(0);
+  //if (true){ // write in any case
   if (readvalue == 0){ // write only once
     MyObject customVar = {
       3.14f,
@@ -40,7 +60,7 @@ void setup () {
       "UNO EEPROM content!\0"
     };
     EEPROM.put(1, customVar);
-    EEPROM.write(0, 0xfc); // indicate EEPROM is written
+    EEPROM.write(0, 0xf0); // indicate EEPROM is written
     Serial.println("Written data to UNO EEPROM");
   }
   else {
@@ -49,14 +69,40 @@ void setup () {
 
   byte readByte = i2c_eeprom_read_byte(RTC_EEPROM_ADDRESS, 0);
   if (readByte == 0){ // write only once
-    char data[] = "Hallo Wereld!";
+  //if (true){ // write in any case
+    char data[] = "Hello World!\0";
     // Write the data to the first byte (0) in the EEPROM.
-    i2c_eeprom_write_page(RTC_EEPROM_ADDRESS, 0, (byte *)data, sizeof(data));
+    i2c_eeprom_write_page(RTC_EEPROM_ADDRESS, 1, (byte *)data, sizeof(data));
     Serial.println("Written data to RTC module EEPROM");
+    i2c_eeprom_write_byte(RTC_EEPROM_ADDRESS, 0, 0xf0);
   }
   else {
     Serial.println("RTC module EEPROM already contains data");
   }
+  Serial.println();
+
+  // int eloc = EEPROM_readAnything(1000, tlv);
+  // Serial.print("eloc after 1000: ");
+  // Serial.println(eloc);
+  // Serial.println(tlv.tag);
+  // Serial.println(tlv.len);
+  // tlv.tag = 0x12;
+  // tlv.len = 33;
+  byte* chararray = ReadBytesEEPROM(1000, 2);
+  // for(int j=0; j < 2; j++)  
+  //   Serial.print(chararray[j], HEX);
+  printchararray(chararray);
+  chararray[1] = 0x45;
+  WriteBytesEEPROM(1010, chararray, 4);
+  printchararray(chararray);
+  byte* chararray2 = ReadBytesEEPROM(1010, 6);
+  printchararray(chararray2);
+
+  // eloc = EEPROM_writeAnything(1000, tlv);
+  // Serial.print("eloc after 1000: ");
+  // Serial.println(eloc);
+
+  Serial.println();
 }
 
 void loop() {
@@ -84,13 +130,12 @@ void loop() {
   int addressByte = 0; // which byte from the EEPROM to access
 
   // Read the first byte in the EEPROM
-  byte readByte = i2c_eeprom_read_byte(RTC_EEPROM_ADDRESS, addressByte);
+  byte readByte = i2c_eeprom_read_byte(RTC_EEPROM_ADDRESS, addressByte++);
   // Keep reading the EEPROM until an empty cell (value = 0) is detected
   while (readByte != 0)
   {
-      Serial.print((char)readByte ); // Print the content of this cell
-      addressByte++; // increase addressByte by 1
-      readByte = i2c_eeprom_read_byte(RTC_EEPROM_ADDRESS, addressByte); // Read 1 byte from the memory
+      Serial.print((char)readByte); // Print the content of this cell
+      readByte = i2c_eeprom_read_byte(RTC_EEPROM_ADDRESS, addressByte++); // Read 1 byte from the memory
   }
   Serial.println("\n");
 
@@ -126,7 +171,7 @@ byte i2c_eeprom_read_byte(int deviceAddress, unsigned int eeAddress){
   Wire.write((int)(eeAddress >> 8)); // MSB
   Wire.write((int)(eeAddress & 0xFF)); // LSB
   Wire.endTransmission();
-  Wire.requestFrom(deviceAddress,1);
+  Wire.requestFrom(deviceAddress, 1);
   if (Wire.available()) readData = Wire.read();
   return readData;
 }

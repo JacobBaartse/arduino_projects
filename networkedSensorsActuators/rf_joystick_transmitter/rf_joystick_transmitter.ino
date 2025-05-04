@@ -43,7 +43,6 @@ struct joystick_payload{
   uint8_t sw2value;
 };
 
-
 struct network_payload {
   unsigned long keyword;
   unsigned long counter;
@@ -54,6 +53,8 @@ struct network_payload {
   unsigned long data2;
   unsigned long data3;
 };
+
+bool newdata = false;
 
 uint8_t checkSwitchButton1(uint8_t DigPin){
   static bool remval = false;
@@ -67,6 +68,7 @@ uint8_t checkSwitchButton1(uint8_t DigPin){
     else {
       Serial.println(F(" button 1"));
       b1val = 100; // debouncing
+      newdata = true;
     }
   }
   else {
@@ -88,6 +90,7 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
     else {
       Serial.println(F(" button 2"));
       b2val = 100; // debouncing
+      newdata = true;
     }
   }
   else {
@@ -99,20 +102,17 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
   Serial.println(F(" ***** <> *****"));  
-  Serial.flush();
-
-  Serial.print(__FILE__);
-  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__FILE__);
+  Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
   SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
-    while (true) {
-      // hold in an infinite loop
-    }
+    while (true) delay(1000);
   }
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS);
@@ -179,12 +179,19 @@ void transmitRFnetwork(bool fresh){
     if (w_ok){
       Serial.print(F("Message send ")); 
       bValue = 0; 
+      sw1Value = 0;
+      sw2Value = 0;
     }    
     else{
       Serial.print(F("Message not send "));
-      if(!fresh) bValue = 0; // clear button status always after 5 seconds
     }
     Serial.println(currentRFmilli);
+    if(!fresh){ // clear buttons status always after 5 seconds
+      bValue = 0; 
+      sw1Value = 0;
+      sw2Value = 0;
+    }
+
     // // print data using &Txdata, sizeof(Txdata)
     // //Serial.println((char*)&Txdata);
     // Serial.println(F("--:"));
@@ -209,7 +216,6 @@ int divX = 0;
 int divY = 0;
 int divXr = 0;
 int divYr = 0;
-bool newdata = false;
 
 void loop() {
 
@@ -275,7 +281,7 @@ void joyButton(){
   if (currentmilli - buttontime > 500){ // debounce to smaller than one press and processing per second
     buttontime = currentmilli;
     counter++;
-    Serial.print(F("Button press "));
+    Serial.print(F("Joy button press: "));
     Serial.println(counter);
     //Serial.print(F(": "));
     //buttonstate = digitalRead(SW_PIN);
