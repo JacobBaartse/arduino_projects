@@ -18,18 +18,13 @@ RF24Network network(radio); // Include the radio in the network
 const uint16_t node01 = 02; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
 
-unsigned long const keywordvalM = 0xfeedbeef; 
-unsigned long const keywordvalS = 0xbeeffeed; 
+unsigned long const keywordvalM = 0xfeefdeed; 
+unsigned long const keywordvalS = 0xbeebedde; 
 
 struct keypad_payload{
   uint32_t keyword;
   uint32_t timing;
-
-  uint16_t xvalue;
-  uint16_t yvalue;
-  uint8_t bvalue;
-  uint8_t sw1value;
-  uint8_t sw2value;
+  char keys[11];
 };
 
 struct network_payload {
