@@ -386,7 +386,7 @@ void all_lights(bool turn_on){
 void businessLogic(){
   update_clock();
   bool low_light = false;
-  if (analogRead(lightSensorPin) < 50) low_light = true;
+  if (analogRead(lightSensorPin) < 38) low_light = true;
   bool eavening = false;
   if (Hour>15 && Hour<23) eavening = true;
   if (Hour==22 && Minutes >=30) eavening = false;
