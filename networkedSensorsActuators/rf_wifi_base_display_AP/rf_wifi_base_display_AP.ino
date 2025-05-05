@@ -92,6 +92,14 @@ struct joystick_payload{
   uint8_t sw2value;
 };
 
+// Payload from/for keypad
+struct keypad_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  char keys[11];
+};
+
+
 unsigned long displayTimer = 0;
 uint32_t counter = 0;
 bool relay1 = false;
@@ -167,10 +175,10 @@ void clear_display(){
   display.display();
 }
 
-String Line1 = "Welcome George!"; 
-String Line2 = "Demo for RF24"; 
-String Line3 = "Whats up?";  
-String Line4 = "Lets go!";  
+String Line1 = "Welcome for demo"; 
+String Line2 = "George & Jacob"; 
+String Line3 = "radio (RC)";  
+String Line4 = "Joystick/keys";  
 
 int prevx, x, minX;
 int dy1, dy2, dy3, dy4, minY;
@@ -381,6 +389,20 @@ void loop() {
         break;
       // Display the incoming millis() values from sensor nodes
 
+      case 'K': // Message received from Joystick 
+        Serial.print(F("Message received from Joystick: "));
+        keypad_payload kpayload;
+        network.read(header, &kpayload, sizeof(kpayload));
+        Serial.println(looptiming);
+
+        Serial.print(F("Keyword: 0x"));
+        Serial.print(jpayload.keyword, HEX);
+        Serial.print(F(", timing: "));
+        Serial.print(jpayload.timing);
+        Serial.print(F(", keys: "));
+        Serial.println(jpayload.keys);
+      break;
+
       // case 'M': 
       //   payload_from_slave payload;
       //   network.read(header, &payload, sizeof(payload));
@@ -411,6 +433,7 @@ void loop() {
       //     Serial.println("Wrong keyword"); 
       //   }
       //   break;
+
       default: 
         network.read(header, 0, 0);
         Serial.print(F("TBD header.type: "));

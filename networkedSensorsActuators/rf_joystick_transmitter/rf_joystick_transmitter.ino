@@ -28,7 +28,7 @@ RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t node01 = 01; // Address of this node in Octal format (04, 031, etc.)
-const uint16_t node00 = 00; // Address of the other node in Octal format
+const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
 
 unsigned long const keywordvalM = 0xfeedbeef; 
 unsigned long const keywordvalS = 0xbeeffeed; 
