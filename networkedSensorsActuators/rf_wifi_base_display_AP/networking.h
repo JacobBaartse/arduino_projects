@@ -180,7 +180,10 @@ int WifiConnect(){
 //===== Radio =====//
 
 const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
-const uint16_t node01 = 01;      // Address of the other node in Octal format
+//const uint16_t node01 = 01;      // Address of the other node in Octal format
+
+uint16_t joysticknode = 0;
+uint16_t keypadnode = 0;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 // for the UNO/NANO with external RF24 module:
@@ -303,33 +306,33 @@ unsigned int receiveRFnetwork(){
 }
 
 //===== Sending =====//
-unsigned int transmitRFnetwork(unsigned long commandtx){
-  static unsigned long sendingTimer = 0;
-  unsigned int traction = 0;
+// unsigned int transmitRFnetwork(unsigned long commandtx){
+//   static unsigned long sendingTimer = 0;
+//   unsigned int traction = 0;
 
-  // Every x seconds...
-  unsigned long currentmilli = millis();
-  if(currentmilli - sendingTimer > 5000) {
-    sendingTimer = currentmilli;
-    sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header1(node01); // (Address where the data is going)
-    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1, data2, data3};
-    bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
-    if (!ok) {
-      Serial.print(F("Retry sending message: "));
-      Serial.println(sendingCounter);      
-      ok = network.write(header1, &outgoing, sizeof(outgoing)); // retry once
-    }
-    if (ok) {
-      sendmsg++;
-      commanding = command_none;
-    }
-    else{
-      Serial.print(F("Error sending message: "));
-      Serial.println(sendingCounter);
-      failedmsg++;
-    }
-    responding = response_none;
-  }
-  return traction;
-}
+//   // Every x seconds...
+//   unsigned long currentmilli = millis();
+//   if(currentmilli - sendingTimer > 5000) {
+//     sendingTimer = currentmilli;
+//     sendingCounter = updatecounter(sendingCounter); 
+//     RF24NetworkHeader header1(node01); // (Address where the data is going)
+//     network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1, data2, data3};
+//     bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
+//     if (!ok) {
+//       Serial.print(F("Retry sending message: "));
+//       Serial.println(sendingCounter);      
+//       ok = network.write(header1, &outgoing, sizeof(outgoing)); // retry once
+//     }
+//     if (ok) {
+//       sendmsg++;
+//       commanding = command_none;
+//     }
+//     else{
+//       Serial.print(F("Error sending message: "));
+//       Serial.println(sendingCounter);
+//       failedmsg++;
+//     }
+//     responding = response_none;
+//   }
+//   return traction;
+// }

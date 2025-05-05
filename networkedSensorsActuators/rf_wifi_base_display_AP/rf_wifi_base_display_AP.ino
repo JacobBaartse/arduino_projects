@@ -335,6 +335,11 @@ void loop() {
         joystick_payload jpayload;
         network.read(header, &jpayload, sizeof(jpayload));
         Serial.println(looptiming);
+        if (joysticknode == 0){
+          joysticknode = header.from_node;
+          Serial.print(F("joysticknode: 0"));
+          Serial.println(joysticknode, OCT);          
+        }
 
         // Serial.print(F("Keyword: 0x"));
         // Serial.print(jpayload.keyword, HEX);
@@ -394,6 +399,11 @@ void loop() {
         keypad_payload kpayload;
         network.read(header, &kpayload, sizeof(kpayload));
         Serial.println(looptiming);
+        if (keypadnode == 0){
+          keypadnode = header.from_node;
+          Serial.print(F("Keypadnode: 0"));
+          Serial.println(keypadnode, OCT);          
+        }
 
         if (kpayload.keys[0] > 0){
           // Serial.print(F("Keyword: 0x"));
