@@ -10,6 +10,20 @@
 
 #define radioChannel 106
 
+const byte ROWS = 4; 
+const byte COLS = 4; 
+
+char hexaKeys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+
+byte rowPins[ROWS] = {9, 8, 7, 6}; 
+byte colPins[COLS] = {5, 4, 3, 2}; 
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
@@ -44,6 +58,16 @@ struct network_payload {
 };
 
 bool newdata = false;
+const uint8_t maxkeys = 10;
+char keytracking[11]; // 10 characters + room for the null terminator
+uint8_t keyindex = 0;
+
+void clearkeypadcache(){
+  for (int i=0;i<=maxkeys;i++){
+    keytracking[i] = 0; // place null character
+  }
+  keyindex = 0;
+}
 
 void setup() {
   Serial.begin(115200);
@@ -62,6 +86,8 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, node01);
+
+  clearkeypadcache();
 
 }
  
@@ -154,6 +180,20 @@ void loop() {
 
   //************************ sensors ****************//
 
+  char customKey = customKeypad.getKey();
+  if (customKey){
+    if (keyindex == 0){ // start timing
+      keyingtime = runningtime + maxtime;
+    }
+    Serial.println(customKey);
+    if (keyindex < maxkeys){
+      keytracking[keyindex++] = customKey;
+    }
+  }
+
+  if (keyindex > 0){
+    newdata = runningtime > keyingtime;
+  }
 
   //************************ sensors ****************//
 

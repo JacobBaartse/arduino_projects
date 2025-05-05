@@ -31,7 +31,7 @@ Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS)
 
 const uint8_t maxkeys = 10;
 char keytracking[11]; // 10 characters + room for the null terminator
-const uint16_t maxtime = 2000; // maximum time to type a multidigit number
+const uint16_t maxtime = 3000; // maximum time to type a multidigit number
 unsigned long keyingtime = 0;
 unsigned long runningtime = 0;
 uint8_t keyindex = 0;
@@ -50,7 +50,7 @@ void setup(){
     // some boards need this because of native USB capability
   }
   delay(1000);
-  Serial.println(F("Starting 16 button keypad controller"));
+  Serial.println(F("Starting 16 button keypad experiment"));
   Serial.println();
   Serial.print(__FILE__);
   Serial.print(F("\n, creation/build time: "));
