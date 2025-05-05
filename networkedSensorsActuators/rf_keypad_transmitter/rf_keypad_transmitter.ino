@@ -119,7 +119,7 @@ void receiveRFnetwork(){
 //===== Sending =====//
 void transmitRFnetwork(bool fresh){
   static unsigned long sendingTimer = 0;
-  static bool w_ok;
+  bool w_ok;
 
   // Every 5 seconds, or on new data
   unsigned long currentRFmilli = millis();
@@ -132,18 +132,19 @@ void transmitRFnetwork(bool fresh){
     for (int i=0;i<=maxkeys;i++){
       Txdata.keys[i] = keytracking[i];
     }  
+    
     RF24NetworkHeader header0(node00, 'K'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
       delay(50);
       w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     }
+    Serial.print(F("Message send ")); 
     if (w_ok){
-      Serial.print(F("Message send ")); 
       clearkeypadcache();
     }    
     else{
-      Serial.print(F("Message not send "));
+      Serial.print(F("failed "));
     }
     Serial.println(currentRFmilli);
 
@@ -188,9 +189,10 @@ void loop() {
     }
   }
 
-  if (keyindex > 0){
+  if (keyindex > 0)
     newdata = currentmilli > keyingtime;
-  }
+  else 
+    newdata = keyindex > (maxkeys - 3);
 
   //************************ sensors ****************//
 

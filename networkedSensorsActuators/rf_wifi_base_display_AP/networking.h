@@ -180,7 +180,6 @@ int WifiConnect(){
 //===== Radio =====//
 
 const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
-//const uint16_t node01 = 01;      // Address of the other node in Octal format
 
 uint16_t joysticknode = 0;
 uint16_t keypadnode = 0;

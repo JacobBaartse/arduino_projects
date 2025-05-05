@@ -32,6 +32,7 @@ enum DisplayState {
 };
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SH1106G display2 = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, OLED_RESET);
 
 Servo ServoRotate; // 360 degrees servo
 Servo ServoDirection; // 180 degrees servo
@@ -81,7 +82,7 @@ struct payload_from_slave {
 //   unsigned int bvalue;
 // } joystick_payload; // payload_from_joystick;
 
-// Payload from/for joystick
+// Payload from joystick
 struct joystick_payload{
   uint32_t keyword;
   uint32_t timing;
@@ -92,13 +93,21 @@ struct joystick_payload{
   uint8_t sw2value;
 };
 
-// Payload from/for keypad
+// Payload from keypad
 struct keypad_payload{
   uint32_t keyword;
   uint32_t timing;
   char keys[11];
 };
 
+// Payload to sensors (as acknowledge of a received message)
+struct ack_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  char mtype;
+  uint8_t ack;
+  bool status;
+};
 
 unsigned long displayTimer = 0;
 uint32_t counter = 0;
@@ -130,7 +139,7 @@ void LEDstatustext(bool LEDon, unsigned long count){
 }
 
 bool displaystatus = DisplayState::Off;
-void display_oled(bool clear, int x, int y, String text) {
+void display_oled(bool clear, int x, int y, String text){
   if (displaystatus == DisplayState::Off) return;
   if (clear) display.clearDisplay();
   display.setCursor(x, y);
@@ -138,8 +147,15 @@ void display_oled(bool clear, int x, int y, String text) {
   display.display();
 }
 
+void display_oled(Adafruit_SH1106G display3, bool clear, int x, int y, String text){
+  if (displaystatus == DisplayState::Off) return;
+  if (clear) display3.clearDisplay();
+  display3.setCursor(x, y);
+  display3.print(text);
+  display3.display();
+}
 // // move text, write old location in background color
-// void display_move(int x, int y, int nx, int ny, String text) {
+// void display_move(int x, int y, int nx, int ny, String text){
 //   if (displaystatus == DisplayState::Off) return;
 //   display.setCursor(x, y);
 //   display.setTextColor(SH110X_BLACK);
@@ -170,15 +186,46 @@ DisplayState setDisplay(DisplayState statustoset){
   return displaystatus;
 }
 
+DisplayState setDisplay(Adafruit_SH1106G display3, DisplayState statustoset){
+  static DisplayState displaystatus = DisplayState::Dim;
+  switch(statustoset){
+    case DisplayState::Dim:
+      display3.oled_command(SH110X_DISPLAYON);
+      display3.setContrast(0); // dim display
+      displaystatus = DisplayState::Dim;
+      break;
+    case DisplayState::On:
+      display3.oled_command(SH110X_DISPLAYON);
+      displaystatus = DisplayState::On;
+      break;
+    //case DisplayState::Off:
+    default:
+      display3.oled_command(SH110X_DISPLAYOFF);
+      displaystatus = DisplayState::Off;
+  }
+  return displaystatus;
+}
+
 void clear_display(){
   display.clearDisplay();
   display.display();
 }
 
+void setup_display(Adafruit_SH1106G display1){
+  display1.begin(i2c_Address, true); // Address 0x3C default
+  displaystatus = setDisplay(display1, DisplayState::Dim);
+  display1.clearDisplay();
+  display1.setFont(&font_16_pix);
+  display1.setTextSize(1); // 4 lines of 13-16 chars
+  display1.setTextColor(SH110X_WHITE);
+  display1.setTextWrap(false);
+  display1.display();
+}
+
 String Line1 = "Welcome @ demo"; 
 String Line2 = "George & Jacob"; 
 String Line3 = "radio control";  
-String Line4 = "Joystick/keypad";  
+String Line4 = "Joystick Keypad";  
 
 int prevx, x, minX;
 int dy1, dy2, dy3, dy4, minY;
@@ -198,8 +245,7 @@ void setup() {
   }
   delay(1000);
   Serial.println(F("Starting UNO R4 WiFi"));
-  Serial.flush();
-
+  Serial.println();
   Serial.print(__FILE__);
   Serial.print(F("\n, creation/build time: "));
   Serial.println(__TIMESTAMP__);
@@ -213,6 +259,9 @@ void setup() {
   display.setTextColor(SH110X_WHITE);
   display.setTextWrap(false);
   display.display();
+
+  // 2nd display on Wire1
+  setup_display(display2);
 
   x = display.width();
   dy1 = 16;
@@ -235,9 +284,7 @@ void setup() {
   SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware not responding."));
-    while (true) {
-      // hold in an infinite loop
-    }
+    while (true) delay(1000); // hold in an infinite loop
   }
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS); 
@@ -410,7 +457,7 @@ void loop() {
           // Serial.print(kpayload.keyword, HEX);
           // Serial.print(F(", timing: "));
           // Serial.print(kpayload.timing);
-          Serial.print(F("Keys: "));
+          Serial.print(F("Keypad data: "));
           Serial.println(kpayload.keys);
         }
       break;

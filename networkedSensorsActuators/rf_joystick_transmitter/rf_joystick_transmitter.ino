@@ -153,9 +153,9 @@ void receiveRFnetwork(){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh){
+bool transmitRFnetwork(bool fresh){
   static unsigned long sendingTimer = 0;
-  static bool w_ok;
+  bool w_ok;
 
   // Every 5 seconds, or on new data
   unsigned long currentRFmilli = millis();
@@ -170,22 +170,25 @@ void transmitRFnetwork(bool fresh){
     Txdata.bvalue = bValue;
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
+
     RF24NetworkHeader header0(node00, 'J'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
       delay(50);
       w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     }
+    Serial.print(F("Message send ")); 
     if (w_ok){
-      Serial.print(F("Message send ")); 
       bValue = 0; 
       sw1Value = 0;
       sw2Value = 0;
+      fresh = false;
     }    
     else{
-      Serial.print(F("Message not send "));
+      Serial.print(F("failed "));
     }
     Serial.println(currentRFmilli);
+
     if(!fresh){ // clear buttons status always after 5 seconds
       bValue = 0; 
       sw1Value = 0;
@@ -210,6 +213,8 @@ void transmitRFnetwork(bool fresh){
     // // }
     // Serial.println(F("<--"));
   }
+
+  return fresh;
 }
 
 int divX = 0;
@@ -265,12 +270,11 @@ void loop() {
     remy = yValue;
     newdata = true;
   }
+
   //************************ sensors ****************//
 
-  transmitRFnetwork(newdata);
-  newdata = false;
+  newdata = transmitRFnetwork(newdata);
 
-  //delay(500); // for debugging, this can be removed in practice
 }
 
 void joyButton(){
