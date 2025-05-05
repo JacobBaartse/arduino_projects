@@ -41,12 +41,12 @@
 // #define CSN_PIN 8
 
 // RF Nano
-// #define CE_PIN 10
-// #define CSN_PIN 9
+#define CE_PIN 10
+#define CSN_PIN 9
 
 // SMD projects:
-#define CE_PIN 9
-#define CSN_PIN 10
+// #define CE_PIN 9
+// #define CSN_PIN 10
 
 // instantiate an object for the nRF24L01 transceiver
 RF24 radio(CE_PIN, CSN_PIN);

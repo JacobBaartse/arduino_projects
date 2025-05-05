@@ -390,17 +390,17 @@ void loop() {
       // Display the incoming millis() values from sensor nodes
 
       case 'K': // Message received from Joystick 
-        Serial.print(F("Message received from Joystick: "));
+        Serial.print(F("Message received from Keypad: "));
         keypad_payload kpayload;
         network.read(header, &kpayload, sizeof(kpayload));
         Serial.println(looptiming);
 
         Serial.print(F("Keyword: 0x"));
-        Serial.print(jpayload.keyword, HEX);
+        Serial.print(kpayload.keyword, HEX);
         Serial.print(F(", timing: "));
-        Serial.print(jpayload.timing);
+        Serial.print(kpayload.timing);
         Serial.print(F(", keys: "));
-        Serial.println(jpayload.keys);
+        Serial.println(kpayload.keys);
       break;
 
       // case 'M': 

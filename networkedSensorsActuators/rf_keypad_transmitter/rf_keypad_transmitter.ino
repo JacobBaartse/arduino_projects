@@ -20,8 +20,10 @@ char hexaKeys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-byte rowPins[ROWS] = {9, 8, 7, 6}; 
-byte colPins[COLS] = {5, 4, 3, 2}; 
+// byte rowPins[ROWS] = {9, 8, 7, 6}; 
+// byte colPins[COLS] = {5, 4, 3, 2}; 
+byte rowPins[ROWS] = {A0, A1, A2, A3}; 
+byte colPins[COLS] = {A4, A5, A6, A7}; 
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
@@ -38,12 +40,7 @@ unsigned long const keywordvalS = 0xbeeffeed;
 struct keypad_payload{
   uint32_t keyword;
   uint32_t timing;
-
-  uint16_t xvalue;
-  uint16_t yvalue;
-  uint8_t bvalue;
-  uint8_t sw1value;
-  uint8_t sw2value;
+  char keys[11];
 };
 
 struct network_payload {
@@ -61,12 +58,14 @@ bool newdata = false;
 const uint8_t maxkeys = 10;
 char keytracking[11]; // 10 characters + room for the null terminator
 uint8_t keyindex = 0;
+const uint16_t maxtime = 4000; // maximum time to type a multidigit number
 
 void clearkeypadcache(){
   for (int i=0;i<=maxkeys;i++){
     keytracking[i] = 0; // place null character
   }
   keyindex = 0;
+  newdata = false;
 }
 
 void setup() {
@@ -93,6 +92,7 @@ void setup() {
  
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
+unsigned long keyingtime = 0;
 
 //===== Receiving =====//
 void receiveRFnetwork(){
@@ -129,13 +129,9 @@ void transmitRFnetwork(bool fresh){
     keypad_payload Txdata;
     Txdata.keyword = keywordvalM;
     Txdata.timing = currentRFmilli;
-
-    // Txdata.xvalue = xValue;
-    // Txdata.yvalue = yValue;
-    // Txdata.bvalue = bValue;
-    // Txdata.sw1value = sw1Value;
-    // Txdata.sw2value = sw2Value;
-
+    for (int i=0;i<=maxkeys;i++){
+      Txdata.keys[i] = keytracking[i];
+    }  
     RF24NetworkHeader header0(node00, 'K'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
@@ -144,6 +140,7 @@ void transmitRFnetwork(bool fresh){
     }
     if (w_ok){
       Serial.print(F("Message send ")); 
+      clearkeypadcache();
     }    
     else{
       Serial.print(F("Message not send "));
@@ -183,7 +180,7 @@ void loop() {
   char customKey = customKeypad.getKey();
   if (customKey){
     if (keyindex == 0){ // start timing
-      keyingtime = runningtime + maxtime;
+      keyingtime = currentmilli + maxtime;
     }
     Serial.println(customKey);
     if (keyindex < maxkeys){
@@ -192,13 +189,11 @@ void loop() {
   }
 
   if (keyindex > 0){
-    newdata = runningtime > keyingtime;
+    newdata = currentmilli > keyingtime;
   }
 
   //************************ sensors ****************//
 
   transmitRFnetwork(newdata);
-  newdata = false;
 
-  //delay(500); // for debugging, this can be removed in practice
 }
