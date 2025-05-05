@@ -2,7 +2,7 @@
 
 Form a repeater between the base node and the remote node.
 
-Base <- 100 -> Repeater <----- 102 ------> Remote
+Base <- 100 -> Repeater <----- 110 ------> Remote
  00               01                         00
 
 Target: RF-NANO with additional RF24 module Long Range
@@ -16,8 +16,8 @@ location schuur SO 148
 #include <RF24Network.h>
 #include "repeater.h"
 
-RF24 radio1(10, 9);              // onboard nRF24L01 (CE, CSN)
-RF24 radio2(8, 7);               // external nRF24L01 (CE, CSN)
+RF24 radio1(9, 10);              // onboard nRF24L01 (CE, CSN)
+RF24 radio2(7, 8);               // external nRF24L01 (CE, CSN)
 RF24Network network1(radio1);    // Include the radio in the network
 RF24Network network2(radio2);    // Include the radio in the network
 
@@ -27,8 +27,8 @@ const uint16_t remote_node = 00;   // Address of the other, remote node in Octal
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE: 57600 (RF-NANO, micro USB), there is somewhere a mismatch in clock factor of 4
+  delay(1000);
   Serial.println();
-  Serial.flush(); 
   Serial.println(__TIMESTAMP__);
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
@@ -68,9 +68,9 @@ bool activitySignal = false;
 void loop() {
 
   network1.update();
-  network2.update();
+  //network2.update();
 
-  if (activitySignal){ // stimulate a radio packet
+  if (activitySignal){ // s(t)imulate a radio packet
     nw1Data = DataForNW2;
   }
   else {
@@ -87,10 +87,10 @@ void loop() {
     }
   }
 
-  network1.update();
+  //network1.update();
   network2.update();
 
-  if (activitySignal){ // stimulate a radio packet
+  if (activitySignal){ // s(t)imulate a radio packet
     nw2Data = DataForNW1;
   }
   else {

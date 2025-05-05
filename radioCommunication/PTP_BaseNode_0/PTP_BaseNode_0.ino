@@ -34,6 +34,7 @@ IPAddress IPhere;
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
   Serial.println();
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
