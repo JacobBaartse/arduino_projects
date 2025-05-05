@@ -123,7 +123,7 @@ void transmitRFnetwork(bool fresh){
 
   // Every 5 seconds, or on new data
   unsigned long currentRFmilli = millis();
-  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
+  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 10000)){
     sendingTimer = currentRFmilli;
 
     keypad_payload Txdata;

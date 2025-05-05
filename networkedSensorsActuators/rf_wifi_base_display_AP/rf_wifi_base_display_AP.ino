@@ -175,10 +175,10 @@ void clear_display(){
   display.display();
 }
 
-String Line1 = "Welcome for demo"; 
+String Line1 = "Welcome @ demo"; 
 String Line2 = "George & Jacob"; 
-String Line3 = "radio (RC)";  
-String Line4 = "Joystick/keys";  
+String Line3 = "radio control";  
+String Line4 = "Joystick/keypad";  
 
 int prevx, x, minX;
 int dy1, dy2, dy3, dy4, minY;
@@ -389,18 +389,20 @@ void loop() {
         break;
       // Display the incoming millis() values from sensor nodes
 
-      case 'K': // Message received from Joystick 
+      case 'K': // Message received from Keypad       
         Serial.print(F("Message received from Keypad: "));
         keypad_payload kpayload;
         network.read(header, &kpayload, sizeof(kpayload));
         Serial.println(looptiming);
 
-        Serial.print(F("Keyword: 0x"));
-        Serial.print(kpayload.keyword, HEX);
-        Serial.print(F(", timing: "));
-        Serial.print(kpayload.timing);
-        Serial.print(F(", keys: "));
-        Serial.println(kpayload.keys);
+        if (kpayload.keys[0] > 0){
+          // Serial.print(F("Keyword: 0x"));
+          // Serial.print(kpayload.keyword, HEX);
+          // Serial.print(F(", timing: "));
+          // Serial.print(kpayload.timing);
+          Serial.print(F("Keys: "));
+          Serial.println(kpayload.keys);
+        }
       break;
 
       // case 'M': 
