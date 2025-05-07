@@ -20,11 +20,14 @@ char hexaKeys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-byte rowPins[ROWS] = {A0, A1, A2, A3}; 
-byte colPins[COLS] = {A4, A5, A6, A7}; 
+// byte rowPins[ROWS] = {A0, A1, A2, A3}; 
+// byte colPins[COLS] = {A4, A5, A6, A7}; 
 
-// byte rowPins[ROWS] = {9, 8, 7, 6}; 
-// byte colPins[COLS] = {5, 4, 3, 2}; 
+byte rowPins[ROWS] = {5, 4, 3, 2}; 
+byte colPins[COLS] = {A0, 8, 7, 6}; 
+
+// byte rowPins[ROWS] = {A4, A5, A6, A7}; 
+// byte colPins[COLS] = {A0, A1, A2, A3}; 
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
