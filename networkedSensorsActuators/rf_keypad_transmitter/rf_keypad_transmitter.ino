@@ -40,6 +40,7 @@ unsigned long const keywordvalS = 0xbeeffeed;
 struct keypad_payload{
   uint32_t keyword;
   uint32_t timing;
+  uint32_t count;
   char keys[11];
 };
 
@@ -119,6 +120,7 @@ void receiveRFnetwork(){
 //===== Sending =====//
 void transmitRFnetwork(bool fresh){
   static unsigned long sendingTimer = 0;
+  static unsigned long counter = 0;
   bool w_ok;
 
   // Every 5 seconds, or on new data
@@ -129,6 +131,7 @@ void transmitRFnetwork(bool fresh){
     keypad_payload Txdata;
     Txdata.keyword = keywordvalM;
     Txdata.timing = currentRFmilli;
+    Txdata.count = counter++;
     for (int i=0;i<=maxkeys;i++){
       Txdata.keys[i] = keytracking[i];
     }  

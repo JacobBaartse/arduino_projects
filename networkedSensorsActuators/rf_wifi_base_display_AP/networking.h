@@ -214,6 +214,44 @@ struct network_payload {
   unsigned long data3;
 };
 
+// // Payload from/for joystick
+// typedef struct {
+//   unsigned long keyword;
+//   unsigned long timing;
+//   unsigned int xvalue;
+//   unsigned int yvalue;
+//   unsigned int bvalue;
+// } joystick_payload; // payload_from_joystick;
+
+// Payload from joystick
+struct joystick_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint16_t xvalue;
+  uint16_t yvalue;
+  uint8_t count;
+  uint8_t bvalue;
+  uint8_t sw1value;
+  uint8_t sw2value;
+};
+
+// Payload from keypad
+struct keypad_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint32_t count;
+  char keys[11];
+};
+
+// Payload to sensors (as acknowledge of a received message)
+struct ack_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  char mtype;
+  uint8_t ack;
+  bool status;
+};
+
 unsigned long receivedmsg = 0;
 unsigned long sendmsg = 0;
 unsigned long droppedmsg = 0;

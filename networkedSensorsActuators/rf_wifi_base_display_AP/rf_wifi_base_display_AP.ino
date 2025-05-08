@@ -73,41 +73,6 @@ struct payload_from_slave {
   uint8_t distance;
 };
  
-// // Payload from/for joystick
-// typedef struct {
-//   unsigned long keyword;
-//   unsigned long timing;
-//   unsigned int xvalue;
-//   unsigned int yvalue;
-//   unsigned int bvalue;
-// } joystick_payload; // payload_from_joystick;
-
-// Payload from joystick
-struct joystick_payload{
-  uint32_t keyword;
-  uint32_t timing;
-  uint16_t xvalue;
-  uint16_t yvalue;
-  uint8_t bvalue;
-  uint8_t sw1value;
-  uint8_t sw2value;
-};
-
-// Payload from keypad
-struct keypad_payload{
-  uint32_t keyword;
-  uint32_t timing;
-  char keys[11];
-};
-
-// Payload to sensors (as acknowledge of a received message)
-struct ack_payload{
-  uint32_t keyword;
-  uint32_t timing;
-  char mtype;
-  uint8_t ack;
-  bool status;
-};
 
 unsigned long displayTimer = 0;
 uint32_t counter = 0;
@@ -392,7 +357,9 @@ void loop() {
         // Serial.print(jpayload.keyword, HEX);
         // Serial.print(F(", timing: "));
         // Serial.print(jpayload.timing);
-        Serial.print(F("xvalue: "));
+        Serial.print(F("Message: "));
+        Serial.print(jpayload.count);
+        Serial.print(F(", xvalue: "));
         Serial.print(jpayload.xvalue);
         Serial.print(F(", yvalue: "));
         Serial.print(jpayload.yvalue);
@@ -457,7 +424,9 @@ void loop() {
           // Serial.print(kpayload.keyword, HEX);
           // Serial.print(F(", timing: "));
           // Serial.print(kpayload.timing);
-          Serial.print(F("Keypad data: "));
+          Serial.print(F("Message: "));
+          Serial.print(kpayload.count);
+          Serial.print(F(", keypad data: "));
           Serial.println(kpayload.keys);
         }
       break;
