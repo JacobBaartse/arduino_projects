@@ -28,7 +28,7 @@ RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t node01 = 01; // Address of this node in Octal format (04, 031, etc.)
-const uint16_t node00 = 00; // Address of the other node in Octal format
+const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
 
 unsigned long const keywordvalM = 0xfeedbeef; 
 unsigned long const keywordvalS = 0xbeeffeed; 
@@ -38,6 +38,7 @@ struct joystick_payload{
   uint32_t timing;
   uint16_t xvalue;
   uint16_t yvalue;
+  uint8_t count;
   uint8_t bvalue;
   uint8_t sw1value;
   uint8_t sw2value;
@@ -153,9 +154,11 @@ void receiveRFnetwork(){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh){
+bool transmitRFnetwork(bool fresh){
   static unsigned long sendingTimer = 0;
-  static bool w_ok;
+  static uint8_t counter = 0;
+  static uint8_t failcount = 0;
+  bool w_ok;
 
   // Every 5 seconds, or on new data
   unsigned long currentRFmilli = millis();
@@ -165,27 +168,53 @@ void transmitRFnetwork(bool fresh){
     joystick_payload Txdata;
     Txdata.keyword = keywordvalM;
     Txdata.timing = currentRFmilli;
+    Txdata.count = counter++;
     Txdata.xvalue = xValue;
     Txdata.yvalue = yValue;
     Txdata.bvalue = bValue;
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
+
+    Serial.print(F("Message: "));
+    Serial.print(Txdata.count);
+    Serial.print(F(", xvalue: "));
+    Serial.print(Txdata.xvalue);
+    Serial.print(F(", yvalue: "));
+    Serial.print(Txdata.yvalue);
+    Serial.print(F(", bvalue: "));
+    Serial.print(Txdata.bvalue);
+    Serial.print(F(", sw1value: "));
+    Serial.print(Txdata.sw1value);        
+    Serial.print(F(", sw2value: "));
+    Serial.println(Txdata.sw2value);
+
     RF24NetworkHeader header0(node00, 'J'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
+      failcount++;
       delay(50);
       w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     }
+    Serial.print(F("Message send ")); 
     if (w_ok){
-      Serial.print(F("Message send ")); 
       bValue = 0; 
       sw1Value = 0;
       sw2Value = 0;
+      fresh = false;
+      failcount = 0;
     }    
     else{
-      Serial.print(F("Message not send "));
+      Serial.print(F("failed "));
+      failcount++;
     }
+    Serial.print(Txdata.count);
+    Serial.print(F(", "));
     Serial.println(currentRFmilli);
+
+    if (failcount > 10){
+      fresh = false; // do not send a lot of messages continously
+    }
+
     if(!fresh){ // clear buttons status always after 5 seconds
       bValue = 0; 
       sw1Value = 0;
@@ -210,6 +239,8 @@ void transmitRFnetwork(bool fresh){
     // // }
     // Serial.println(F("<--"));
   }
+
+  return fresh;
 }
 
 int divX = 0;
@@ -265,12 +296,11 @@ void loop() {
     remy = yValue;
     newdata = true;
   }
+
   //************************ sensors ****************//
 
-  transmitRFnetwork(newdata);
-  newdata = false;
+  newdata = transmitRFnetwork(newdata);
 
-  //delay(500); // for debugging, this can be removed in practice
 }
 
 void joyButton(){

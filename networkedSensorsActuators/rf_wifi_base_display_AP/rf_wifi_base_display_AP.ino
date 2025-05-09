@@ -32,6 +32,7 @@ enum DisplayState {
 };
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SH1106G display2 = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, OLED_RESET);
 
 Servo ServoRotate; // 360 degrees servo
 Servo ServoDirection; // 180 degrees servo
@@ -72,25 +73,6 @@ struct payload_from_slave {
   uint8_t distance;
 };
  
-// // Payload from/for joystick
-// typedef struct {
-//   unsigned long keyword;
-//   unsigned long timing;
-//   unsigned int xvalue;
-//   unsigned int yvalue;
-//   unsigned int bvalue;
-// } joystick_payload; // payload_from_joystick;
-
-// Payload from/for joystick
-struct joystick_payload{
-  uint32_t keyword;
-  uint32_t timing;
-  uint16_t xvalue;
-  uint16_t yvalue;
-  uint8_t bvalue;
-  uint8_t sw1value;
-  uint8_t sw2value;
-};
 
 unsigned long displayTimer = 0;
 uint32_t counter = 0;
@@ -122,7 +104,7 @@ void LEDstatustext(bool LEDon, unsigned long count){
 }
 
 bool displaystatus = DisplayState::Off;
-void display_oled(bool clear, int x, int y, String text) {
+void display_oled(bool clear, int x, int y, String text){
   if (displaystatus == DisplayState::Off) return;
   if (clear) display.clearDisplay();
   display.setCursor(x, y);
@@ -130,8 +112,15 @@ void display_oled(bool clear, int x, int y, String text) {
   display.display();
 }
 
+void display_oled(Adafruit_SH1106G display3, bool clear, int x, int y, String text){
+  if (displaystatus == DisplayState::Off) return;
+  if (clear) display3.clearDisplay();
+  display3.setCursor(x, y);
+  display3.print(text);
+  display3.display();
+}
 // // move text, write old location in background color
-// void display_move(int x, int y, int nx, int ny, String text) {
+// void display_move(int x, int y, int nx, int ny, String text){
 //   if (displaystatus == DisplayState::Off) return;
 //   display.setCursor(x, y);
 //   display.setTextColor(SH110X_BLACK);
@@ -162,15 +151,46 @@ DisplayState setDisplay(DisplayState statustoset){
   return displaystatus;
 }
 
+DisplayState setDisplay(Adafruit_SH1106G display3, DisplayState statustoset){
+  static DisplayState displaystatus = DisplayState::Dim;
+  switch(statustoset){
+    case DisplayState::Dim:
+      display3.oled_command(SH110X_DISPLAYON);
+      display3.setContrast(0); // dim display
+      displaystatus = DisplayState::Dim;
+      break;
+    case DisplayState::On:
+      display3.oled_command(SH110X_DISPLAYON);
+      displaystatus = DisplayState::On;
+      break;
+    //case DisplayState::Off:
+    default:
+      display3.oled_command(SH110X_DISPLAYOFF);
+      displaystatus = DisplayState::Off;
+  }
+  return displaystatus;
+}
+
 void clear_display(){
   display.clearDisplay();
   display.display();
 }
 
-String Line1 = "Welcome George!"; 
-String Line2 = "Demo for RF24"; 
-String Line3 = "Whats up?";  
-String Line4 = "Lets go!";  
+void setup_display(Adafruit_SH1106G display1){
+  display1.begin(i2c_Address, true); // Address 0x3C default
+  displaystatus = setDisplay(display1, DisplayState::Dim);
+  display1.clearDisplay();
+  display1.setFont(&font_16_pix);
+  display1.setTextSize(1); // 4 lines of 13-16 chars
+  display1.setTextColor(SH110X_WHITE);
+  display1.setTextWrap(false);
+  display1.display();
+}
+
+String Line1 = "Welcome @ demo"; 
+String Line2 = "George & Jacob"; 
+String Line3 = "radio control";  
+String Line4 = "Joystick Keypad";  
 
 int prevx, x, minX;
 int dy1, dy2, dy3, dy4, minY;
@@ -190,8 +210,7 @@ void setup() {
   }
   delay(1000);
   Serial.println(F("Starting UNO R4 WiFi"));
-  Serial.flush();
-
+  Serial.println();
   Serial.print(__FILE__);
   Serial.print(F("\n, creation/build time: "));
   Serial.println(__TIMESTAMP__);
@@ -205,6 +224,9 @@ void setup() {
   display.setTextColor(SH110X_WHITE);
   display.setTextWrap(false);
   display.display();
+
+  // 2nd display on Wire1
+  setup_display(display2);
 
   x = display.width();
   dy1 = 16;
@@ -227,9 +249,7 @@ void setup() {
   SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware not responding."));
-    while (true) {
-      // hold in an infinite loop
-    }
+    while (true) delay(1000); // hold in an infinite loop
   }
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS); 
@@ -327,12 +347,19 @@ void loop() {
         joystick_payload jpayload;
         network.read(header, &jpayload, sizeof(jpayload));
         Serial.println(looptiming);
+        if (joysticknode == 0){
+          joysticknode = header.from_node;
+          Serial.print(F("joysticknode: 0"));
+          Serial.println(joysticknode, OCT);          
+        }
 
         // Serial.print(F("Keyword: 0x"));
         // Serial.print(jpayload.keyword, HEX);
         // Serial.print(F(", timing: "));
         // Serial.print(jpayload.timing);
-        Serial.print(F("xvalue: "));
+        Serial.print(F("Message: "));
+        Serial.print(jpayload.count);
+        Serial.print(F(", xvalue: "));
         Serial.print(jpayload.xvalue);
         Serial.print(F(", yvalue: "));
         Serial.print(jpayload.yvalue);
@@ -381,6 +408,29 @@ void loop() {
         break;
       // Display the incoming millis() values from sensor nodes
 
+      case 'K': // Message received from Keypad       
+        Serial.print(F("Message received from Keypad: "));
+        keypad_payload kpayload;
+        network.read(header, &kpayload, sizeof(kpayload));
+        Serial.println(looptiming);
+        if (keypadnode == 0){
+          keypadnode = header.from_node;
+          Serial.print(F("Keypadnode: 0"));
+          Serial.println(keypadnode, OCT);          
+        }
+
+        if (kpayload.keys[0] > 0){
+          // Serial.print(F("Keyword: 0x"));
+          // Serial.print(kpayload.keyword, HEX);
+          // Serial.print(F(", timing: "));
+          // Serial.print(kpayload.timing);
+          Serial.print(F("Message: "));
+          Serial.print(kpayload.count);
+          Serial.print(F(", keypad data: "));
+          Serial.println(kpayload.keys);
+        }
+      break;
+
       // case 'M': 
       //   payload_from_slave payload;
       //   network.read(header, &payload, sizeof(payload));
@@ -411,6 +461,7 @@ void loop() {
       //     Serial.println("Wrong keyword"); 
       //   }
       //   break;
+
       default: 
         network.read(header, 0, 0);
         Serial.print(F("TBD header.type: "));

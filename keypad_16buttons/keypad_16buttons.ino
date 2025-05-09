@@ -20,18 +20,21 @@ char hexaKeys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-byte rowPins[ROWS] = {9, 8, 7, 6}; 
-byte colPins[COLS] = {5, 4, 3, 2}; 
+// byte rowPins[ROWS] = {A0, A1, A2, A3}; 
+// byte colPins[COLS] = {A4, A5, A6, A7}; 
 
-// byte rowPins[ROWS] = {9, 8, 7, 6}; 
-// byte colPins[COLS] = {5, 4, 3, 2}; 
+byte rowPins[ROWS] = {5, 4, 3, 2}; 
+byte colPins[COLS] = {A0, 8, 7, 6}; 
+
+// byte rowPins[ROWS] = {A4, A5, A6, A7}; 
+// byte colPins[COLS] = {A0, A1, A2, A3}; 
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
 
 const uint8_t maxkeys = 10;
 char keytracking[11]; // 10 characters + room for the null terminator
-const uint16_t maxtime = 2000; // maximum time to type a multidigit number
+const uint16_t maxtime = 4000; // maximum time to type a multidigit number
 unsigned long keyingtime = 0;
 unsigned long runningtime = 0;
 uint8_t keyindex = 0;
@@ -50,7 +53,7 @@ void setup(){
     // some boards need this because of native USB capability
   }
   delay(1000);
-  Serial.println(F("Starting 16 button keypad controller"));
+  Serial.println(F("Starting 16 button keypad experiment"));
   Serial.println();
   Serial.print(__FILE__);
   Serial.print(F("\n, creation/build time: "));
@@ -65,14 +68,19 @@ void loop(){
   runningtime = millis();
 
   char customKey = customKeypad.getKey();
+  
   if (customKey){
     if (keyindex == 0){ // start timing
       keyingtime = runningtime + maxtime;
     }
-    Serial.println(customKey);
     if (keyindex < maxkeys){
       keytracking[keyindex++] = customKey;
     }
+    Serial.print(customKey);
+    Serial.print(F(", time: "));
+    Serial.print(keyingtime);
+    Serial.print(F(", index: "));
+    Serial.println(keyindex);
   }
 
   if (keyindex > 0){
@@ -86,6 +94,68 @@ void loop(){
       Serial.println(F("'"));
       clearkeypadcache();
     }
+    else{
+      Serial.print(runningtime);
+      Serial.println(F(" No button data collected"));
+    }
     transmit = false;
   }
 }
+
+
+// /*
+//  * Created by ArduinoGetStarted.com
+//  *
+//  * This example code is in the public domain
+//  *
+//  * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-keypad
+//  */
+
+// #include <Keypad.h>
+
+// const int ROW_NUM = 4; //four rows
+// const int COLUMN_NUM = 3; //three columns
+
+// char keys[ROW_NUM][COLUMN_NUM] = {
+//   {'1','2','3'},
+//   {'4','5','6'},
+//   {'7','8','9'},
+//   {'*','0','#'}
+// };
+
+// byte pin_rows[ROW_NUM] = {9, 8, 7, 6}; //connect to the row pinouts of the keypad
+// byte pin_column[COLUMN_NUM] = {5, 4, 3}; //connect to the column pinouts of the keypad
+
+// Keypad keypad = Keypad( makeKeymap(keys), pin_rows, pin_column, ROW_NUM, COLUMN_NUM );
+
+// const String password = "1234"; // change your password here
+// String input_password;
+
+// void setup(){
+//   Serial.begin(9600);
+//   input_password.reserve(32); // maximum input characters is 33, change if needed
+// }
+
+// void loop(){
+//   char key = keypad.getKey();
+
+//   if (key){
+//     Serial.println(key);
+
+//     if(key == '*') {
+//       input_password = ""; // clear input password
+//     } else if(key == '#') {
+//       if(password == input_password) {
+//         Serial.println("password is correct");
+//         // DO YOUR WORK HERE
+        
+//       } else {
+//         Serial.println("password is incorrect, try again");
+//       }
+
+//       input_password = ""; // clear input password
+//     } else {
+//       input_password += key; // append new character to input password string
+//     }
+//   }
+// }

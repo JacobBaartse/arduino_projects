@@ -177,7 +177,7 @@ LEDState redledprocessing(unsigned long curtime, bool buttonpressed) {
   return ledstatus;
 }
 
-RF24 radio(10, 9);               // onboard nRF24L01 (CE, CSN)
+RF24 radio(9, 10);               // onboard nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
 //const uint16_t this_node = 00;   // Address of our node in Octal format (04, 031, etc.)
 //const uint16_t repeaternode = 01;    // Address of the other node in Octal format
@@ -211,6 +211,7 @@ struct network_payload {
 
 void setup() {
   Serial.begin(230400); // actual baudrate in IDE: 57600 (RF-NANO, micro USB), there is somewhere a mismatch in clock factor of 4
+  delay(1000);
   Serial.println();
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
@@ -226,7 +227,7 @@ void setup() {
   radio.begin();
   //radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
-  //radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
+  radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
   //radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
   //radio.setChannel(100);////
   // radio.setAutoAck(true);

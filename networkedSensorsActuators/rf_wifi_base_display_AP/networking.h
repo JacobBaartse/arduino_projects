@@ -180,7 +180,9 @@ int WifiConnect(){
 //===== Radio =====//
 
 const uint16_t this_node = 00;   // Address of this node in Octal format (04, 031, etc.)
-const uint16_t node01 = 01;      // Address of the other node in Octal format
+
+uint16_t joysticknode = 0;
+uint16_t keypadnode = 0;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 // for the UNO/NANO with external RF24 module:
@@ -210,6 +212,44 @@ struct network_payload {
   unsigned long data1;
   unsigned long data2;
   unsigned long data3;
+};
+
+// // Payload from/for joystick
+// typedef struct {
+//   unsigned long keyword;
+//   unsigned long timing;
+//   unsigned int xvalue;
+//   unsigned int yvalue;
+//   unsigned int bvalue;
+// } joystick_payload; // payload_from_joystick;
+
+// Payload from joystick
+struct joystick_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint16_t xvalue;
+  uint16_t yvalue;
+  uint8_t count;
+  uint8_t bvalue;
+  uint8_t sw1value;
+  uint8_t sw2value;
+};
+
+// Payload from keypad
+struct keypad_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint32_t count;
+  char keys[11];
+};
+
+// Payload to sensors (as acknowledge of a received message)
+struct ack_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  char mtype;
+  uint8_t ack;
+  bool status;
 };
 
 unsigned long receivedmsg = 0;
@@ -303,33 +343,33 @@ unsigned int receiveRFnetwork(){
 }
 
 //===== Sending =====//
-unsigned int transmitRFnetwork(unsigned long commandtx){
-  static unsigned long sendingTimer = 0;
-  unsigned int traction = 0;
+// unsigned int transmitRFnetwork(unsigned long commandtx){
+//   static unsigned long sendingTimer = 0;
+//   unsigned int traction = 0;
 
-  // Every x seconds...
-  unsigned long currentmilli = millis();
-  if(currentmilli - sendingTimer > 5000) {
-    sendingTimer = currentmilli;
-    sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header1(node01); // (Address where the data is going)
-    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1, data2, data3};
-    bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
-    if (!ok) {
-      Serial.print(F("Retry sending message: "));
-      Serial.println(sendingCounter);      
-      ok = network.write(header1, &outgoing, sizeof(outgoing)); // retry once
-    }
-    if (ok) {
-      sendmsg++;
-      commanding = command_none;
-    }
-    else{
-      Serial.print(F("Error sending message: "));
-      Serial.println(sendingCounter);
-      failedmsg++;
-    }
-    responding = response_none;
-  }
-  return traction;
-}
+//   // Every x seconds...
+//   unsigned long currentmilli = millis();
+//   if(currentmilli - sendingTimer > 5000) {
+//     sendingTimer = currentmilli;
+//     sendingCounter = updatecounter(sendingCounter); 
+//     RF24NetworkHeader header1(node01); // (Address where the data is going)
+//     network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1, data2, data3};
+//     bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
+//     if (!ok) {
+//       Serial.print(F("Retry sending message: "));
+//       Serial.println(sendingCounter);      
+//       ok = network.write(header1, &outgoing, sizeof(outgoing)); // retry once
+//     }
+//     if (ok) {
+//       sendmsg++;
+//       commanding = command_none;
+//     }
+//     else{
+//       Serial.print(F("Error sending message: "));
+//       Serial.println(sendingCounter);
+//       failedmsg++;
+//     }
+//     responding = response_none;
+//   }
+//   return traction;
+// }
