@@ -2,6 +2,10 @@
  * RF networking, repeater from end-point to/from home base, also receiving commands from home base
  */
 
+#include <SPI.h>
+#include <RF24.h>
+#include <RF24Network.h>
+
 #define radio_channel 104
 
 RF24 radio(9, 10);               // internal nRF24L01 (CE, CSN)
