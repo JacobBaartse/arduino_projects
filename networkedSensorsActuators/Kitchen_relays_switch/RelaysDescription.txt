@@ -1,0 +1,25 @@
+Specification:
+
+Item Type: Latching Relay Module
+Model: LR12A01
+Working Voltage: DC 12V (8-18V)
+Working Current: 60mA(only provide current when the state changes)
+Standby Current: 20μA(or standby power consumption)
+Charging Current: AC 250V/10A, DC 30V/10A
+Trigger Mode: Low pulse trigger
+Module Interface:
+1. V: Positive power supply (VCC)
+2. G: Negative power supply (GND)
+3. R: Reset (relay closed)
+4. S: Setting (relay on)
+Relay Output:
+1. NO: Normally open the relay interface
+2. COM: Common interface relay 
+
+
+
+Package List:
+
+1 x Latching Relay Module
+How to use:
+
