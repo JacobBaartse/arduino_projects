@@ -2,10 +2,6 @@
  * Kitchen node for the radio network, as well as sensors and detectors for lighting
  */
 
-#include <SPI.h>
-#include <RF24.h>
-#include <RF24Network.h>
-
 #include "networking.h"
 #include "relays.h"
 #include "sensors.h"

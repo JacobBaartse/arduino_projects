@@ -66,7 +66,10 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
   if((fresh)||(currentmilli - sendingTimer > 5000)){
     sendingTimer = currentmilli;
     kitchen_payload kpayload;
-    kpayload = {0, currentmilli, 0, 0};
+    kpayload.keyword = 0;
+    kpayload.count = 0;
+    kpayload.light = 0;
+    kpayload.timing = currentmilli;
     RF24NetworkHeader headerK(base_node, 'K'); // Address where the data is going
     ok = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
     if (!ok) {
