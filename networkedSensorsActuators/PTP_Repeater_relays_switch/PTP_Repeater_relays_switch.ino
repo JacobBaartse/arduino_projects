@@ -5,6 +5,7 @@
 #include <SPI.h>
 #include <RF24.h>
 #include <RF24Network.h>
+
 #include "networking.h"
 #include "relays.h"
 #include "sensors.h"
@@ -30,11 +31,12 @@ void setup() {
   Serial.flush(); 
 }
 
-unsigned long currentMillis = 0;    // stores the value of millis() in each iteration of loop()
+unsigned long currentMillis = 0; // stores the value of millis() in each iteration of loop()
 unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
 unsigned int sensoraction = 0;
-unsigned int relayaction = 0;
+RelayState relayaction = RelayState::R_None;
+RelayState relayactions = RelayState::R_None;
 
 void loop() {
   // put your main code here, to run repeatedly:
@@ -44,14 +46,37 @@ void loop() {
 
   //===== Receiving =====//
   receiveaction = receiveRFnetwork(currentMillis);
+  bool receivedfresh = receiveaction > 0;
 
   //===== Sending =====//
-  transmitaction = transmitRFnetwork(currentMillis);
+  transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
 
   // sensors
-  sensoraction = 0; // checkSensors(currentMillis);
+  sensoraction = checkSensors(currentMillis, sensoraction);
+
+  switch(sensoraction){ // from buttons and sensors
+    case 100:
+      relayaction = RelayState::R_On;
+    break;
+    case 200:
+      relayaction = RelayState::R_Off;
+    break;
+    default: // if nothing from the local sensors
+      switch(receiveaction){ // check remote instructions
+        case 100:
+          relayaction = RelayState::R_On;
+        break;
+        case 200:
+          relayaction = RelayState::R_Off;
+        break;
+        default:
+          if (relayactions == relayaction){ // if status has become the requested status
+            relayaction = RelayState::R_None;
+          }
+      }
+  }
 
   // actors
-  relaysaction = handleRelays(currentMillis);
+  relayactions = handleRelay(currentMillis, relayaction);
 
 }

@@ -1,15 +1,15 @@
 /*
- * 
+ * RF networking, repeater from end-point to/from home base, also receiving commands from home base
  */
 
-RF24 radio(9, 10);               // onboard nRF24L01 (CE, CSN)
-RF24Network network(radio);      // Include the radio in the network
+#define radio_channel 100
 
-#define radio_channel 100;
+RF24 radio(9, 10);               // external nRF24L01 (CE, CSN)
+RF24Network network(radio);      // include the radio in the network
 
 const uint16_t remote_node = 01;   // Address of node in Octal format (04, 031, etc.)
-const uint16_t repeater_node = 00;    // Address of node in Octal format
-const uint16_t base_node = 02;    // Address of node in Octal format
+const uint16_t repeater_node = 00; // Address of node in Octal format
+const uint16_t base_node = 02;     // Address of node in Octal format
 
 void setupRFnetwork(){
   SPI.begin();
@@ -22,109 +22,120 @@ void setupRFnetwork(){
   network.begin(radio_channel, repeater_node); // (channel, node address)
 }
 
+// Payload from home and remote
+struct repeat_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint8_t count;
+  uint8_t value1;
+  uint8_t value2;
+  uint8_t value3;
+};
+
+// Payload for schuur
+struct schuur_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint8_t count;
+  uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
+};
+
+repeat_payload forwards;
+schuur_payload acks;
+char repeat_type = 'P';
+
 //===== Receiving =====//
 unsigned int receiveRFnetwork(unsigned long currentmilli){
   unsigned int reaction = 0;
 
-  while (network.available()) { // Is there any incoming data?
-    Serial.println(F("Receiving on RF network"));
+  // Check for incoming data from the sensors
+  while (network.available()) {
     RF24NetworkHeader header;
-    network_payload incomingData;
-    network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
-    Serial.println(incomingData.keyword, HEX);
-    if (header.from_node != node01) {
-      Serial.print(F("Received unexpected message, from_node: "));
-      Serial.println(header.from_node);
+    network.peek(header);
+  
+    switch(header.type) {
+      case 'S': // Message received from HomeController for RemoteNode
+        Serial.print(F("Message received from Home: "));
+        repeat_payload hpayload;
+        network.read(header, &hpayload, sizeof(hpayload));
+        forwards = hpayload;
+        repeat_type = 'T';
+        reaction++;
       break;
+      case 'H': // Message received from RemoteNode for HomeController 
+        Serial.print(F("Message received from Remote: "));
+        repeat_payload rpayload;
+        network.read(header, &rpayload, sizeof(rpayload));
+        forwards = rpayload;
+        repeat_type = 'I';
+        reaction++;
+      break;
+      case 'R': // Message received from HomeController for this device
+        Serial.print(F("Message received for this device: "));
+        schuur_payload lpayload;
+        network.read(header, &lpayload, sizeof(lpayload));
+        reaction++;
+      break;
+      default: 
+        network.read(header, 0, 0);
+        Serial.print(F("TBD header.type: "));
+        Serial.print(header.type);
     }
-    receivedmsg++;
-    // Serial.print(F("incomingData: "));
-    // Serial.println(incomingData.counter);
-    // check keyword and sequencenumber
-    if (incomingData.keyword == keywordval){
-      receiveCounter = incomingData.counter;
-      responsefromremote = incomingData.response;
-      if (rcvmsgcount > wrappingcounter) { // initialisation
-        rcvmsgcount = receiveCounter;
-        commanding = command_clear_counters;
-      }
-      else { // check received message value
-        if (rcvmsgcount != receiveCounter) {
-          if (receivedmsg > 1) {
-             droppedmsg++; // this could be multiple as well
-            Serial.print(F("Missed network message(s): "));
-            Serial.print(F("received id: "));
-            Serial.print(receiveCounter);
-            Serial.print(F(", expected id: "));
-            Serial.println(rcvmsgcount);             
-          }
-          rcvmsgcount = receiveCounter; // re-synchronize
-        }
-      }
-      rcvmsgcount = updatecounter(rcvmsgcount); // calculate next expected message 
-    }
-    else{
-      Serial.println(F("Keyword failure"));
-    }
+    Serial.println(currentmilli);
+  } // end of while network.available
 
-    if (responsefromremote > response_none) {
-      // Serial.print(F("responsefromremote: "));
-      // Serial.println(responsefromremote, HEX);
-      unsigned long fails = 1;//incomingData.data2 & 0xffff;
-      unsigned long drops = 2;//(incomingData.data2 >> 16) & 0xffff;
-      unsigned long rsend = incomingData.data1;
-      unsigned long rcoll = incomingData.response;
-      Serial.print(F("Remote network messages "));
-      Serial.print(F("received: "));
-      Serial.print(rcoll);
-      Serial.print(F(", send: "));
-      Serial.print(rsend);
-      Serial.print(F(", missed: "));
-      Serial.print(drops);
-      Serial.print(F(", failed: "));
-      Serial.println(fails);
-      Serial.println(F("-"));  
-      responsefromremote = response_none;
-    }
-
-    network.update();
-  }
   return reaction;
 }
 
-
 //===== Sending =====//
-unsigned int transmitRFnetwork(unsigned long currentmilli){
+unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
   static unsigned long sendingTimer = 0;
   unsigned int traction = 0;
+  bool ok = false;
+  uint16_t destination = base_node;
 
   // Every x seconds...
-  unsigned long currentmilli = millis();
-  if(currentmilli - sendingTimer > 5000) {
+  if((fresh)||(currentmilli - sendingTimer > 5000)){
     sendingTimer = currentmilli;
-    sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header1(node01, 'B'); // Address where the data is going
-    network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1};//, data2, data3};
 
-    //network.update();
-
-    bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
-    if (!ok) {
-      Serial.print(F("Retry sending message: "));
-      Serial.println(sendingCounter);      
-      ok = network.write(header1, &outgoing, sizeof(outgoing)); // retry once
+    switch(repeat_type) {
+      case 'I':
+        destination = base_node;
+      break;
+      case 'T':
+        destination = remote_node;
+      break;
+      default:
+        destination = base_node;
+        repeat_type = 'P';
     }
+
+    RF24NetworkHeader headerT(destination, repeat_type); // Address where the data is going
+    if (repeat_type != 'P'){ // forward the message
+      ok = network.write(headerT, &forwards, sizeof(forwards)); // send the data
+      if (!ok) {
+        Serial.print(F("Retry sending message: "));
+        //Serial.println(sendingCounter);      
+        ok = network.write(headerT, &forwards, sizeof(forwards)); // retry once
+      }
+    }
+    else { // acknowledge the message from controller/base node
+      ok = network.write(headerT, &acks, sizeof(acks)); // send the data
+      if (!ok) {
+        Serial.print(F("Retry sending message: "));
+        //Serial.println(sendingCounter);      
+        ok = network.write(headerT, &acks, sizeof(acks)); // retry once
+      }
+    }
+    Serial.print(currentmilli);
+    Serial.print(F(" send message "));
     if (ok) {
-      sendmsg++;
-      commanding = command_none;
+      repeat_type = 'P';
     }
     else{
-      Serial.print(F("Error sending message: "));
-      Serial.println(sendingCounter);
-      failedmsg++;
+      Serial.print(F("Failed "));
     }
-    responding = response_none;
+    //Serial.println(sendingCounter);
   }
   return traction;
 }
-
