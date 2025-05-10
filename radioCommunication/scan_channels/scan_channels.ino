@@ -87,6 +87,11 @@ void setup(void) {
   Serial.println(__TIMESTAMP__);
   Serial.flush();
 
+  Serial.print(F("CE_PIN: "));
+  Serial.print(CE_PIN);
+  Serial.print(F(", CSN_PIN: "));
+  Serial.println(CSN_PIN);
+
   // Setup and configure RF radio
   if (!radio.begin()) {
     Serial.println(F("Radio hardware not responding!"));

@@ -68,17 +68,20 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
     kitchen_payload kpayload;
     kpayload = {0, currentmilli, 0, 0};
     RF24NetworkHeader headerK(base_node, 'K'); // Address where the data is going
-    ok = network.write(headerK, &forwards, sizeof(forwards)); // send the data
+    ok = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
     if (!ok) {
-      Serial.print(F("Retry sending message: "));
+      //Serial.print(F("Retry sending message: "));
       //Serial.println(sendingCounter);      
-      ok = network.write(headerK, &forwards, sizeof(forwards)); // retry once
+      ok = network.write(headerK, &kpayload, sizeof(kpayload)); // retry once
     }
 
     Serial.print(currentmilli);
     Serial.print(F(" send message "));
-    if (!ok) {
-      Serial.print(F("Failed "));
+    if (ok) {
+      Serial.println(F("OK "));
+    }
+    else{
+      Serial.println(F("Failed "));
     }
     //Serial.println(sendingCounter);
   }
