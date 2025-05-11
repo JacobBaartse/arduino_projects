@@ -8,7 +8,7 @@
 
 #define radio_channel 104
 
-RF24 radio(9, 10);               // internal nRF24L01 (CE, CSN)
+RF24 radio(10, 9);               // internal nRF24L01 (CE, CSN)
 RF24Network network(radio);      // include the radio in the network
 
 const uint16_t kitchen_node = 01; // Address of node in Octal format
@@ -17,7 +17,10 @@ const uint16_t base_node = 00;     // Address of node in Octal format
 void setupRFnetwork(){
   SPI.begin();
 
-  radio.begin();
+  if (!radio.begin()){
+    Serial.println(F("Radio hardware error."));
+    while (true) delay(1000);
+  }
   //radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
   radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);

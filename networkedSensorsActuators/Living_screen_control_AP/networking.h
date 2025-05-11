@@ -185,8 +185,7 @@ int WifiConnect(){
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 // for the UNO/NANO with external RF24 module:
-// RF24 radio(7, 8); // nRF24L01 (CE, CSN)
-RF24 radio(8, 7); // nRF24L01 (CE, CSN)
+RF24 radio(7, 8); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t base_node = 00;   // Address of this node in Octal format (04, 031, etc.)
@@ -195,7 +194,10 @@ const uint16_t kitchen_node = 01;
 void setupRFnetwork(){
   SPI.begin();
 
-  radio.begin();
+  if (!radio.begin()){
+    Serial.println(F("Radio hardware error."));
+    while (true) delay(1000);
+  }  
   //radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
   radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);

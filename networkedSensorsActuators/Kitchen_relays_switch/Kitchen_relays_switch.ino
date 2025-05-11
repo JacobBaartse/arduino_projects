@@ -36,6 +36,7 @@ RelayState relayactions = RelayState::R_None;
 
 void loop() {
   // put your main code here, to run repeatedly:
+  
   currentMillis = millis();   // capture the value of millis() only once in the loop
 
   network.update();
