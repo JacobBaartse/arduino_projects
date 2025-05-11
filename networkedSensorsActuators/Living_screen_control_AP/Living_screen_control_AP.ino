@@ -4,6 +4,7 @@
 
 #include "matrix.h"
 #include "networking.h"
+#include "screen.h"
 #include "webinterface.h"
 
 int status = WL_IDLE_STATUS;
@@ -40,6 +41,8 @@ void setup() {
 
   setupRFnetwork();
 
+  setupScreenControl();
+
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
   Serial.print(ssid);
@@ -74,12 +77,10 @@ void setup() {
   Serial.flush(); 
 }
  
-WiFiClient client;
-char c = '\n';
-
 unsigned long currentMillis = 0; // stores the value of millis() in each iteration of loop()
 unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
+bool screening = false;
 
 void loop() {
 
@@ -95,6 +96,10 @@ void loop() {
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
 
   webinterfacing();
+
+  if (screening){
+    screening = screenprocessing();
+  }
 
   // client = server.available();   // listen for incoming clients
 

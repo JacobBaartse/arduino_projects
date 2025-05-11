@@ -45,7 +45,7 @@ void HTMLreply(){
   Serial.println(F(" done"));
 }
 
-int HTMLresponseline(String requestline, int metadata){
+void HTMLresponseline(String requestline, int metadata){
   static bool postedtext = false;
   static int postedcolors = 0;
 
