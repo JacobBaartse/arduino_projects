@@ -22,8 +22,8 @@ char hexaKeys[ROWS][COLS] = {
 
 // byte rowPins[ROWS] = {9, 8, 7, 6}; 
 // byte colPins[COLS] = {5, 4, 3, 2}; 
-byte rowPins[ROWS] = {A0, A1, A2, A3}; 
-byte colPins[COLS] = {A4, A5, A6, A7}; 
+byte rowPins[ROWS] = {5, 4, 3, 2}; 
+byte colPins[COLS] = {A0, 8, 7, 6}; 
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
@@ -123,7 +123,7 @@ void transmitRFnetwork(bool fresh){
   static unsigned long counter = 0;
   bool w_ok;
 
-  // Every 5 seconds, or on new data
+  // Every 10 seconds, or on new data
   unsigned long currentRFmilli = millis();
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 10000)){
     sendingTimer = currentRFmilli;

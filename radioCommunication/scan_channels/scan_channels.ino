@@ -41,12 +41,12 @@
 //#define CSN_PIN 8
 
 // RF Nano
-#define CE_PIN 10
-#define CSN_PIN 9
+// #define CE_PIN 10
+// #define CSN_PIN 9
 
 // RF Nano, microUSB
-// #define CE_PIN 9
-// #define CSN_PIN 10
+#define CE_PIN 9
+#define CSN_PIN 10
 
 // SMD projects:
 // #define CE_PIN 9
@@ -74,9 +74,9 @@ void printHeader();  // prototype function for printing the channels' header
 
 void setup(void) {
   // Print preamble
-  Serial.begin(115200);
+  //Serial.begin(115200);
   //Serial.begin(230400); // for the 2 micro USB NANO boards
-  //Serial.begin(230400); // actual baudrate in IDE: 57600 (RF-NANO, micro USB), there is somewhere a mismatch in clock factor of 4
+  Serial.begin(230400); // actual baudrate in IDE: 57600 (RF-NANO, micro USB), there is somewhere a mismatch in clock factor of 4
 
   while (!Serial) {
     // some boards need this to wait for Serial connection
