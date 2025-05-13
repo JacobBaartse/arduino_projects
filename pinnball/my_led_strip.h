@@ -204,13 +204,14 @@ const TProgmemPalette16 myRedWhiteBluePalette_p FL_PROGMEM =
 };
 
 
-void blink_leds(bool left1hit, bool left2hit, bool left3hit){
-    for (int i=0; i<5; i++){
+void blink_leds(bool left1hit, bool left2hit, bool left3hit, int duration_ms){
+    while (duration_ms>0){
       score_onleds(left1hit, left2hit, left3hit);
       delay(50);
       FastLED.clear();
       FastLED.show();
       delay(50);
+      duration_ms -=100;
     }
 }
 

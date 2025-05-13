@@ -37,8 +37,8 @@
 //
 
 // external NRF24 module
-//#define CE_PIN 7
-//#define CSN_PIN 8
+// #define CE_PIN 7
+// #define CSN_PIN 8
 
 // RF Nano
 // #define CE_PIN 10
@@ -86,6 +86,11 @@ void setup(void) {
   Serial.print(F(",\ncreation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush();
+
+  Serial.print(F("CE_PIN: "));
+  Serial.print(CE_PIN);
+  Serial.print(F(", CSN_PIN: "));
+  Serial.println(CSN_PIN);
 
   // Setup and configure RF radio
   if (!radio.begin()) {
