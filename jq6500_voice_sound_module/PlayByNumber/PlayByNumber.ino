@@ -33,8 +33,8 @@ void loop() {
 
     if(mp3.getStatus() != MP3_STATUS_PLAYING)
     {
-      i++;
       mp3.playFileByIndexNumber((i % num_files)+1);  
+      i++;
     } 
 
 }

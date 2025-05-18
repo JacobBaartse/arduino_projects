@@ -30,9 +30,9 @@ void setup()
   display_setup();
   lcd.print(score_counter, 0);
   ledstrip_setup();
-  show_leds_rainbow();
   setup_mp3_player();
   Play_mp3_file(INTRO_MELODY);
+  light_show(20000);
 }
 
 bool left1hit = false;
@@ -50,22 +50,18 @@ void loop()
   int switch_nr = io_extender_check_switches();
   if (switch_nr == 1){
     Play_mp3_file(FIEEEW);
-    show_leds_reandom(1, false);
     score_counter += 10;
-    show_leds_reandom(10, true);
+    light_show(825);
   }
   if (switch_nr == 2){
     Play_mp3_file(DO_RE_MI);
-    show_leds_rainbow();
     score_counter += 100;
-    delay(300);
-    show_leds_reandom(0, true);
+    light_show(1600);
   }
   if (switch_nr == 3){
     Play_mp3_file(CANNON_SHOT);
-    show_leds_reandom(1, false);
     score_counter += 100;
-    show_leds_reandom(10, true);
+    light_show(2150);
   }  
   if (switch_nr == 10){  //red button
     Play_mp3_file(GUN_SHOT);

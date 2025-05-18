@@ -1,3 +1,4 @@
+#include "api/Common.h"
 /// @file    ColorPalette.ino
 /// @brief   Demonstrates how to use @ref ColorPalettes
 /// @example ColorPalette.ino
@@ -137,6 +138,27 @@ void ChangePaletteRandom()
 }
 
 
+void ChangePalettePeriodically()
+{
+    uint8_t secondHand = (millis() / 1000) % 60;
+    static uint8_t lastSecond = 99;
+    
+    if( lastSecond != secondHand) {
+        lastSecond = secondHand;
+        if( secondHand ==  0)  { currentPalette = RainbowColors_p;         currentBlending = LINEARBLEND; }
+        if( secondHand == 10)  { currentPalette = RainbowStripeColors_p;   currentBlending = NOBLEND;  }
+        if( secondHand == 15)  { currentPalette = RainbowStripeColors_p;   currentBlending = LINEARBLEND; }
+        if( secondHand == 20)  { SetupPurpleAndGreenPalette();             currentBlending = LINEARBLEND; }
+        if( secondHand == 25)  { SetupTotallyRandomPalette();              currentBlending = LINEARBLEND; }
+        if( secondHand == 30)  { SetupBlackAndWhiteStripedPalette();       currentBlending = NOBLEND; }
+        if( secondHand == 35)  { SetupBlackAndWhiteStripedPalette();       currentBlending = LINEARBLEND; }
+        if( secondHand == 40)  { currentPalette = CloudColors_p;           currentBlending = LINEARBLEND; }
+        if( secondHand == 45)  { currentPalette = PartyColors_p;           currentBlending = LINEARBLEND; }
+        if( secondHand == 50)  { currentPalette = myRedWhiteBluePalette_p; currentBlending = NOBLEND;  }
+        if( secondHand == 55)  { currentPalette = myRedWhiteBluePalette_p; currentBlending = LINEARBLEND; }
+    }
+}
+
 
 // This function fills the palette with totally random colors.
 void SetupTotallyRandomPalette()
@@ -213,6 +235,30 @@ void blink_leds(bool left1hit, bool left2hit, bool left3hit, int duration_ms){
       delay(50);
       duration_ms -=100;
     }
+}
+
+
+void light_show(int duration)
+{
+    int start_time = millis();
+    while (true){
+        ChangePalettePeriodically();
+        
+        static uint8_t startIndex = 0;
+        startIndex = startIndex + 1; /* motion speed */
+        
+        FillLEDsFromPaletteColors(startIndex);
+        
+        FastLED.show();
+        FastLED.delay(1000 / UPDATES_PER_SECOND);
+
+        if (millis() > (start_time + duration) ) return;
+    }
+    // if (clear){
+    //     FastLED.clear();
+    //     FastLED.show();
+    // }
+
 }
 
 
