@@ -146,8 +146,6 @@ void loop() {
     loadsequencepicture();
   }
 
-  network.update();
-
   webinterfacing();
   
 }

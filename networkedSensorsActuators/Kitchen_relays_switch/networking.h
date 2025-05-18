@@ -51,6 +51,9 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
         Serial.print(F("Message received from Base: "));
         kitchen_payload kpayload;
         network.read(header, &kpayload, sizeof(kpayload));
+
+
+
       break;
       default: 
         network.read(header, 0, 0);
@@ -77,7 +80,7 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
     kpayload.count = 0;
     kpayload.light = 0;
     kpayload.timing = currentmilli;
-    RF24NetworkHeader headerK(base_node, 'K'); // Address where the data is going
+    RF24NetworkHeader headerK(base_node, 'L'); // Address where the data is going
     ok = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
     if (!ok) {
       //Serial.print(F("Retry sending message: "));

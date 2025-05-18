@@ -25,16 +25,16 @@ int initWiFi(char* pssid, char* ppass, int timeout=10000) {
 
 IPAddress printWiFiStatus() {
   // print the SSID of the network you're hosting (Access Point mode)
-  Serial.print("SSID: ");
+  Serial.print(F("SSID: "));
   Serial.print(WiFi.SSID());
 
   // print your AP IP address:
   IPAddress ip = WiFi.localIP();
-  Serial.print(", IP address: ");
+  Serial.print(F(", IP address: "));
   Serial.print(ip);
 
   // print where to go in a browser:
-  Serial.print(", browse to http://");
+  Serial.print(F(", browse to http://"));
   Serial.println(ip);
   
   return ip;
@@ -46,12 +46,12 @@ IPAddress printWifiStatus(int connect) {
   Serial.println();
   Serial.println();
   // print your board's IP address:
-  Serial.print("IP Address: ");
+  Serial.print(F("IP Address: "));
   IPAddress here = WiFi.localIP();
   Serial.print(here);
 
   // print the received signal strength:
-  Serial.print(", signal strength (RSSI): ");
+  Serial.print(F(", signal strength (RSSI): "));
   Serial.print(WiFi.RSSI());
   Serial.println(String(" dBm, con: ") + connect);
   Serial.flush();
@@ -88,25 +88,25 @@ void printEncryptionType(int thisType) {
 
 String findNetwork() {
   // scan for nearby networks:
-  Serial.println("** Scan Networks **");
+  Serial.println(F("** Scan Networks **"));
   int numSsid = WiFi.scanNetworks();
   if (numSsid == -1) {
-    Serial.println("Couldn't get WiFi information");
+    Serial.println(F("Couldn't get WiFi information"));
     while (true);
   }
 
   // print the list of networks seen:
-  Serial.print("number of available networks: ");
+  Serial.print(F("number of available networks: "));
   Serial.println(numSsid);
 
   // print the network number and name for each network found:
   for (int thisNet = 0; thisNet < numSsid; thisNet++) {
     Serial.print(thisNet);
-    Serial.print(") ");
+    Serial.print(F(") "));
     Serial.print(WiFi.SSID(thisNet));
-    Serial.print(" Signal: ");
+    Serial.print(F(" Signal: "));
     Serial.print(WiFi.RSSI(thisNet));
-    Serial.println(" dBm");
+    Serial.println(F(" dBm"));
     // Serial.print(" Encryption: ");
     // printEncryptionType(WiFi.encryptionType(thisNet));
     // Serial.println(" ");
@@ -125,14 +125,14 @@ String findNetwork() {
       }
     }
   }
-  Serial.print("foundSSID: ");
+  Serial.print(F("foundSSID: "));
   Serial.println(foundSSID);
   return foundSSID;
 }
 
 String getNetworkPassword(String SSID) {
   String foundPWD = "";
-  for (int storage = 0; knownnetworks[storage][0] != "EOR"; storage++){
+  for (int storage = 0; knownnetworks[storage][0] != F("EOR"); storage++){
     if (SSID == knownnetworks[storage][0]){
       foundPWD = knownnetworks[storage][1];
       break;
@@ -157,9 +157,9 @@ int WifiConnect(){
   String SSIDpwd = getNetworkPassword(SSIDfound);
   String SSIDlocation = getNetworkLocation(SSIDfound);
   
-  Serial.print("Wifi network: ");
+  Serial.print(F("Wifi network: "));
   Serial.print(SSIDfound);
-  Serial.print(", ");
+  Serial.print(F(", "));
   Serial.println(SSIDlocation);
 
   // attempt to connect to WiFi network:
@@ -224,10 +224,12 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
     network.peek(header);
   
     switch(header.type) {
-      case 'K': // Message received from HomeController for RemoteNode
+      case 'L': // Message received from Kitchen for Livingroom
         Serial.print(F("Message received from Base: "));
         kitchen_payload kpayload;
         network.read(header, &kpayload, sizeof(kpayload));
+
+
       break;
       default: 
         network.read(header, 0, 0);
