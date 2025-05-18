@@ -67,7 +67,7 @@ void setuprelays(){
   digitalWrite(ClearPin, HIGH);
   digitalWrite(SetPin, HIGH);
 
-  delay(500); // make sure a possible pulse is completed
+  delay(2500); // make sure a possible pulse is completed
 
   int startupstate = digitalRead(FeedbackPin);
   if (startupstate == LOW){

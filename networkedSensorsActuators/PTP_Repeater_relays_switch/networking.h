@@ -22,15 +22,15 @@ void setupRFnetwork(){
   network.begin(radio_channel, repeater_node); // (channel, node address)
 }
 
-// Payload from home and remote
-struct repeat_payload{
-  uint32_t keyword;
-  uint32_t timing;
-  uint8_t count;
-  uint8_t value1;
-  uint8_t value2;
-  uint8_t value3;
-};
+// // Payload from home and remote
+// struct repeat_payload{
+//   uint32_t keyword;
+//   uint32_t timing;
+//   uint8_t count;
+//   uint8_t value1;
+//   uint8_t value2;
+//   uint8_t value3;
+// };
 
 // Payload for schuur
 struct schuur_payload{
@@ -40,7 +40,7 @@ struct schuur_payload{
   uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
 };
 
-repeat_payload forwards;
+// repeat_payload forwards;
 schuur_payload acks;
 char repeat_type = 'P';
 
@@ -54,22 +54,22 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
     network.peek(header);
   
     switch(header.type) {
-      case 'S': // Message received from HomeController for RemoteNode
-        Serial.print(F("Message received from Home: "));
-        repeat_payload hpayload;
-        network.read(header, &hpayload, sizeof(hpayload));
-        forwards = hpayload;
-        repeat_type = 'T';
-        reaction++;
-      break;
-      case 'H': // Message received from RemoteNode for HomeController 
-        Serial.print(F("Message received from Remote: "));
-        repeat_payload rpayload;
-        network.read(header, &rpayload, sizeof(rpayload));
-        forwards = rpayload;
-        repeat_type = 'I';
-        reaction++;
-      break;
+      // case 'S': // Message received from HomeController for RemoteNode
+      //   Serial.print(F("Message received from Home: "));
+      //   repeat_payload hpayload;
+      //   network.read(header, &hpayload, sizeof(hpayload));
+      //   forwards = hpayload;
+      //   repeat_type = 'T';
+      //   reaction++;
+      // break;
+      // case 'H': // Message received from RemoteNode for HomeController 
+      //   Serial.print(F("Message received from Remote: "));
+      //   repeat_payload rpayload;
+      //   network.read(header, &rpayload, sizeof(rpayload));
+      //   forwards = rpayload;
+      //   repeat_type = 'I';
+      //   reaction++;
+      // break;
       case 'R': // Message received from HomeController for this device
         Serial.print(F("Message received for this device: "));
         schuur_payload lpayload;
@@ -98,39 +98,39 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
   if((fresh)||(currentmilli - sendingTimer > 5000)){
     sendingTimer = currentmilli;
 
-    switch(repeat_type) {
-      case 'I':
-        destination = base_node;
-      break;
-      case 'T':
-        destination = remote_node;
-      break;
-      default:
-        destination = base_node;
-        repeat_type = 'P';
-    }
+    // switch(repeat_type) {
+    //   case 'I':
+    //     destination = base_node;
+    //   break;
+    //   case 'T':
+    //     destination = remote_node;
+    //   break;
+    //   default:
+    //     destination = base_node;
+    //     repeat_type = 'P';
+    // }
 
     RF24NetworkHeader headerT(destination, repeat_type); // Address where the data is going
-    if (repeat_type != 'P'){ // forward the message
-      ok = network.write(headerT, &forwards, sizeof(forwards)); // send the data
-      if (!ok) {
-        Serial.print(F("Retry sending message: "));
-        //Serial.println(sendingCounter);      
-        ok = network.write(headerT, &forwards, sizeof(forwards)); // retry once
-      }
-    }
-    else { // acknowledge the message from controller/base node
+    // if (repeat_type != 'P'){ // forward the message
+    //   ok = network.write(headerT, &forwards, sizeof(forwards)); // send the data
+    //   if (!ok) {
+    //     Serial.print(F("Retry sending message: "));
+    //     //Serial.println(sendingCounter);      
+    //     ok = network.write(headerT, &forwards, sizeof(forwards)); // retry once
+    //   }
+    // }
+    // else { // acknowledge the message from controller/base node
       ok = network.write(headerT, &acks, sizeof(acks)); // send the data
       if (!ok) {
         Serial.print(F("Retry sending message: "));
         //Serial.println(sendingCounter);      
         ok = network.write(headerT, &acks, sizeof(acks)); // retry once
       }
-    }
+    // }
     Serial.print(currentmilli);
     Serial.print(F(" send message "));
     if (ok) {
-      repeat_type = 'P';
+      // repeat_type = 'P';
     }
     else{
       Serial.print(F("Failed "));
