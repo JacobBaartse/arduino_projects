@@ -1,5 +1,5 @@
 /*
- * https://eletechsup.com/products/dc-12v-10a-latching-keep-relay-module-zero-power-hold-switch-bistable-self-locking-flip-flop-latch-board
+ * http://wiki.sunfounder.cc/index.php?title=2_Channel_5V_Relay_Module
  * 
  */
 
