@@ -7,18 +7,17 @@
 #include "sensors.h"
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
-  delay(1000);
+  
+  setuprelays();
+  setupsensors();
+  // delay(1000);
+
   Serial.println();
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush();  
-
-  setuprelays();
-
-  setupsensors();
 
   setupRFnetwork();
 
@@ -31,11 +30,10 @@ unsigned long currentMillis = 0; // stores the value of millis() in each iterati
 unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
 unsigned int sensoraction = 0;
-RelayState relayaction = RelayState::R_None;
-RelayState relayactions = RelayState::R_None;
+RelayState relaysstatus = RelayState::R_Off;
+RelayState relayaction = RelayState::R_Off;
 
 void loop() {
-  // put your main code here, to run repeatedly:
   
   currentMillis = millis();   // capture the value of millis() only once in the loop
 
@@ -51,29 +49,45 @@ void loop() {
   // sensors
   sensoraction = checkSensors(currentMillis, sensoraction);
 
+//  #define mask_button 1
+// #define mask_no_movement 2
+// #define mask_remain_on 4
+// #define mask_auto_on 8
+// #define mask_auto_off 16
+
+  //bool buttonpressed = sensoraction & mask_button
+
+
+
+
+
+
+
+
   switch(sensoraction){ // from buttons and sensors
     case 100:
+    case 1000:
       relayaction = RelayState::R_On;
     break;
-    case 200:
+    case 10000:
       relayaction = RelayState::R_Off;
     break;
     default: // if nothing from the local sensors
       switch(receiveaction){ // check remote instructions
         case 100:
-          relayaction = RelayState::R_On;
+          relaysstatus = RelayState::R_On;
         break;
         case 200:
-          relayaction = RelayState::R_Off;
+          relaysstatus = RelayState::R_Off;
         break;
         default:
-          if (relayactions == relayaction){ // if status has become the requested status
-            relayaction = RelayState::R_None;
+          if (relaysstatus == relayaction){ // if status has become the requested status
+            relaysstatus = RelayState::R_Off;
           }
       }
   }
 
   // actors
-  relayactions = handleRelay(currentMillis, relayaction);
+  relaysstatus = handleRelay(currentMillis, relayaction);
 
 }

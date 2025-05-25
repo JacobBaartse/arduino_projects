@@ -4,21 +4,28 @@
 
 #include "Wire.h"
 
-#define PIR_PIN 6
-#define ON_PIN 8
-#define OFF_PIN 4
+#define PIR1_PIN 6
+#define PIR2_PIN 7
+#define IN_PIN 8
+
 #define SR04_I2CADDR 0x57
 
 #define distanceThreshold 100 // in cm
 #define off_delay 120000 // in ms
 
+#define mask_button 1
+#define mask_no_movement 2
+#define mask_remain_on 4
+#define mask_auto_on 8
+#define mask_auto_off 16
+
 byte ds[3] = {0, 0, 0};
 
 void setupsensors(){
 
-  pinMode(PIR_PIN, INPUT);
-  pinMode(ON_PIN, INPUT_PULLUP);
-  pinMode(OFF_PIN, INPUT_PULLUP);
+  pinMode(PIR1_PIN, INPUT);
+  pinMode(PIR2_PIN, INPUT);
+  pinMode(IN_PIN, INPUT_PULLUP);
 
   // Start I2C
   Wire.begin();
@@ -30,8 +37,8 @@ unsigned long measure_distance(){
   Wire.beginTransmission(SR04_I2CADDR);
   Wire.write(1);          // 1 = cmd to start meansurement
   Wire.endTransmission();
-  delay(120);             // 1 cycle approx. 100mS. 
-  Wire.requestFrom(SR04_I2CADDR, 3); //read distance       
+  delay(120);             // 1 cycle approx. 100ms. 
+  Wire.requestFrom(SR04_I2CADDR, 3); //read distance (3 bytes)      
   while (Wire.available())
   {
     ds[i++] = Wire.read();
@@ -47,47 +54,60 @@ unsigned long measure_distance(){
   return distance;
 }
 
+// #define mask_button 1
+// #define mask_no_movement 2
+// #define mask_remain_on 4
+// #define mask_auto_on 8
+// #define mask_auto_off 16
 unsigned int checkSensors(unsigned long currentmilli, unsigned int tracksensors)
 {
-  static unsigned int sensorstate = 0;
+  static unsigned int bloop = 0;
   static unsigned long sensortime = 0;
+  //static unsigned int sensorstate = 0;
+  unsigned int sensorstate = 0;
   unsigned long mdistance = 0;
 
-  // check PIR detector
-  if (digitalRead(PIR_PIN) == LOW)
+  bool det1 = digitalRead(PIR1_PIN) == LOW;
+  bool det2 = digitalRead(PIR2_PIN) == LOW;
+  bool buttonpress = digitalRead(IN_PIN) == LOW;
+
+  // check PIR detectors
+  if (det1 && det2)
   {
-    // check distance sensor
-    mdistance = measure_distance();
-    if (mdistance < distanceThreshold){ // if something between sensor and wall/floor
-      sensorstate = 100;
+    sensorstate += mask_remain_on; // remaining on signal
+    if (tracksensors > 5){
       sensortime = currentmilli + off_delay; 
     }
-  }
-  // check on button
-  if (digitalRead(ON_PIN) == LOW)
-  {
-    sensorstate = 100;
-    Serial.println(F("ON"));
-  }
-
-  if (sensorstate == 0){
-    if (currentmilli > sensortime){ // turn off after set time
-      sensorstate = 200;
-      Serial.println(F("Timeout (going OFF)"));
-    }
     else {
-      if (tracksensors > 0){
-        Serial.print((sensortime - currentmilli) / 1000);
-        Serial.println(F(" seconds to go (for Timeout)"));
-        sensorstate = tracksensors;
+      // check distance sensor
+      mdistance = measure_distance();
+      if (mdistance < distanceThreshold){ // if something between sensor and wall/floor
+        sensortime = currentmilli + off_delay; 
+        sensorstate += mask_auto_on; // automatic on signal
       }
     }
   }
-  // check off button, this overrides the detectors and on button
-  if (digitalRead(OFF_PIN) == LOW)
+
+  // if none of the detectors, check automatic turn off time
+  if (!det1 && !det2)
   {
-    sensorstate = 200;
-    Serial.println(F("OFF"));
+    sensorstate += mask_no_movement; // no movement signal
+    if (currentmilli > sensortime){
+      sensorstate += mask_auto_off; // automatic off signal
+    }
+  }
+
+  // check button
+  if (buttonpress)
+  {
+    if (bloop < 1){
+      Serial.println(F("Button press"));
+    }
+    bloop = 1000;
+  }
+  if (bloop > 0){ // anti dender software
+    bloop -= 1;
+    sensorstate += mask_button; // button pressed signal
   }
 
   return sensorstate;

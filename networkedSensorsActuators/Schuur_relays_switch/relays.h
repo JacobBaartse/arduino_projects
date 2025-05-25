@@ -3,54 +3,47 @@
  * 
  */
 
-#define ClearPin 3
-#define SetPin 2
-#define FeedbackPin 4
-
-#define pulse_time 2100  // pulse low time, max 2 seconds needed
+#define OnPin1 5
+#define OnPin2 6
+#define off_delay_time 10000 // 10 seconds delay time before going off
 
 enum RelayState {
-    R_None = 0,
-    R_Off = 1,
-    R_GoOn = 2,
-    R_On = 3,
-    R_GoOff = 4
+    R_Off = 0,
+    R_On = 1,
+    R_Off_wait = 2,
 };
 
 
 RelayState handleRelay(unsigned long currentmilli, RelayState Raction){
-  static RelayState RelayStatus = RelayState::R_None;
-  static unsigned long pulseTimer = 0;
+  static RelayState RelayStatus = RelayState::R_Off;
+  static unsigned long offTimer = 0;
 
   switch(RelayStatus){
     case RelayState::R_Off:
       if (Raction == RelayState::R_On){
-        digitalWrite(SetPin, LOW);
-        pulseTimer = currentmilli + pulse_time;
-        RelayStatus = RelayState::R_GoOn;
-      }
-      break;
-    case RelayState::R_GoOn:
-      if (currentmilli > pulseTimer){
-        digitalWrite(SetPin, HIGH);
+        digitalWrite(OnPin1, LOW);
+        digitalWrite(OnPin2, LOW);
         RelayStatus = RelayState::R_On;
       }
       break;
     case RelayState::R_On:
-      if (Raction == RelayState::R_Off){
-        digitalWrite(ClearPin, LOW);
-        pulseTimer = currentmilli + pulse_time;
-        RelayStatus = RelayState::R_GoOff;
+      if (Raction == RelayState::R_Off_wait){
+        offTimer = currentmilli + off_delay_time;
+        RelayStatus = RelayState::R_Off_wait;
       }
       break;
-    case RelayState::R_GoOff:
-      if (currentmilli > pulseTimer){
-        digitalWrite(ClearPin, HIGH);
+    case RelayState::R_Off_wait:
+      if (Raction == RelayState::R_On){
+        digitalWrite(OnPin1, LOW);
+        digitalWrite(OnPin2, LOW);
+        RelayStatus = RelayState::R_On;
+      }
+      else if (currentmilli > offTimer){
+        digitalWrite(OnPin1, HIGH);
+        digitalWrite(OnPin2, HIGH);
         RelayStatus = RelayState::R_Off;
       }
       break;
-    case RelayState::R_None: // in case of initial setup
-      RelayStatus = Raction;
     default:
       Serial.print(currentmilli);
       Serial.println(F(" handleRelay"));
@@ -60,20 +53,11 @@ RelayState handleRelay(unsigned long currentmilli, RelayState Raction){
 }
 
 void setuprelays(){
-  pinMode(ClearPin, OUTPUT);
-  pinMode(SetPin, OUTPUT);
-  pinMode(FeedbackPin, INPUT_PULLUP);
+  pinMode(OnPin1, OUTPUT);
+  pinMode(OnPin2, OUTPUT);
 
-  digitalWrite(ClearPin, HIGH);
-  digitalWrite(SetPin, HIGH);
+  digitalWrite(OnPin1, HIGH);
+  digitalWrite(OnPin2, HIGH);
 
-  delay(500); // make sure a possible pulse is completed
-
-  int startupstate = digitalRead(FeedbackPin);
-  if (startupstate == LOW){
-    handleRelay(0, RelayState::R_Off);
-  }
-  else{
-    handleRelay(0, RelayState::R_On);
-  }
+  handleRelay(0, RelayState::R_Off);
 }
