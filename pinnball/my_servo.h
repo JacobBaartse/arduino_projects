@@ -1,14 +1,15 @@
-// Servo myservo;
+Servo myservo;
 
-// void setup_servo():
-// {
-//   myservo.attach(9);
-// }
+void setup_servo()
+{
+  
+}
 
-// void do_servo()
-// {
-//   myservo.write(30);
-//   delay(100);
-//   myservo.write(0);
-//   Serial.print("servo done");
-// }
+void do_servo(int pin, int position)
+{
+  myservo.attach(pin);
+  myservo.write(position);
+  delay(100);
+  myservo.detach();
+
+}

@@ -1,10 +1,7 @@
 #include "PCF8575.h"
 
-// #include <Servo.h>
-// #include "my_servo.h"
-
-// #include <CuteBuzzerSounds.h>
-// #include "my_buzzer.h"
+#include <Servo.h>
+#include "my_servo.h"
 
 #include "my_io_extender.h"
 
@@ -19,20 +16,26 @@
 #include <JQ6500_Serial.h>
 #include "mp3player.h"
 
+#include<Wire.h>
+#include "tilt_sensor.h"
+
 uint32_t score_counter = 0;
 
 void setup()
 {
   Serial.begin(115200);
   setup_io_extender();
-  // setup_servo();
-  // buzzer_setup();
+  setup_servo();
   display_setup();
   lcd.print(score_counter, 0);
   ledstrip_setup();
   setup_mp3_player();
   Play_mp3_file(INTRO_MELODY);
+  do_servo(9, 0);
   light_show(20000);
+  show_leds_rainbow();
+  myRedWhiteBluePalette_p;
+  tilt_setup();
 }
 
 bool left1hit = false;
@@ -43,6 +46,11 @@ void reset_lefthit(){
     left1hit = false;
     left2hit = false;
     left3hit = false;
+}
+
+void showScore(){
+  lcd.print(score_counter, 0);
+  score_onleds(left1hit, left2hit, left3hit);
 }
 
 void loop()
@@ -60,12 +68,14 @@ void loop()
   }
   if (switch_nr == 3){
     Play_mp3_file(CANNON_SHOT);
+    do_servo(9, 60);
     score_counter += 100;
     light_show(2150);
   }  
   if (switch_nr == 10){  //red button
     Play_mp3_file(GUN_SHOT);
     reset_lefthit();
+    do_servo(9, 0);
     score_counter = 0;
   }  
   if (switch_nr == 9){  //green button
@@ -96,17 +106,25 @@ void loop()
 
   if (left1hit & left2hit & left3hit){
     Play_mp3_file(SUPER_GOOD);
+    do_servo(9, 0);
     score_onleds(left1hit, left2hit, left3hit);
     score_counter += 100;
     blink_leds(left1hit, left2hit, left3hit, 2000);
     reset_lefthit();
   }
 
-  if (switch_nr > 0)
-  {
+  if (tilt()){
+    Play_mp3_file(TOE_TOKKK);
+    do_servo(9, 0);
+    score_counter = 0;
+    reset_lefthit();
+    showScore();
+    delay(1000);
+  }
+
+  if (switch_nr > 0){
     Serial.println(switch_nr);
-    lcd.print(score_counter, 0);
-    score_onleds(left1hit, left2hit, left3hit);
+    showScore();
     if (switch_nr == 10) show_leds_rainbow();
   }
   delay(2);

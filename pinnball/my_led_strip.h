@@ -54,10 +54,16 @@ void SetupBlackAndWhiteStripedPalette();
 
 void score_onleds(bool left1hit, bool left2hit, bool left3hit){
     // Serial.print("Show leds score");
-    FastLED.clear();
+    // FastLED.clear();
+  // Fill NUM_LEDS pixels starting at leds[4]
+    fill_solid(leds, NUM_LEDS, CRGB::Gray);
+
     if (left3hit) {  leds[8] = CRGB::Green;  leds[9] = CRGB::Green;}
+    else {  leds[8] = CRGB::Black;  leds[9] = CRGB::Black;}
     if (left2hit) { leds[10] = CRGB::Red; leds[11] = CRGB::Red;}
+    else { leds[10] = CRGB::Black; leds[11] = CRGB::Black;}
     if (left1hit) { leds[12] = CRGB::Blue; leds[13] = CRGB::Blue;}
+    else { leds[12] = CRGB::Black; leds[13] = CRGB::Black;}
     FastLED.show();
 }
 
@@ -76,7 +82,7 @@ void ledstrip_setup() {
 void show_leds_rainbow()
 {
     currentPalette = RainbowStripeColors_p;   
-    currentBlending = LINEARBLEND;
+    currentBlending = NOBLEND;
     FillLEDsFromPaletteColors( 0 );
     FastLED.show();
 }
@@ -228,10 +234,9 @@ const TProgmemPalette16 myRedWhiteBluePalette_p FL_PROGMEM =
 
 void blink_leds(bool left1hit, bool left2hit, bool left3hit, int duration_ms){
     while (duration_ms>0){
-      score_onleds(left1hit, left2hit, left3hit);
+      score_onleds(false, false, false);
       delay(50);
-      FastLED.clear();
-      FastLED.show();
+      score_onleds(left1hit, left2hit, left3hit);
       delay(50);
       duration_ms -=100;
     }
