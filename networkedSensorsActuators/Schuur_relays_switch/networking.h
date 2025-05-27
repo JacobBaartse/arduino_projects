@@ -8,11 +8,15 @@
 
 #define radio_channel 104
 
-RF24 radio(10, 9);               // internal nRF24L01 (CE, CSN)
+// RF Nano, microUSB, LGT8F328
+#define CE_PIN 9
+#define CSN_PIN 10
+
+RF24 radio(CE_PIN, CSN_PIN);      // internal nRF24L01 (CE, CSN)
 RF24Network network(radio);      // include the radio in the network
 
-const uint16_t kitchen_node = 01; // Address of node in Octal format
-const uint16_t base_node = 00;     // Address of node in Octal format
+const uint16_t shed_node = 01; // Address of node in Octal format
+const uint16_t base_node = 00; // Address of node in Octal format
 
 void setupRFnetwork(){
   SPI.begin();
@@ -25,11 +29,11 @@ void setupRFnetwork(){
   radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
   radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
 
-  network.begin(radio_channel, kitchen_node); // (channel, node address)
+  network.begin(radio_channel, shed_node); // (channel, node address)
 }
 
-// Payload for kitchen
-struct kitchen_payload{
+// Payload for shed
+struct shed_payload{
   uint32_t keyword;
   uint32_t timing;
   uint8_t count;
@@ -47,13 +51,10 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
     network.peek(header);
   
     switch(header.type) {
-      case 'K': // Message received from HomeController for RemoteNode
+      case 'S': // Message received from HomeController for RemoteNode
         Serial.print(F("Message received from Base: "));
-        kitchen_payload kpayload;
-        network.read(header, &kpayload, sizeof(kpayload));
-
-
-
+        shed_payload spayload;
+        network.read(header, &spayload, sizeof(spayload));
       break;
       default: 
         network.read(header, 0, 0);
@@ -75,17 +76,17 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
   // Every x seconds...
   if((fresh)||(currentmilli - sendingTimer > 5000)){
     sendingTimer = currentmilli;
-    kitchen_payload kpayload;
-    kpayload.keyword = 0;
-    kpayload.count = 0;
-    kpayload.light = 0;
-    kpayload.timing = currentmilli;
-    RF24NetworkHeader headerK(base_node, 'L'); // Address where the data is going
-    ok = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
+    shed_payload bpayload;
+    bpayload.keyword = 0;
+    bpayload.count = 0;
+    bpayload.light = 0;
+    bpayload.timing = currentmilli;
+    RF24NetworkHeader headerL(base_node, 'L'); // Address where the data is going
+    ok = network.write(headerL, &bpayload, sizeof(bpayload)); // send the data
     if (!ok) {
       //Serial.print(F("Retry sending message: "));
       //Serial.println(sendingCounter);      
-      ok = network.write(headerK, &kpayload, sizeof(kpayload)); // retry once
+      ok = network.write(headerL, &bpayload, sizeof(bpayload)); // retry once
     }
 
     Serial.print(currentmilli);

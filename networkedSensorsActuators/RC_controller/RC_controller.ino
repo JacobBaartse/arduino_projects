@@ -189,6 +189,9 @@ bool transmitRFnetwork(bool fresh){
     Serial.println(Txdata.sw2value);
 
     RF24NetworkHeader header0(node00, 'J'); // address where the data is going
+    // @todo check if broadcast is possible on a RF24 network, 
+    // otherwise create a few headers for different nodes and send separate messages
+    // for example via an array of target node addresses
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
       failcount++;

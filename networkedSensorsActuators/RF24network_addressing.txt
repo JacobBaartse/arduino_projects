@@ -1,0 +1,8 @@
+Octal Addressing
+Each node must be assigned an 15-bit address by the administrator. This address exactly describes the position of the node within the tree. The address is an octal number. Each digit in the address represents a position in the tree further from the base.
+
+Node 00 is the base node.
+Nodes 01-05 are nodes whose parent is the base.
+Node 021 is the second child of node 01.
+Node 0321 is the third child of node 021, an so on.
+The largest node address is 05555, so 3,125 nodes are allowed on a single channel.
