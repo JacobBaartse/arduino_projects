@@ -21,29 +21,47 @@ const uint16_t base_node = 00; // Address of node in Octal format
 void setupRFnetwork(){
   SPI.begin();
 
+  Serial.print(F("CE_PIN: "));
+  Serial.print(CE_PIN);
+  Serial.print(F(", CSN_PIN: "));
+  Serial.println(CSN_PIN);
+
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
     while (true) delay(1000);
   }
   //radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
+  radio.setPALevel(RF24_PA_LOW); // testing, RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
+  //radio.setPALevel(RF24_PA_MAX); // when in use
   radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
 
   network.begin(radio_channel, shed_node); // (channel, node address)
 }
 
-// Payload for shed
+// Payload for shed (from base)
 struct shed_payload{
   uint32_t keyword;
   uint32_t timing;
   uint8_t count;
   uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
+  //uint8_t dummy1; 
+  //uint8_t dummy2; 
+};
+
+// Payload for base (from shed)
+struct base_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint8_t count;
+  uint8_t light;
+  uint8_t pirs;
+  uint8_t distance;
 };
 
 
 //===== Receiving =====//
 unsigned int receiveRFnetwork(unsigned long currentmilli){
-  unsigned int reaction = 0;
+  unsigned int reaction = 9; // no message received
 
   // Check for incoming data from the sensors
   while (network.available()) {
@@ -55,11 +73,21 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
         Serial.print(F("Message received from Base: "));
         shed_payload spayload;
         network.read(header, &spayload, sizeof(spayload));
+        reaction = 0; // nothing
+        if (spayload.light > 0){
+          reaction = 111; // on
+          if (spayload.light > 199){
+            reaction = 222; // off
+          }
+        }
       break;
       default: 
         network.read(header, 0, 0);
-        Serial.print(F("TBD header.type: "));
+        Serial.print(F("timing: "));
+        Serial.print(currentmilli);
+        Serial.print(F(", TBD header.type: "));
         Serial.print(header.type);
+        reaction = 255; // unexpected message received
     }
     Serial.println(currentmilli);
   } // end of while network.available
@@ -70,18 +98,22 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
 //===== Sending =====//
 unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
   static unsigned long sendingTimer = 0;
-  unsigned int traction = 0;
+  static unsigned long failCounter = 0;
+  unsigned int traction = 9; // no message send
   bool ok = false;
 
   // Every x seconds...
   if((fresh)||(currentmilli - sendingTimer > 5000)){
+    traction = 255; // sending failed
     sendingTimer = currentmilli;
-    shed_payload bpayload;
+    base_payload bpayload;
     bpayload.keyword = 0;
     bpayload.count = 0;
     bpayload.light = 0;
+    bpayload.pirs = 0;
+    bpayload.distance = 0;
     bpayload.timing = currentmilli;
-    RF24NetworkHeader headerL(base_node, 'L'); // Address where the data is going
+    RF24NetworkHeader headerL(base_node, 'B'); // Address where the data is going
     ok = network.write(headerL, &bpayload, sizeof(bpayload)); // send the data
     if (!ok) {
       //Serial.print(F("Retry sending message: "));
@@ -93,9 +125,13 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
     Serial.print(F(" send message "));
     if (ok) {
       Serial.println(F("OK "));
+      traction = 0; // send message OK
+      failCounter = 0;
     }
     else{
-      Serial.println(F("Failed "));
+      Serial.print(F("Failed "));
+      failCounter++;
+      Serial.println(failCounter);
     }
     //Serial.println(sendingCounter);
   }

@@ -44,7 +44,7 @@ void loop() {
 
   //===== Receiving =====//
   receiveaction = receiveRFnetwork(currentMillis);
-  bool receivedfresh = receiveaction > 0;
+  bool receivedfresh = receiveaction > 9;
 
   //===== Sending =====//
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);

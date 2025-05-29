@@ -189,7 +189,10 @@ RF24 radio(7, 8); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t base_node = 00;   // Address of this node in Octal format (04, 031, etc.)
-const uint16_t kitchen_node = 01;
+const uint16_t shed_node = 01;
+const uint16_t spoorstra_node = 011; // connect via shed_node
+const uint16_t kitchen_node = 02;
+const uint16_t keypad_node = 012; // connect via kitchen_node
 
 void setupRFnetwork(){
   SPI.begin();
@@ -200,19 +203,41 @@ void setupRFnetwork(){
   }  
   //radio.setPALevel(RF24_PA_MIN, false); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
+  //radio.setPALevel(RF24_PA_MAX); // when in use
   radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
 
   network.begin(radio_channel, base_node); // (channel, node address)
 }
 
-// Payload for kitchen
+// Payload for kitchen (from base)
 struct kitchen_payload{
   uint32_t keyword;
   uint32_t timing;
   uint8_t count;
   uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
+  //uint8_t dummy1; 
+  //uint8_t dummy2; 
 };
 
+// Payload for shed (from base)
+struct shed_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint8_t count;
+  uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
+  //uint8_t dummy1; 
+  //uint8_t dummy2; 
+};
+
+// Payload for base (from shed)
+struct base_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint8_t count;
+  uint8_t light;
+  uint8_t pirs;
+  uint8_t distance;
+};
 
 //===== Receiving =====//
 unsigned int receiveRFnetwork(unsigned long currentmilli){
@@ -225,9 +250,16 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
   
     switch(header.type) {
       case 'L': // Message received from Kitchen for Livingroom
-        Serial.print(F("Message received from Base: "));
+        Serial.print(F("Message received from Kitchen: "));
         kitchen_payload kpayload;
         network.read(header, &kpayload, sizeof(kpayload));
+
+
+      break;
+      case 'B': // Message received from Kitchen for Livingroom
+        Serial.print(F("Message received from Shed: "));
+        shed_payload spayload;
+        network.read(header, &spayload, sizeof(spayload));
 
 
       break;
