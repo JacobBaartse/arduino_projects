@@ -4,9 +4,9 @@
 
 #include "Wire.h"
 
-#define PIR1_PIN 6
-#define PIR2_PIN 7
-#define IN_PIN 8
+#define PIR1_PIN 7
+#define PIR2_PIN 8
+#define IN_PIN 2
 
 #define SR04_I2CADDR 0x57
 
