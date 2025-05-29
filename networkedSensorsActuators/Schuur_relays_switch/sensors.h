@@ -6,7 +6,7 @@
 
 #define PIR1_PIN 6
 #define PIR2_PIN 7
-#define IN_PIN 8
+#define IN_PIN 2
 
 #define SR04_I2CADDR 0x57
 
@@ -42,8 +42,7 @@ unsigned long measure_distance(){
   while (Wire.available())
   {
     ds[i++] = Wire.read();
-  }        
-    
+  }
   unsigned long distance = (unsigned long)(ds[0]) * 65536;
   distance = distance + (unsigned long)(ds[1]) * 256;
   distance = (distance + (unsigned long)(ds[2])) / 10000;

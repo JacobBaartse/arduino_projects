@@ -12,7 +12,7 @@
 #define CE_PIN 9
 #define CSN_PIN 10
 
-RF24 radio(CE_PIN, CSN_PIN);      // internal nRF24L01 (CE, CSN)
+RF24 radio(CE_PIN, CSN_PIN);     // internal nRF24L01 (CE, CSN)
 RF24Network network(radio);      // include the radio in the network
 
 const uint16_t shed_node = 01; // Address of node in Octal format
