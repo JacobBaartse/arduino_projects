@@ -185,7 +185,9 @@ int WifiConnect(){
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 // for the UNO/NANO with external RF24 module:
-RF24 radio(7, 8); // nRF24L01 (CE, CSN)
+//RF24 radio(7, 8); // nRF24L01 (CE, CSN)
+// for the UNO/NANO with external SMD RF24 module:
+RF24 radio(9, 10); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t base_node = 00;   // Address of this node in Octal format (04, 031, etc.)

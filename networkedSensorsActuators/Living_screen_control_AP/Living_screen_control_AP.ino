@@ -5,6 +5,7 @@
 #include "matrix.h"
 #include "networking.h"
 #include "screen.h"
+#include "sdisplay.h"
 #include "webinterface.h"
 
 int status = WL_IDLE_STATUS;
@@ -41,6 +42,8 @@ void setup() {
   setupRFnetwork();
 
   setupScreenControl();
+
+  sdisplay_setup();
 
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
