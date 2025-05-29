@@ -42,8 +42,7 @@ unsigned long measure_distance(){
   while (Wire.available())
   {
     ds[i++] = Wire.read();
-  }        
-    
+  }
   unsigned long distance = (unsigned long)(ds[0]) * 65536;
   distance = distance + (unsigned long)(ds[1]) * 256;
   distance = (distance + (unsigned long)(ds[2])) / 10000;

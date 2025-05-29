@@ -1,5 +1,5 @@
 /*
- *
+ * UNO R4 Wifi, configured in as an Access Point
  */
 
 #include "matrix.h"
