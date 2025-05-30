@@ -83,9 +83,9 @@ void clear_display(){
 //    return ans;
 // }
 
-String Line1 = "Welcome \x81"; 
-String Line2 = "Demo \x81{small display} \x81"; 
-String Line3 = "Whats \x81 up?";  
+String Line1 = "Welcome "; 
+String Line2 = "Demo {small display} "; 
+String Line3 = "Whats up?";  
 
 int prevx, x, minX;
 int y4, y2, y3, minY;

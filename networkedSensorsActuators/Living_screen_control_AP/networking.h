@@ -182,12 +182,14 @@ int WifiConnect(){
 //===== Radio =====//
 
 #define radio_channel 104
+#define CE_PIN 9
+#define CSN_PIN 10
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 // for the UNO/NANO with external RF24 module:
 //RF24 radio(7, 8); // nRF24L01 (CE, CSN)
 // for the UNO/NANO with external SMD RF24 module:
-RF24 radio(9, 10); // nRF24L01 (CE, CSN)
+RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t base_node = 00;   // Address of this node in Octal format (04, 031, etc.)
@@ -279,23 +281,33 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
 //===== Sending =====//
 unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
   static unsigned long sendingTimer = 0;
+  static uint8_t mcounter = 0;
   unsigned int traction = 0;
   bool ok = false;
 
   // Every x seconds...
   if((fresh)||(currentmilli - sendingTimer > 5000)){
     sendingTimer = currentmilli;
-    kitchen_payload kpayload;
-    kpayload.keyword = 0;
-    kpayload.count = 0;
-    kpayload.light = 0;
-    kpayload.timing = currentmilli;
-    RF24NetworkHeader headerK(kitchen_node, 'K'); // Address where the data is going
-    ok = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
+    //kitchen_payload kpayload;
+    shed_payload spayload;
+    // kpayload.keyword = 0;
+    // kpayload.count = 0;
+    // kpayload.light = 0;
+    // kpayload.timing = currentmilli;
+    //RF24NetworkHeader headerK(kitchen_node, 'K'); // Address where the data is going
+
+    spayload.keyword = 0;
+    spayload.timing = currentmilli;
+    spayload.count = mcounter++;
+    spayload.light = 0x55;
+    RF24NetworkHeader headerK(shed_node, 'S'); // Address where the data is going
+    //ok = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
+    ok = network.write(headerK, &spayload, sizeof(spayload)); // send the data
     if (!ok) {
       //Serial.print(F("Retry sending message: "));
       //Serial.println(sendingCounter);      
-      ok = network.write(headerK, &kpayload, sizeof(kpayload)); // retry once
+      //ok = network.write(headerK, &kpayload, sizeof(kpayload)); // retry once
+      ok = network.write(headerK, &spayload, sizeof(spayload)); // send the data
     }
 
     Serial.print(currentmilli);
