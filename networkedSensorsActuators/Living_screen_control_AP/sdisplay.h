@@ -78,17 +78,11 @@ void clear_display(){
   display.display();
 }
 
-// String leftrotate(String str, int d){
-//    String ans = str.substring(d, str.length() - d) + str.substring(0, d);
-//    return ans;
-// }
-
-String Line1 = "Welcome "; 
-String Line2 = "Demo {small display} "; 
+String Line1 = "Welcome"; 
+String Line2 = "{small display}"; 
 String Line3 = "Whats up?";  
 
-int prevx, x, minX;
-int y4, y2, y3, minY;
+int yline1, yline2, yline3;
 bool oncecompleted = false;
 
 void sdisplay_setup() {
@@ -103,35 +97,12 @@ void sdisplay_setup() {
   display.setTextWrap(false); 
   display.display();
 
-  x = display.width();
-  y4 = 16;
-  y2 = 38;
-  y3 = 60;
-  // minX = -128;
-  minX = -200; // depends on length of the text
-  minY = -22;
+  //x = display.width();
+  yline1 = 16;
+  yline2 = 38;
+  yline3 = 60;
 
-  display_oled(true, 0, y4, Line1); 
-  display_oled(false, x, y2, Line2); 
-  display_oled(false, x, y3, Line3);  
-  prevx = x;
-}
-
-void sdisplay_loop() {
-
-  // float tempval = 24.567;
-  // display_oled(true, 0, 16, String(tempval, 1) + " \x7F"+"C");  // } \x7F is converted to degrees in this special font.
-  // delay(2000);
-
-  display_move(prevx, y2, x, y2, Line2);
-  if (!oncecompleted){
-    display_move(prevx, y3, x, y3, Line3);
-  }
-
-  prevx = x;
-  x = x - 3;
-  if (x < minX) x = display.width();
-  if (x < 12) oncecompleted = true;
-  //if (--x < minX) x = display.width(); // this line is moving 1 pixel at the time, this can be too slow
-
+  display_oled(true, 0, yline1, Line1); 
+  display_oled(false, 10, yline2, Line2); 
+  display_oled(false, 10, yline3, Line3);  
 }

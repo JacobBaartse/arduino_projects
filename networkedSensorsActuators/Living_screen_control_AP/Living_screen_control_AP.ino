@@ -77,7 +77,9 @@ void setup() {
 
   Serial.println(F("\n ***************\n"));  
   Serial.flush(); 
-  display_oled(false, 0, y2, IPhere.toString());  
+
+  display_oled(true, 0, yline1, Line1);
+  display_oled(false, 0, yline3, IPhere.toString());  
 }
  
 unsigned long currentMillis = 0; // stores the value of millis() in each iteration of loop()

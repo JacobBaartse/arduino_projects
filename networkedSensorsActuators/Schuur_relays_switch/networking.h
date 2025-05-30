@@ -58,9 +58,11 @@ struct base_payload{
   uint8_t distance;
 };
 
+const uint32_t shedkeyword = 0xffddeecc;
 
 //===== Receiving =====//
 unsigned int receiveRFnetwork(unsigned long currentmilli){
+  static unsigned long mesreceived = 0;
   unsigned int reaction = 9; // no message received
 
   // Check for incoming data from the sensors
@@ -70,7 +72,9 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
   
     switch(header.type) {
       case 'S': // Message received from HomeController for RemoteNode
+        mesreceived ++ ;
         Serial.print(F("Message received from Base: "));
+        Serial.print(mesreceived);
         shed_payload spayload;
         network.read(header, &spayload, sizeof(spayload));
         reaction = 0; // nothing
@@ -88,8 +92,9 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
         Serial.print(F(", TBD header.type: "));
         Serial.print(header.type);
         reaction = 255; // unexpected message received
+        mesreceived = 0;
     }
-    Serial.println(currentmilli);
+    //Serial.println(currentmilli);
   } // end of while network.available
 
   return reaction;
@@ -107,7 +112,7 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
     traction = 255; // sending failed
     sendingTimer = currentmilli;
     base_payload bpayload;
-    bpayload.keyword = 0;
+    bpayload.keyword = shedkeyword;
     bpayload.count = 0;
     bpayload.light = 0;
     bpayload.pirs = 0;

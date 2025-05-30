@@ -185,6 +185,12 @@ int WifiConnect(){
 #define CE_PIN 9
 #define CSN_PIN 10
 
+const uint32_t kitchenkeyword = 0x10112003;
+const uint32_t shedkeyword = 0xffddeecc;
+const uint32_t spoorstrakeyword = 0xfdecba98;
+const uint32_t keypadkeyword = 0xabcdef01;
+
+
 /**** Configure the nrf24l01 CE and CSN pins ****/
 // for the UNO/NANO with external RF24 module:
 //RF24 radio(7, 8); // nRF24L01 (CE, CSN)
@@ -213,24 +219,32 @@ void setupRFnetwork(){
   network.begin(radio_channel, base_node); // (channel, node address)
 }
 
-// Payload for kitchen (from base)
-struct kitchen_payload{
-  uint32_t keyword;
-  uint32_t timing;
-  uint8_t count;
-  uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
-  //uint8_t dummy1; 
-  //uint8_t dummy2; 
-};
+// // Payload for kitchen (from base)
+// struct kitchen_payload{
+//   uint32_t keyword;
+//   uint32_t timing;
+//   uint8_t count;
+//   uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
+//   //uint8_t dummy1; 
+//   //uint8_t dummy2; 
+// };
 
-// Payload for shed (from base)
-struct shed_payload{
+// // Payload for shed (from base)
+// struct shed_payload{
+//   uint32_t keyword;
+//   uint32_t timing;
+//   uint8_t count;
+//   uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
+//   //uint8_t dummy1; 
+//   //uint8_t dummy2; 
+// };
+
+// Payload for base (from shed or kitchen)
+struct ks_payload{
   uint32_t keyword;
   uint32_t timing;
   uint8_t count;
   uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
-  //uint8_t dummy1; 
-  //uint8_t dummy2; 
 };
 
 // Payload for base (from shed)
@@ -245,32 +259,45 @@ struct base_payload{
 
 //===== Receiving =====//
 unsigned int receiveRFnetwork(unsigned long currentmilli){
+  static unsigned long kcounter = 0;
+  static unsigned long scounter = 0;
   unsigned int reaction = 0;
 
   // Check for incoming data from the sensors
   while (network.available()) {
     RF24NetworkHeader header;
+    ks_payload rpayload;
+    uint32_t expect_keyword = 0;
+
     network.peek(header);
   
-    switch(header.type) {
+    switch(header.type){
       case 'L': // Message received from Kitchen for Livingroom
         Serial.print(F("Message received from Kitchen: "));
-        kitchen_payload kpayload;
-        network.read(header, &kpayload, sizeof(kpayload));
-
-
+        expect_keyword = kitchenkeyword;
+        kcounter++;
       break;
-      case 'B': // Message received from Kitchen for Livingroom
+      case 'B': // Message received from Shed for Livingroom
         Serial.print(F("Message received from Shed: "));
-        shed_payload spayload;
-        network.read(header, &spayload, sizeof(spayload));
-
-
+        expect_keyword = shedkeyword;
+        scounter++;
       break;
       default: 
         network.read(header, 0, 0);
         Serial.print(F("TBD header.type: "));
-        Serial.print(header.type);
+        Serial.println(header.type);
+    }
+    if (expect_keyword > 0){ // message received
+      network.read(header, &rpayload, sizeof(rpayload));
+      if (expect_keyword == rpayload.keyword){ // valid message received
+
+      }
+      else{
+        Serial.print(F("Found unexpected keyword, expected: "));
+        Serial.print(expect_keyword);
+        Serial.print(F(", received keyword: "));
+        Serial.println(rpayload.keyword);
+      }
     }
     Serial.println(currentmilli);
   } // end of while network.available
@@ -278,47 +305,67 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
   return reaction;
 }
 
+const char mestypes[] = {'K', 'S', 'D'};
+const uint8_t mestypesamount = 3;
+
 //===== Sending =====//
 unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
   static unsigned long sendingTimer = 0;
   static uint8_t mcounter = 0;
+  static uint8_t messageindex = 0;
   unsigned int traction = 0;
   bool ok = false;
+  bool retry = true;
+  uint16_t mnode = 0;
 
   // Every x seconds...
-  if((fresh)||(currentmilli - sendingTimer > 5000)){
-    sendingTimer = currentmilli;
-    //kitchen_payload kpayload;
-    shed_payload spayload;
-    // kpayload.keyword = 0;
-    // kpayload.count = 0;
-    // kpayload.light = 0;
-    // kpayload.timing = currentmilli;
-    //RF24NetworkHeader headerK(kitchen_node, 'K'); // Address where the data is going
+  if((fresh)||(currentmilli > sendingTimer)){
+    sendingTimer = currentmilli + 5000;
+    ks_payload mpayload;
+    messageindex = (messageindex + 1) % mestypesamount;
+    char datakey = mestypes[messageindex];
 
-    spayload.keyword = 0;
-    spayload.timing = currentmilli;
-    spayload.count = mcounter++;
-    spayload.light = 0x55;
-    RF24NetworkHeader headerK(shed_node, 'S'); // Address where the data is going
-    //ok = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
-    ok = network.write(headerK, &spayload, sizeof(spayload)); // send the data
-    if (!ok) {
-      //Serial.print(F("Retry sending message: "));
-      //Serial.println(sendingCounter);      
-      //ok = network.write(headerK, &kpayload, sizeof(kpayload)); // retry once
-      ok = network.write(headerK, &spayload, sizeof(spayload)); // send the data
+    switch(datakey){
+      case 'K': {
+        mnode = kitchen_node;
+        //kitchen_payload mpayload;
+        mpayload.keyword = kitchenkeyword;
+        mpayload.light = 0;
+      }
+      break;
+      case 'S': {
+        mnode = shed_node;
+        mpayload.keyword = shedkeyword;
+        mpayload.light = 0x55;
+      }
+      break;
+      case 'D': // default, skip a time
+      default: {
+        retry = 0;
+      }
     }
+    RF24NetworkHeader mheader(mnode, datakey); // Address where the data is going
+    mpayload.timing = currentmilli;
+    mpayload.count = mcounter++;
 
-    Serial.print(currentmilli);
-    Serial.print(F(" send message "));
-    if (ok) {
-      Serial.println(F("OK "));
+    if (retry){
+      ok = network.write(mheader, &mpayload, sizeof(mpayload)); // send the data
+      //ok2 = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
+      if (!ok) {
+        //Serial.print(F("Retry sending message: "));
+        //Serial.println(sendingCounter);      
+        ok = network.write(mheader, &mpayload, sizeof(mpayload)); // send the data
+      }
+      Serial.print(currentmilli);
+      Serial.print(F(" send message "));
+      if (ok) {
+        Serial.print(F("OK "));
+      }
+      else{
+        Serial.print(F("Failed "));
+      }
     }
-    else{
-      Serial.println(F("Failed "));
-    }
-    //Serial.println(sendingCounter);
+    Serial.println(datakey);
   }
   return traction;
 }
