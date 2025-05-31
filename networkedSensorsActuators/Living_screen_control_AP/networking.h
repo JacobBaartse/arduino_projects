@@ -306,7 +306,7 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
   return reaction;
 }
 
-const char mestypes[] = {'K', 'S', 'D'};
+const char mestypes[] = {'K', 'S', 'D'}; // node list, D means Default, no node, small pause for network
 const uint8_t mestypesamount = 3;
 
 //===== Sending =====//
@@ -321,9 +321,9 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
 
   // Every x seconds...
   if((fresh)||(currentmilli > sendingTimer)){
-    sendingTimer = currentmilli + 5000;
+    sendingTimer = currentmilli + 10000; // once per 10 seconds, cycle the connected nodes
     ks_payload mpayload;
-    messageindex = (messageindex + 1) % mestypesamount;
+    messageindex = (messageindex + 1) % mestypesamount; // cycle the nodes
     char datakey = mestypes[messageindex];
 
     switch(datakey){

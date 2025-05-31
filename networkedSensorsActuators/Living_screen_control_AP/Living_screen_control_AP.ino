@@ -7,6 +7,7 @@
 #include "screen.h"
 #include "sdisplay.h"
 #include "webinterface.h"
+#include "temppress.h"
 
 int status = WL_IDLE_STATUS;
 
@@ -42,6 +43,8 @@ void setup() {
   setupRFnetwork();
 
   setupScreenControl();
+
+  temppress_setup();
 
   sdisplay_setup();
 
@@ -87,7 +90,8 @@ unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
 bool screening = false;
 int wcommand = 0;
-String wcommandtext = "                     ";
+String wcommandtext = " ";
+bool receivedfresh = false;
 
 void loop() {
 
@@ -97,13 +101,17 @@ void loop() {
  
   //===== Receiving =====//
   receiveaction = receiveRFnetwork(currentMillis);
-  bool receivedfresh = receiveaction > 0;
+  if (receiveaction > 0){
+    receivedfresh = true; // send a response directly
+  }
 
   //===== Sending =====//
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
+  receivedfresh = false;
 
   wcommand = webinterfacing();
   if (wcommand > 0){
+    receivedfresh = true; // send a command directly
     switch(wcommand){
     case 1:{
       wcommandtext = "Keuken aan";        
@@ -130,12 +138,14 @@ void loop() {
     Serial.print(wcommand);  
     Serial.print(F(" "));  
     Serial.println(wcommandtext);  
-    wcommand = 0;
+    // wcommand = 0;
   }
 
   if (screening){
     screening = screenprocessing(currentMillis);
   }
+
+  tempress_values(currentMillis);
 
 }
 

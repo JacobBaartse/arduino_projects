@@ -116,7 +116,7 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
 
   // Every x seconds...
   if((fresh)||(currentmilli > sendingTimer)){
-    sendingTimer = currentmilli + 5000;
+    sendingTimer = currentmilli + 60000; // once per minute heartbeat
     traction = 255; // sending failed
     base_payload bpayload;
     bpayload.keyword = shedkeyword;
