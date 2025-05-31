@@ -73,7 +73,7 @@ void setup() {
 
   Serial.println(F("Created access point available"));
 
-  startupscrollingtext(String("-->: ") + IPhere.toString());
+  startupscrollingtext(String(F("-->: ")) + IPhere.toString());
 
   Serial.println(F("\n ***************\n"));  
   Serial.flush(); 
@@ -86,6 +86,8 @@ unsigned long currentMillis = 0; // stores the value of millis() in each iterati
 unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
 bool screening = false;
+int wcommand = 0;
+String wcommandtext = "                     ";
 
 void loop() {
 
@@ -100,7 +102,36 @@ void loop() {
   //===== Sending =====//
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
 
-  webinterfacing();
+  wcommand = webinterfacing();
+  if (wcommand > 0){
+    switch(wcommand){
+    case 1:{
+      wcommandtext = "Keuken aan";        
+    } 
+    break;
+    case 2:{      
+      wcommandtext = "Keuken uit";              
+    } 
+    break;
+    case 4:{
+      wcommandtext = "Schuur aan";              
+    } 
+    break;
+    case 8:{
+      wcommandtext = "Schuur uit";              
+    } 
+    break;  
+    case 0:
+    default: 
+      wcommandtext = " ERROR ";        
+    }
+    display_oled(true, 0, yline2, wcommandtext); 
+    Serial.print(F("WebCommand: "));  
+    Serial.print(wcommand);  
+    Serial.print(F(" "));  
+    Serial.println(wcommandtext);  
+    wcommand = 0;
+  }
 
   if (screening){
     screening = screenprocessing(currentMillis);

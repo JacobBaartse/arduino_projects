@@ -239,7 +239,7 @@ void setupRFnetwork(){
 //   //uint8_t dummy2; 
 // };
 
-// Payload for base (from shed or kitchen)
+// Payload from base (to shed or kitchen)
 struct ks_payload{
   uint32_t keyword;
   uint32_t timing;
@@ -247,7 +247,7 @@ struct ks_payload{
   uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
 };
 
-// Payload for base (from shed)
+// Payload for base (from shed or kitchen)
 struct base_payload{
   uint32_t keyword;
   uint32_t timing;
@@ -266,7 +266,7 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
   // Check for incoming data from the sensors
   while (network.available()) {
     RF24NetworkHeader header;
-    ks_payload rpayload;
+    base_payload rpayload;
     uint32_t expect_keyword = 0;
 
     network.peek(header);
@@ -290,6 +290,7 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
     if (expect_keyword > 0){ // message received
       network.read(header, &rpayload, sizeof(rpayload));
       if (expect_keyword == rpayload.keyword){ // valid message received
+        reaction = 3; // directly send 'fresh' response
 
       }
       else{
@@ -341,16 +342,15 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
       break;
       case 'D': // default, skip a time
       default: {
-        retry = 0;
+        retry = false;
       }
     }
-    RF24NetworkHeader mheader(mnode, datakey); // Address where the data is going
-    mpayload.timing = currentmilli;
-    mpayload.count = mcounter++;
 
-    if (retry){
+    if (retry){ // if message is to be send
+      RF24NetworkHeader mheader(mnode, datakey); // Address where the data is going
+      mpayload.timing = currentmilli;
+      mpayload.count = mcounter++;
       ok = network.write(mheader, &mpayload, sizeof(mpayload)); // send the data
-      //ok2 = network.write(headerK, &kpayload, sizeof(kpayload)); // send the data
       if (!ok) {
         //Serial.print(F("Retry sending message: "));
         //Serial.println(sendingCounter);      

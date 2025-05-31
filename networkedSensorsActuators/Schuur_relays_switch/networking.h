@@ -44,8 +44,6 @@ struct shed_payload{
   uint32_t timing;
   uint8_t count;
   uint8_t light; // 0 - no change, 100 - ON, 200 - OFF
-  //uint8_t dummy1; 
-  //uint8_t dummy2; 
 };
 
 // Payload for base (from shed)
@@ -111,6 +109,7 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
 unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
   static unsigned long messend = 0;
   static unsigned long failCounter = 0;
+  //static unsigned long retryCounter = 0;
   static unsigned long sendingTimer = 0;
   unsigned int traction = 9; // no message send
   bool ok = false;
@@ -145,6 +144,7 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
     else{
       Serial.print(F("Failed "));
       Serial.println(++failCounter);
+      messend = 0;
     }
     //Serial.println(sendingCounter);
   }
