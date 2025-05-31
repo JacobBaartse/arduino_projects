@@ -275,12 +275,12 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
       case 'L': // Message received from Kitchen for Livingroom
         Serial.print(F("Message received from Kitchen: "));
         expect_keyword = kitchenkeyword;
-        kcounter++;
+        Serial.println(++kcounter);
       break;
       case 'B': // Message received from Shed for Livingroom
         Serial.print(F("Message received from Shed: "));
         expect_keyword = shedkeyword;
-        scounter++;
+        Serial.println(++scounter);
       break;
       default: 
         network.read(header, 0, 0);
@@ -299,7 +299,7 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
         Serial.println(rpayload.keyword);
       }
     }
-    Serial.println(currentmilli);
+    //Serial.println(currentmilli);
   } // end of while network.available
 
   return reaction;

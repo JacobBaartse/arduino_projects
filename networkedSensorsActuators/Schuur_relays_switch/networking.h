@@ -72,17 +72,24 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
   
     switch(header.type) {
       case 'S': // Message received from HomeController for RemoteNode
-        mesreceived ++ ;
         Serial.print(F("Message received from Base: "));
-        Serial.print(mesreceived);
+        Serial.println(++mesreceived);
         shed_payload spayload;
         network.read(header, &spayload, sizeof(spayload));
         reaction = 0; // nothing
-        if (spayload.light > 0){
-          reaction = 111; // on
-          if (spayload.light > 199){
-            reaction = 222; // off
+        if (shedkeyword == spayload.keyword){ // valid message received               
+          if (spayload.light > 0){
+            reaction = 111; // on
+            if (spayload.light > 199){
+              reaction = 222; // off
+            }
           }
+        }
+        else{
+          Serial.print(F("Found unexpected keyword, expected: "));
+          Serial.print(shedkeyword);
+          Serial.print(F(", received keyword: "));
+          Serial.println(spayload.keyword);          
         }
       break;
       default: 
@@ -102,15 +109,16 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
 
 //===== Sending =====//
 unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
-  static unsigned long sendingTimer = 0;
+  static unsigned long messend = 0;
   static unsigned long failCounter = 0;
+  static unsigned long sendingTimer = 0;
   unsigned int traction = 9; // no message send
   bool ok = false;
 
   // Every x seconds...
-  if((fresh)||(currentmilli - sendingTimer > 5000)){
+  if((fresh)||(currentmilli > sendingTimer)){
+    sendingTimer = currentmilli + 5000;
     traction = 255; // sending failed
-    sendingTimer = currentmilli;
     base_payload bpayload;
     bpayload.keyword = shedkeyword;
     bpayload.count = 0;
@@ -129,14 +137,14 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
     Serial.print(currentmilli);
     Serial.print(F(" send message "));
     if (ok) {
-      Serial.println(F("OK "));
+      Serial.print(F("OK "));
+      Serial.println(++messend);
       traction = 0; // send message OK
       failCounter = 0;
     }
     else{
       Serial.print(F("Failed "));
-      failCounter++;
-      Serial.println(failCounter);
+      Serial.println(++failCounter);
     }
     //Serial.println(sendingCounter);
   }
