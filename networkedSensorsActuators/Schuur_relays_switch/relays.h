@@ -13,6 +13,10 @@ enum RelayState {
     R_Off_wait = 2,
 };
 
+void driveRelays(uint8_t leveltoset){
+  digitalWrite(OnPin1, leveltoset);
+  digitalWrite(OnPin2, leveltoset);
+}
 
 RelayState handleRelay(unsigned long currentmilli, RelayState Raction){
   static RelayState RelayStatus = RelayState::R_Off;
@@ -21,8 +25,7 @@ RelayState handleRelay(unsigned long currentmilli, RelayState Raction){
   switch(RelayStatus){
     case RelayState::R_Off:
       if (Raction == RelayState::R_On){
-        digitalWrite(OnPin1, LOW);
-        digitalWrite(OnPin2, LOW);
+        driveRelays(LOW);
         RelayStatus = RelayState::R_On;
       }
       break;
@@ -34,13 +37,15 @@ RelayState handleRelay(unsigned long currentmilli, RelayState Raction){
       break;
     case RelayState::R_Off_wait:
       if (Raction == RelayState::R_On){
-        digitalWrite(OnPin1, LOW);
-        digitalWrite(OnPin2, LOW);
+        driveRelays(HIGH);
         RelayStatus = RelayState::R_On;
       }
+      else if (Raction == RelayState::R_Off){
+        driveRelays(LOW);
+        RelayStatus = RelayState::R_Off;
+      }
       else if (currentmilli > offTimer){
-        digitalWrite(OnPin1, HIGH);
-        digitalWrite(OnPin2, HIGH);
+        driveRelays(HIGH);
         RelayStatus = RelayState::R_Off;
       }
       break;
@@ -56,8 +61,7 @@ void setuprelays(){
   pinMode(OnPin1, OUTPUT);
   pinMode(OnPin2, OUTPUT);
 
-  digitalWrite(OnPin1, HIGH);
-  digitalWrite(OnPin2, HIGH);
+  driveRelays(HIGH);
 
   handleRelay(0, RelayState::R_Off);
 }

@@ -1,19 +1,22 @@
 /*
- * 
+ * connect parallel to the Somfy driver (1 realys for up and 1 relays for down)
  */
 
-#define PowerPin 3
-#define DirectionPin 2
-
-#define DirectionUP LOW
-#define DirectionDOWN HIGH
+#define ScreenUp 3
+#define ScreenDown 2
+#define MonitorUp 3
+#define MonitorDown 2
 
 void setupScreenControl(){
-  pinMode(PowerPin, OUTPUT);
-  pinMode(DirectionPin, OUTPUT);
-  // turn off both relays
-  digitalWrite(PowerPin, LOW);
-  digitalWrite(DirectionPin, LOW);
+  pinMode(ScreenUp, OUTPUT);
+  pinMode(ScreenDown, OUTPUT);
+
+  pinMode(MonitorUp, INPUT);
+  pinMode(MonitorDown, INPUT);
+
+  // turn off both relays                   !!!!!!!!!!!! check electrical connections
+  digitalWrite(ScreenDown, HIGH);
+  digitalWrite(ScreenUp, HIGH);
 }
 
 bool screenprocessing(unsigned long currentmilli){
@@ -29,8 +32,8 @@ bool screenprocessing(unsigned long currentmilli){
   }
 
   if (!activescreen){ // turn off the relays
-    digitalWrite(PowerPin, LOW);
-    digitalWrite(DirectionPin, LOW);
+    digitalWrite(ScreenDown, LOW);
+    digitalWrite(ScreenUp, LOW);
   }
   return activescreen; 
 }

@@ -1,11 +1,13 @@
 /*
- *
+ * UNO R4 Wifi, configured in as an Access Point
  */
 
 #include "matrix.h"
 #include "networking.h"
 #include "screen.h"
+#include "sdisplay.h"
 #include "webinterface.h"
+#include "temppress.h"
 
 int status = WL_IDLE_STATUS;
 
@@ -42,6 +44,10 @@ void setup() {
 
   setupScreenControl();
 
+  temppress_setup();
+
+  sdisplay_setup();
+
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
   Serial.print(ssid);
@@ -70,16 +76,22 @@ void setup() {
 
   Serial.println(F("Created access point available"));
 
-  startupscrollingtext(String("-->: ") + IPhere.toString());
+  startupscrollingtext(String(F("-->: ")) + IPhere.toString());
 
   Serial.println(F("\n ***************\n"));  
   Serial.flush(); 
+
+  display_oled(true, 0, yline1, Line1);
+  display_oled(false, 0, yline3, IPhere.toString());  
 }
  
 unsigned long currentMillis = 0; // stores the value of millis() in each iteration of loop()
 unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
 bool screening = false;
+int wcommand = 0;
+String wcommandtext = " ";
+bool receivedfresh = false;
 
 void loop() {
 
@@ -89,16 +101,51 @@ void loop() {
  
   //===== Receiving =====//
   receiveaction = receiveRFnetwork(currentMillis);
-  bool receivedfresh = receiveaction > 0;
+  if (receiveaction > 0){
+    receivedfresh = true; // send a response directly
+  }
 
   //===== Sending =====//
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
+  receivedfresh = false;
 
-  webinterfacing();
+  wcommand = webinterfacing();
+  if (wcommand > 0){
+    receivedfresh = true; // send a command directly
+    switch(wcommand){
+    case 1:{
+      wcommandtext = "Keuken aan";        
+    } 
+    break;
+    case 2:{      
+      wcommandtext = "Keuken uit";              
+    } 
+    break;
+    case 4:{
+      wcommandtext = "Schuur aan";              
+    } 
+    break;
+    case 8:{
+      wcommandtext = "Schuur uit";              
+    } 
+    break;  
+    case 0:
+    default: 
+      wcommandtext = " ERROR ";        
+    }
+    display_oled(true, 0, yline2, wcommandtext); 
+    Serial.print(F("WebCommand: "));  
+    Serial.print(wcommand);  
+    Serial.print(F(" "));  
+    Serial.println(wcommandtext);  
+    // wcommand = 0;
+  }
 
   if (screening){
     screening = screenprocessing(currentMillis);
   }
+
+  tempress_values(currentMillis);
 
 }
 

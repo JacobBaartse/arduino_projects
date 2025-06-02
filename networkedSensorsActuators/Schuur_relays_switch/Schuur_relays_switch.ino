@@ -1,5 +1,8 @@
 /*
- * Kitchen node for the radio network, as well as sensors and detectors for lighting
+ * Schuur node for the radio network, as well as sensors and detectors for lighting control
+ *
+ * https://github.com/nulllaborg/lgt-rf-nano
+ *
  */
 
 #include "networking.h"
@@ -41,7 +44,7 @@ void loop() {
 
   //===== Receiving =====//
   receiveaction = receiveRFnetwork(currentMillis);
-  bool receivedfresh = receiveaction > 0;
+  bool receivedfresh = receiveaction > 9;
 
   //===== Sending =====//
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
@@ -64,28 +67,28 @@ void loop() {
 
 
 
-  switch(sensoraction){ // from buttons and sensors
-    case 100:
-    case 1000:
-      relayaction = RelayState::R_On;
-    break;
-    case 10000:
-      relayaction = RelayState::R_Off;
-    break;
-    default: // if nothing from the local sensors
-      switch(receiveaction){ // check remote instructions
-        case 100:
-          relaysstatus = RelayState::R_On;
-        break;
-        case 200:
-          relaysstatus = RelayState::R_Off;
-        break;
-        default:
-          if (relaysstatus == relayaction){ // if status has become the requested status
-            relaysstatus = RelayState::R_Off;
-          }
-      }
-  }
+  // switch(sensoraction){ // from buttons and sensors
+  //   case 100:
+  //   case 1000:
+  //     relayaction = RelayState::R_On;
+  //   break;
+  //   case 10000:
+  //     relayaction = RelayState::R_Off;
+  //   break;
+  //   default: // if nothing from the local sensors
+  //     switch(receiveaction){ // check remote instructions
+  //       case 100:
+  //         relaysstatus = RelayState::R_On;
+  //       break;
+  //       case 200:
+  //         relaysstatus = RelayState::R_Off;
+  //       break;
+  //       default:
+  //         if (relaysstatus == relayaction){ // if status has become the requested status
+  //           relaysstatus = RelayState::R_Off;
+  //         }
+  //     }
+  // }
 
   // actors
   relaysstatus = handleRelay(currentMillis, relayaction);

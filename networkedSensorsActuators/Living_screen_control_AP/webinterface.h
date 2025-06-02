@@ -25,20 +25,17 @@ void HTMLreply(){
   client.print(F("<style> table {width:100%;} tr {height:200px; font-size:4em;} th, td {text-align:center;} </style>")); 
   client.print(F("</HEAD><BODY TEXT=\"#873e23\" LINK=\"#1f7a1f\" VLINK=\"#1f7a1f\" ALINK=\"#1f7a1f\" BGCOLOR=\"#bb99ff\">"));
 
-  client.print(F("<TABLE><TR><TH colspan=3>Coloring</TH></TR>"));
-  // client.print(F("<TR><TD><a href=\"/C1\">Red</a></TD><TD><a href=\"/C2\">Green</a></TD><TD><a href=\"/C3\">Blue</a></TD></TR>"));
-  // client.print(F("<TR><TD><a href=\"/C4\">Cyan</a></TD><TD><a href=\"/C5\">Magenta</a></TD><TD><a href=\"/C6\">Yellow</a></TD></TR>"));
-  // client.print(F("<TR><TD><a href=\"/C7\">Orange</a></TD><TD><a href=\"/C8\">White</a></TD><TD><a href=\"/C9\">Black</a></TD></TR>"));
-  client.print(F("<TR><TD><a href=\"/C1\"><span style=\"color: #ff0000\">Red</span></a></TD><TD><a href=\"/C2\"><span style=\"color: #00ff00\">Green</span></a></TD><TD><a href=\"/C3\"><span style=\"color: #0000ff\">Blue</span></a></TD></TR>"));
-  client.print(F("<TR><TD><a href=\"/C4\"><span style=\"color: #33ccff\">Cyan</span></a></TD><TD><a href=\"/C5\"><span style=\"color: #9900ff\">Magenta</span></a></TD><TD><a href=\"/C6\"><span style=\"color: #ffff99\">Yellow</span></a></TD></TR>"));
-  client.print(F("<TR><TD><a href=\"/C7\"><span style=\"color: #ffgg33\">Orange</span></a></TD><TD><a href=\"/C8\"><span style=\"color: #ffffff\">White</span></a></TD><TD><a href=\"/C9\"><span style=\"color: #000000\">Black</span></a></TD></TR>"));
+  client.print(F("<TABLE><TR><TH colspan=3>Licht bediening</TH></TR>"));
+  client.print(F("<TR><TD>Keuken</TD><TD><a href=\"/Kaan\">aan</a></TD><TD><a href=\"/Kuit\">uit</a></TD></TR>"));
+  client.print(F("<TR><TD>Schuur</TD><TD><a href=\"/Saan\">aan</a></TD><TD><a href=\"/Suit\">uit</a></TD></TR>"));
+  client.print(F("</TABLE><HR><BR>"));
 
-  client.print(F("</TABLE><HR>&nbsp;<a href=\"/SL\">smaller</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"/SU\">bigger</a>&nbsp;&nbsp;("));
+  //client.print(F("</TABLE><HR>&nbsp;<a href=\"/SL\">smaller</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"/SU\">bigger</a>&nbsp;&nbsp;("));
   //client.print(text_size);
-  client.print(F(")&nbsp;&nbsp;Text in:<FORM action=\"t\" method=\"post\">"));
-  client.print(F("<input type=\"text\" id=\"t1\" name=\"t2\" required minlength=\"4\" maxlength=\"80\" size=\"30\"/>"));
-  client.print(F("&nbsp;&nbsp;&nbsp;<input name=\"send\" type=\"submit\"/>")); // <input type=\"submit\" hidden />
-  client.print(F("</FORM><HR>"));
+  // client.print(F(")&nbsp;&nbsp;Text in:<FORM action=\"t\" method=\"post\">"));
+  // client.print(F("<input type=\"text\" id=\"t1\" name=\"t2\" required minlength=\"4\" maxlength=\"80\" size=\"30\"/>"));
+  // client.print(F("&nbsp;&nbsp;&nbsp;<input name=\"send\" type=\"submit\"/>")); // <input type=\"submit\" hidden />
+  // client.print(F("</FORM><HR>"));
 
   client.print(F("</BODY></HTML>"));
 
@@ -47,9 +44,10 @@ void HTMLreply(){
   Serial.println(F(" done"));
 }
 
-void HTMLresponseline(String requestline, int linenumber){
-  static bool postedtext = false;
-  static int postedcolors = 0;
+int HTMLresponseline(String requestline, int linenumber){
+  //static bool postedtext = false;
+  //static int postedcolors = 0;
+  int webcommand = 0;
 
   if (requestline.length() > 0) {
     Serial.print(linenumber);
@@ -59,65 +57,42 @@ void HTMLresponseline(String requestline, int linenumber){
 
     // check the line for actions
     if (currentLine.startsWith("GET /")) {
-
       if (currentLine.startsWith("GET /favicon.ico")) {
         client.println(F("HTTP/1.1 404 Not Found\nConnection: close\n\n"));
       } 
-      if (requestline.startsWith("GET /C0")) {  // color item
-        postedcolors = postedcolors | 0x0200;
+      if (requestline.startsWith("GET /Kaan")){  
+        webcommand += 1;
       } 
-      if (requestline.startsWith("GET /C1")) {  // color item
-        postedcolors = postedcolors | 0b00000001;
-      }     
-      if (requestline.startsWith("GET /C2")) {  // color item
-        postedcolors = postedcolors | 0b00000010;
+      if (requestline.startsWith("GET /Kuit")){  
+        webcommand += 2;
       } 
-      if (requestline.startsWith("GET /C3")) {  // color item
-        postedcolors = postedcolors | 0b00000100;
-      }     
-      if (requestline.startsWith("GET /C4")) {  // color item
-        postedcolors = postedcolors | 0b00001000;
-      }     
-      if (requestline.startsWith("GET /C5")) {  // color item
-        postedcolors = postedcolors | 0b00010000;
-      }     
-      if (requestline.startsWith("GET /C6")) {  // color item
-        postedcolors = postedcolors | 0b00100000;
+      if (requestline.startsWith("GET /Saan")){  
+        webcommand += 4;
       } 
-      if (requestline.startsWith("GET /C7")) {  // color item
-        postedcolors = postedcolors | 0b01000000;
+      if (requestline.startsWith("GET /Suit")){  
+        webcommand += 8;
       } 
-      if (requestline.startsWith("GET /C8")) {  // color item
-        postedcolors = postedcolors | 0b10000000;
-      } 
-      if (requestline.startsWith("GET /C9")) {  // color item
-        postedcolors = postedcolors | 0x0100;
-        //actiontext = ""; // clear text
-      }  
-      if (requestline.startsWith("GET /SL")) {  // size item
-        //if (text_size > 1) text_size--;
-      }
-      if (requestline.startsWith("GET /SU")) {  // size item
-        //if (text_size < 6) text_size++;
-      }
     }
-    if (requestline.startsWith("POST /")) {  // text input follows
-      postedtext = true;
-    } 
+    // if (requestline.startsWith("POST /")) {  // text input follows
+    //   postedtext = true;
+    // } 
   }
-  if (linenumber > 1000){ // last line of response
-    Serial.print(F("posted colors: "));
-    Serial.print(postedcolors);
-    Serial.print(F(", 0x"));
-    Serial.println(postedcolors, HEX);
-    Serial.print(F("text input: |"));
-    //Serial.print(actiontext);
-    Serial.println(F("|"));
-  }
+  // if (linenumber > 1000){ // last line of response
+  //   Serial.print(F("posted colors: "));
+  //   Serial.print(postedcolors);
+  //   Serial.print(F(", 0x"));
+  //   Serial.println(postedcolors, HEX);
+  //   Serial.print(F("text input: |"));
+  //   //Serial.print(actiontext);
+  //   Serial.println(F("|"));
+  // }
+  return webcommand;
 }
 
-void webinterfacing() {
+int webinterfacing() {
   unsigned int linecount = 0;
+  int commandfromweb = 0;
+  int tempval = 0;
 
   client = server.available();              // listen for incoming clients
 
@@ -136,7 +111,10 @@ void webinterfacing() {
             //break;
           }
           else { // if there is a newline, then print, process and clear currentLine
-            HTMLresponseline(currentLine, ++linecount);
+            tempval = HTMLresponseline(currentLine, ++linecount);
+            if (tempval > 0){
+              commandfromweb += tempval;
+            }
             // currentmeta = 1;
             currentLine = "";
           }
@@ -151,7 +129,10 @@ void webinterfacing() {
       }
     } // while client.connected
 
-    HTMLresponseline(currentLine, 1001);
+    tempval = HTMLresponseline(currentLine, 1001); // process last line
+    if (tempval > 0){
+      commandfromweb += tempval;
+    }
 
     // close the connection:
     client.stop();
@@ -159,6 +140,7 @@ void webinterfacing() {
   }
   client.stop();
 
+  return commandfromweb;
 }
 
  // client = server.available();   // listen for incoming clients
