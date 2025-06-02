@@ -19,7 +19,7 @@ void setup_ps2_keyboard()  {
     pinMode(txPin, OUTPUT);
     
     // Set the baud rate for the SoftwareSerial object
-    mySerial.begin(12500, SERIAL_8O1);  // depending on the keyboad the boudrate should be set to somting between 10000 and 17000 bits per second.
+    mySerial.begin(12600, SERIAL_8O1);  // depending on the keyboad the boudrate should be set to somting between 10000 and 17000 bits per second.
 }
 
 

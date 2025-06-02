@@ -1,10 +1,9 @@
-//https://arduino-tutorials.net/tutorial/control-arduino-with-ir-receiver-and-remote
 
-//https://www.vdrelectronics.com/tutorial-infrarood-zender-en-ontvanger-maken-met-arduino
+// ps2 protocol
+// https://www.burtonsys.com/ps2_chapweske.htm
+// https://wiki.dcae.pub.ro/index.php/PS2_keyboard    SCAN CODES
 
-
-//https://github.com/Arduino-IRremote/Arduino-IRremote
-
+// give some time between keys wait for the printing is done.
 
 int rfReceiverPin = 2;
 const int buffer_size = 1024;
@@ -14,7 +13,6 @@ volatile unsigned long trace_array[buffer_size]; // circulair buffer
 volatile int trace_index = 0;
 volatile int sequence_index = 0;
 volatile unsigned long prev_micros = 0;
-
 
 void setup() {
     Serial.begin(115200);
@@ -35,27 +33,27 @@ void loop() {
   bool rfVal = digitalRead(rfReceiverPin);
   if (rfVal!=prev_RfVal){
     prev_RfVal = rfVal;
-    if (rfVal){
-      trace_array[trace_index] = elapsed_micros;
-      prev_micros = cur_micros;
-      trace_index +=  1;
-      if (trace_index > buffer_size){
-        trace_index = 0;
-      }
-    }
-
-    if (rfVal){
-      digitalWrite(LED_BUILTIN, LOW); 
-    }
-    else{
-      digitalWrite(LED_BUILTIN, HIGH);
+    trace_array[trace_index] = elapsed_micros;
+    prev_micros = cur_micros;
+    trace_index +=  1;
+    if (trace_index > buffer_size){
+      trace_index = 0;
     }
   }
-  if (elapsed_micros>1000000  & trace_index>2){
+  if (elapsed_micros>200000  & trace_index>2){
+    int sum=0;
+    int count=0;
     for (int i=0;i<trace_index; i++){
       Serial.print(trace_array[i]);
       Serial.print(",");
+      if (trace_array[i] < 110){
+        sum += trace_array[i];
+        count++;
+      }
     }
+    Serial.println();
+    Serial.print("Estimated baudrate: ");  // press multiple keys fast to get an average.
+    Serial.println(1000000 * count / sum);
     Serial.println();
     trace_index = 0;
   }
