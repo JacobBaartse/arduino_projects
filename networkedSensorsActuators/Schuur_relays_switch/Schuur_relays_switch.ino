@@ -45,6 +45,18 @@ void loop() {
   //===== Receiving =====//
   receiveaction = receiveRFnetwork(currentMillis);
   bool receivedfresh = receiveaction > 9;
+  if (receivedfresh){
+    switch(receiveaction){ // from RF network
+    case 111: // ON
+      relayaction = RelayState::R_On;
+    break;
+    case 222: // OFF
+      relayaction = RelayState::R_Off;
+    break;
+    default: // no change
+      Serial.println(currentMillis);
+    }
+  }
 
   //===== Sending =====//
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
@@ -89,6 +101,7 @@ void loop() {
   //         }
   //     }
   // }
+
 
   // actors
   relaysstatus = handleRelay(currentMillis, relayaction);

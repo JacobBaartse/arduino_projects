@@ -16,6 +16,9 @@ enum RelayState {
 void driveRelays(uint8_t leveltoset){
   digitalWrite(OnPin1, leveltoset);
   digitalWrite(OnPin2, leveltoset);
+
+  Serial.print(F("DriveRelays "));
+  Serial.println(leveltoset);
 }
 
 RelayState handleRelay(unsigned long currentmilli, RelayState Raction){
@@ -33,6 +36,10 @@ RelayState handleRelay(unsigned long currentmilli, RelayState Raction){
       if (Raction == RelayState::R_Off_wait){
         offTimer = currentmilli + off_delay_time;
         RelayStatus = RelayState::R_Off_wait;
+      }
+      else if (Raction == RelayState::R_Off){
+        driveRelays(HIGH);
+        RelayStatus = RelayState::R_Off;
       }
       break;
     case RelayState::R_Off_wait:

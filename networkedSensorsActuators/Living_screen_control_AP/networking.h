@@ -207,6 +207,11 @@ const uint16_t keypad_node = 012; // connect via kitchen_node
 void setupRFnetwork(){
   SPI.begin();
 
+  Serial.print(F("CE_PIN: "));
+  Serial.print(CE_PIN);
+  Serial.print(F(", CSN_PIN: "));
+  Serial.println(CSN_PIN);
+
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
     while (true) delay(1000);
@@ -257,10 +262,38 @@ struct base_payload{
   uint8_t distance;
 };
 
+struct webtoRF{
+  uint16_t destination;
+  uint8_t light;
+};
+
+char nodetokey(uint16_t nodeaddress){
+  char found = 'X';
+  switch(nodeaddress){
+    case shed_node:
+      found = 'S';
+    break;
+    case kitchen_node:
+      found = 'K';
+    break;
+    case spoorstra_node:
+      found = 'P';
+    break;
+    // case keypad_node:
+    //   found = 'Z';
+    // break;
+    default:
+      found = 'D';
+  }
+  return found;
+}
+
 //===== Receiving =====//
 unsigned int receiveRFnetwork(unsigned long currentmilli){
   static unsigned long kcounter = 0;
   static unsigned long scounter = 0;
+  static unsigned long pcounter = 0;
+  static unsigned long zcounter = 0;
   unsigned int reaction = 0;
 
   // Check for incoming data from the sensors
@@ -270,27 +303,41 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
     uint32_t expect_keyword = 0;
 
     network.peek(header);
-  
+    Serial.print(currentmilli);
+    Serial.print(F(" Message received from "));
     switch(header.type){
+      case 'K': // Message received from Keypad for Livingroom
+        Serial.print(F("Keypad: "));
+        expect_keyword = keypadkeyword;
+        Serial.println(++pcounter);
+      break;   
       case 'L': // Message received from Kitchen for Livingroom
-        Serial.print(F("Message received from Kitchen: "));
+        Serial.print(F("Kitchen: "));
         expect_keyword = kitchenkeyword;
         Serial.println(++kcounter);
       break;
       case 'B': // Message received from Shed for Livingroom
-        Serial.print(F("Message received from Shed: "));
+        Serial.print(F("Shed: "));
         expect_keyword = shedkeyword;
         Serial.println(++scounter);
+      break;
+      case 'Z': // Message received from Spoorstra for Livingroom
+        Serial.print(F("Spoorstra: "));
+        expect_keyword = spoorstrakeyword;
+        Serial.println(++zcounter);
       break;
       default: 
         network.read(header, 0, 0);
         Serial.print(F("TBD header.type: "));
         Serial.println(header.type);
     }
-    if (expect_keyword > 0){ // message received
+    if (expect_keyword > 0){ // known message type
       network.read(header, &rpayload, sizeof(rpayload));
       if (expect_keyword == rpayload.keyword){ // valid message received
         reaction = 3; // directly send 'fresh' response
+
+        // switch(header.type){
+        // }
 
       }
       else{
@@ -300,49 +347,68 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
         Serial.println(rpayload.keyword);
       }
     }
-    //Serial.println(currentmilli);
   } // end of while network.available
 
   return reaction;
 }
 
-const char mestypes[] = {'K', 'S', 'D'}; // node list, D means Default, no node, small pause for network
-const uint8_t mestypesamount = 3;
+const char mestypes[] = {'K', 'D', 'S', 'D'}; // node list, D means Default, no node, small pause for network
+const uint8_t mestypesamount = 4;
 
 //===== Sending =====//
-unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
+unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh, uint16_t ldest, uint8_t lstatus){ //}, webtoRF RFdata){
   static unsigned long sendingTimer = 0;
   static uint8_t mcounter = 0;
   static uint8_t messageindex = 0;
   unsigned int traction = 0;
   bool ok = false;
   bool retry = true;
+  bool lfresh = fresh;
   uint16_t mnode = 0;
 
+  if (lstatus > 0){
+    lfresh = true;
+  }
+
   // Every x seconds...
-  if((fresh)||(currentmilli > sendingTimer)){
+  if((lfresh)||(currentmilli > sendingTimer)){
     sendingTimer = currentmilli + 10000; // once per 10 seconds, cycle the connected nodes
     ks_payload mpayload;
-    messageindex = (messageindex + 1) % mestypesamount; // cycle the nodes
-    char datakey = mestypes[messageindex];
+    char datakey = 'X';
+
+    Serial.print(currentmilli);
+    if (lstatus > 0){
+      datakey = nodetokey(ldest);
+      Serial.print(F(" light: "));
+      Serial.print(lstatus);
+      //mpayload.light = lstatus;
+    }
+    else {
+      messageindex = (messageindex + 1) % mestypesamount; // cycle the nodes
+      datakey = mestypes[messageindex];      
+    }
+    mpayload.light = lstatus;
 
     switch(datakey){
       case 'K': {
         mnode = kitchen_node;
-        //kitchen_payload mpayload;
         mpayload.keyword = kitchenkeyword;
-        mpayload.light = 0;
       }
       break;
       case 'S': {
         mnode = shed_node;
         mpayload.keyword = shedkeyword;
-        mpayload.light = 0x55;
+      }
+      break;
+      case 'P': {
+        mnode = spoorstra_node;
+        mpayload.keyword = spoorstrakeyword;
       }
       break;
       case 'D': // default, skip a time
       default: {
         retry = false;
+        Serial.print(F(" pause "));
       }
     }
 
@@ -352,20 +418,19 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh){
       mpayload.count = mcounter++;
       ok = network.write(mheader, &mpayload, sizeof(mpayload)); // send the data
       if (!ok) {
-        //Serial.print(F("Retry sending message: "));
-        //Serial.println(sendingCounter);      
+        Serial.print(F(" retry,"));
         ok = network.write(mheader, &mpayload, sizeof(mpayload)); // send the data
       }
-      Serial.print(currentmilli);
       Serial.print(F(" send message "));
       if (ok) {
-        Serial.print(F("OK "));
+        Serial.print(F("OK: "));
       }
       else{
-        Serial.print(F("Failed "));
+        Serial.print(F("Failed: "));
       }
     }
     Serial.println(datakey);
   }
+
   return traction;
 }

@@ -67,10 +67,12 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
   while (network.available()) {
     RF24NetworkHeader header;
     network.peek(header);
-  
+    Serial.print(currentmilli);
+    Serial.print(F(" Message received from "));
+
     switch(header.type) {
       case 'S': // Message received from HomeController for RemoteNode
-        Serial.print(F("Message received from Base: "));
+        Serial.print(F("Base: "));
         Serial.println(++mesreceived);
         shed_payload spayload;
         network.read(header, &spayload, sizeof(spayload));
@@ -81,6 +83,8 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
             if (spayload.light > 199){
               reaction = 222; // off
             }
+            Serial.print(F("Light received over RF: "));
+            Serial.println(spayload.light);
           }
         }
         else{
@@ -99,7 +103,6 @@ unsigned int receiveRFnetwork(unsigned long currentmilli){
         reaction = 255; // unexpected message received
         mesreceived = 0;
     }
-    //Serial.println(currentmilli);
   } // end of while network.available
 
   return reaction;

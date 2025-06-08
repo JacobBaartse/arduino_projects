@@ -92,6 +92,9 @@ bool screening = false;
 int wcommand = 0;
 String wcommandtext = " ";
 bool receivedfresh = false;
+//webtoRF webc = {};
+uint16_t destination = base_node;
+uint8_t light = 0;
 
 void loop() {
 
@@ -106,27 +109,37 @@ void loop() {
   }
 
   //===== Sending =====//
-  transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
+  transmitaction = transmitRFnetwork(currentMillis, receivedfresh, destination, light);
   receivedfresh = false;
+  light = 0;
+  destination = base_node;
 
   wcommand = webinterfacing();
   if (wcommand > 0){
     receivedfresh = true; // send a command directly
     switch(wcommand){
     case 1:{
-      wcommandtext = "Keuken aan";        
+      wcommandtext = "Keuken aan";  
+      destination = kitchen_node; 
+      light = 111;
     } 
     break;
     case 2:{      
-      wcommandtext = "Keuken uit";              
+      wcommandtext = "Keuken uit"; 
+      destination = kitchen_node;     
+      light = 222;      
     } 
     break;
     case 4:{
       wcommandtext = "Schuur aan";              
+      destination = shed_node;     
+      light = 111;      
     } 
     break;
     case 8:{
       wcommandtext = "Schuur uit";              
+      destination = shed_node;     
+      light = 222;      
     } 
     break;  
     case 0:
