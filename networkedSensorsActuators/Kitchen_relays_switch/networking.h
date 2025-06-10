@@ -1,5 +1,5 @@
 /*
- * RF networking, repeater from end-point to/from home base, also receiving commands from home base
+ * RF networking, kitchen node, repeater for keypad, also receiving commands from home base
  */
 
 #include <SPI.h>
@@ -16,7 +16,7 @@ RF24 radio(CE_PIN, CSN_PIN);     // internal nRF24L01 (CE, CSN)
 RF24Network network(radio);      // include the radio in the network
 
 const uint16_t kitchen_node = 02; // Address of node in Octal format
-const uint16_t base_node = 00;     // Address of node in Octal format
+const uint16_t base_node = 00;    // Address of node in Octal format
 
 void setupRFnetwork(){
   SPI.begin();

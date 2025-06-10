@@ -11,10 +11,12 @@
 
 void setup() {
   Serial.begin(115200);
-  
+  while (!Serial) {
+    // some boards need this because of native USB capability
+  }  
+  //delay(1000);
   setuprelays();
   setupsensors();
-  // delay(1000);
 
   Serial.println();
   Serial.print(__FILE__);
