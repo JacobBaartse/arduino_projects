@@ -19,6 +19,14 @@
 #include<Wire.h>
 #include "tilt_sensor.h"
 
+// #include "ps2_keyboard.h"
+// #include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
+// #include <Adafruit_GFX.h>
+// #include "font_16pix_high.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+// #include "sh1106_display.h"
+//
+// String some_text = "_";
+
 uint32_t score_counter = 0;
 
 void setup()
@@ -36,6 +44,9 @@ void setup()
   show_leds_rainbow();
   myRedWhiteBluePalette_p;
   tilt_setup();
+  // setup_ps2_keyboard();
+  // setup_oled_display();
+  // display_oled(true, 0,16, some_text, true);
 }
 
 bool left1hit = false;
@@ -71,6 +82,12 @@ void loop()
     do_servo(9, 60);
     score_counter += 100;
     light_show(2150);
+  }  
+  if (switch_nr == 4){
+    Play_mp3_file(JAMMER);
+    // do_servo(9, 60);
+    // score_counter += 100;
+    light_show(4000);
   }  
   if (switch_nr == 10){  //red button
     Play_mp3_file(GUN_SHOT);

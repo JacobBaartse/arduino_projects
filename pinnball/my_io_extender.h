@@ -28,7 +28,7 @@ uint8_t io_extender_check_switches()
   if (pin7_val == 0)
   {
     uint16_t value = PCF_20.read16();
-    value ^= 0b1111111111111011;  // 0xffff;
+    value ^= 0b1111111111110011;  // 0xffff;
     Serial.println(value);
 
     while (value > 0)
