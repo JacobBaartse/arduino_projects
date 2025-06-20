@@ -11,10 +11,12 @@
 
 void setup() {
   Serial.begin(115200);
-  
+  while (!Serial) {
+    // some boards need this because of native USB capability
+  }  
+  //delay(1000);
   setuprelays();
   setupsensors();
-  // delay(1000);
 
   Serial.println();
   Serial.print(__FILE__);
@@ -45,6 +47,18 @@ void loop() {
   //===== Receiving =====//
   receiveaction = receiveRFnetwork(currentMillis);
   bool receivedfresh = receiveaction > 9;
+  if (receivedfresh){
+    switch(receiveaction){ // from RF network
+    case 111: // ON
+      relayaction = RelayState::R_On;
+    break;
+    case 222: // OFF
+      relayaction = RelayState::R_Off;
+    break;
+    default: // no change
+      Serial.println(currentMillis);
+    }
+  }
 
   //===== Sending =====//
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
@@ -89,6 +103,7 @@ void loop() {
   //         }
   //     }
   // }
+
 
   // actors
   relaysstatus = handleRelay(currentMillis, relayaction);

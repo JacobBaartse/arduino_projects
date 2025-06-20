@@ -9,6 +9,9 @@
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+  while (!Serial) {
+    // some boards need this because of native USB capability
+  }
   delay(1000);
   Serial.println();
   Serial.print(__FILE__);
@@ -35,7 +38,6 @@ RelayState relayaction = RelayState::R_None;
 RelayState relayactions = RelayState::R_None;
 
 void loop() {
-  // put your main code here, to run repeatedly:
   
   currentMillis = millis();   // capture the value of millis() only once in the loop
 
@@ -43,10 +45,11 @@ void loop() {
 
   //===== Receiving =====//
   receiveaction = receiveRFnetwork(currentMillis);
-  bool receivedfresh = receiveaction > 0;
+  bool receivedfresh = receiveaction > 9;
 
   //===== Sending =====//
   transmitaction = transmitRFnetwork(currentMillis, receivedfresh);
+  receivedfresh = false;
 
   // sensors
   sensoraction = checkSensors(currentMillis, sensoraction);

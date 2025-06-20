@@ -38,7 +38,9 @@ void temppress_setup() {
                   Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
 }
 
-void tempress_data() {
+void tempress_data(unsigned long currentmilli) {
+  Serial.println("----------------");
+  Serial.println(currentmilli);
 
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp); // populate temp and humidity objects with fresh data
@@ -65,6 +67,6 @@ void tempress_values(unsigned long currentmilli){
   static unsigned long sensorTimer = 0;
   if (currentmilli > sensorTimer){
     sensorTimer = currentmilli + 60000; // once per minute
-    tempress_data();
+    tempress_data(currentmilli);
   }
 }

@@ -1,10 +1,10 @@
 /*
- * PIR sensor and distance sensor as well as on and off buttons
+ * PIR sensor(s) and distance sensor as well as on and off buttons
  */
 
 #include "Wire.h"
 
-#define PIR_PIN 6
+#define PIR1_PIN 6
 #define ON_PIN 8
 #define OFF_PIN 4
 #define SR04_I2CADDR 0x57
@@ -16,7 +16,7 @@ byte ds[3] = {0, 0, 0};
 
 void setupsensors(){
 
-  pinMode(PIR_PIN, INPUT);
+  pinMode(PIR1_PIN, INPUT);
   pinMode(ON_PIN, INPUT_PULLUP);
   pinMode(OFF_PIN, INPUT_PULLUP);
 
@@ -54,7 +54,7 @@ unsigned int checkSensors(unsigned long currentmilli, unsigned int tracksensors)
   unsigned long mdistance = 0;
 
   // check PIR detector
-  if (digitalRead(PIR_PIN) == LOW)
+  if (digitalRead(PIR1_PIN) == LOW)
   {
     // check distance sensor
     mdistance = measure_distance();
