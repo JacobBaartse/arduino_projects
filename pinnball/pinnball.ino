@@ -19,13 +19,13 @@
 #include<Wire.h>
 #include "tilt_sensor.h"
 
-// #include "ps2_keyboard.h"
-// #include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
-// #include <Adafruit_GFX.h>
-// #include "font_16pix_high.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
-// #include "sh1106_display.h"
-//
-// String some_text = "_";
+#include "ps2_keyboard.h"
+#include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
+#include <Adafruit_GFX.h>
+#include "font_16pix_high.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+#include "sh1106_display.h"
+
+String oled_screen_text = "_";
 
 uint32_t score_counter = 0;
 
@@ -44,9 +44,9 @@ void setup()
   show_leds_rainbow();
   myRedWhiteBluePalette_p;
   tilt_setup();
-  // setup_ps2_keyboard();
-  // setup_oled_display();
-  // display_oled(true, 0,16, some_text, true);
+  setup_ps2_keyboard();
+  setup_oled_display();
+  display_oled(true, 0,16, oled_screen_text, true);
 }
 
 bool left1hit = false;
@@ -143,6 +143,17 @@ void loop()
     Serial.println(switch_nr);
     showScore();
     if (switch_nr == 10) show_leds_rainbow();
+  }
+
+  int keyboard_char = get_keyboard_char();
+  if (keyboard_char > 0)
+  {
+    Serial.print(keyboard_char);
+    oled_screen_text.remove(oled_screen_text.length()-1);  // remove cursor
+    if (keyboard_char == 0x08) oled_screen_text.remove(oled_screen_text.length()-1);
+    else oled_screen_text += (char)keyboard_char;
+    oled_screen_text += "_";  // add cursor
+    display_oled(true, 0,16, oled_screen_text, true);
   }
   delay(2);
 

@@ -4,7 +4,7 @@
 /// @example ColorPalette.ino
 
 
-#define LED_PIN     2
+#define LED_PIN     13
 #define NUM_LEDS    120
 #define BRIGHTNESS  25
 #define LED_TYPE    WS2812B
