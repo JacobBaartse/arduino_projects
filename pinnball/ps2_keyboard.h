@@ -1,4 +1,4 @@
-//Works with Ultra Mini Multimedia Keyboard  TKB-1010 German layout after swithing back the Y and Z keys.
+//Works with Ultra Mini Multimedia Keyboard  TKB-1011 German layout after swithing back the Y and Z keys.
 
 
 // Set up a new SoftwareSerial object uncomment next 5 lines.
