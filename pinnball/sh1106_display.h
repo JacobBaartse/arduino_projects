@@ -27,7 +27,6 @@ void display_oled( bool clear, int x, int y, String text, bool activate){
 
 
 void setup_oled_display() {
-  // Serial.begin(115200);
   display.begin(display_i2c_Address, true);
   display.setContrast (0); // dim display
 
@@ -36,17 +35,6 @@ void setup_oled_display() {
   display.setTextSize(1);  // 3 lines of 11 chars
   display.setTextColor(SH110X_WHITE);
   display.display();
-  // display_oled(true, 0,16,"Marion: 1234", false);
-  // display_oled(false, 0,32,"Jacob: 1234", false);
-  // display_oled(false, 0,48,"Joas: 1234", false);
-  // display_oled(false, 0,64,"Charella: 1234", true);
-
 }
 
-
-
-// void loop() {
-  
-//   delay(5000);
-// }
 

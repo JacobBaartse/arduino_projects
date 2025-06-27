@@ -82,7 +82,7 @@ void ledstrip_setup() {
 void show_leds_rainbow()
 {
     currentPalette = RainbowStripeColors_p;   
-    currentBlending = NOBLEND;
+    currentBlending = BLEND;// NOBLEND;
     FillLEDsFromPaletteColors( 0 );
     FastLED.show();
 }
@@ -239,6 +239,16 @@ void blink_leds(bool left1hit, bool left2hit, bool left3hit, int duration_ms){
       score_onleds(left1hit, left2hit, left3hit);
       delay(50);
       duration_ms -=100;
+    }
+}
+
+void blink_all_leds(int duration_ms){
+    while (duration_ms>0){
+        fill_solid(leds, NUM_LEDS, CRGB::Gray);
+        delay(50);
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
+        delay(50);
+        duration_ms -=100;
     }
 }
 

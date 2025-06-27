@@ -33,7 +33,7 @@ int read_keyboard(){
   if (mySerial.available() > 0) {
     int mychar = mySerial.read();
     // Serial.println(mychar, HEX);
-    // return mychar1;
+
     if (mychar == 0xe0){
       delay(4);
       int mychar2 = mySerial.read();
@@ -73,24 +73,27 @@ int read_keyboard(){
   return 0;
 }
 
-char get_keyboard_char(){
-    int key = read_keyboard();
+int get_keyboard_char(){
+  int key = read_keyboard();
   if (key!=0){
     bool char_found=false;
     for (int j=0; j<len_arr; j++){
       if (conversion_table_int[j] == key){
         if (shift) return conversion_table_asc_shift[j]; //Serial.print(conversion_table_asc_shift[j]);
-        else return conversion_table_asc[j]; // Serial.print(conversion_table_asc[j]);
+        else return (int) conversion_table_asc[j]; // Serial.print(conversion_table_asc[j]);
         char_found=true;
       }
     }
-    if (ps2_debug)
-      if (char_found == false){
+
+    if (char_found == false){
+      if (ps2_debug){
         Serial.print("<");
         Serial.print(key, HEX);
         Serial.println(">");
       }
-  } 
+      return key;
+    }
+  }
   return 0;
 }
 

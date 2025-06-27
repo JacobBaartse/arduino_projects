@@ -25,12 +25,33 @@
 #include "font_16pix_high.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include "sh1106_display.h"
 
+#include <EEPROM.h>
+#include "menu.h"
+
+#define NR_BALLS 4
+
 String oled_screen_text = "_";
 
 uint32_t score_counter = 0;
+int nr_balls_left = NR_BALLS;
+String current_player_name = "";
 
-void setup()
-{
+void show_user_and_balls(){
+  display_oled(true, 0,16, current_player_name+ String("\nBalls: ") + String(nr_balls_left), true);
+}
+
+void next_player(){
+  current_player_name = get_player();
+  nr_balls_left = NR_BALLS;
+  do_servo(9, 0);
+  score_counter = 0;
+  reset_lefthit();
+  showScore();
+  show_user_and_balls();
+  // blink_all_leds(5000);
+}
+
+void setup(){
   Serial.begin(115200);
   setup_io_extender();
   setup_servo();
@@ -38,15 +59,14 @@ void setup()
   lcd.print(score_counter, 0);
   ledstrip_setup();
   setup_mp3_player();
-  Play_mp3_file(INTRO_MELODY);
-  do_servo(9, 0);
-  light_show(20000);
-  show_leds_rainbow();
-  myRedWhiteBluePalette_p;
+  // Play_mp3_file(INTRO_MELODY);
+  // light_show(20000);
+  // show_leds_rainbow();
+  // myRedWhiteBluePalette_p;
   tilt_setup();
   setup_ps2_keyboard();
   setup_oled_display();
-  display_oled(true, 0,16, oled_screen_text, true);
+  display_oled(true, 0,16, get_top_scores(), true);
 }
 
 bool left1hit = false;
@@ -64,8 +84,7 @@ void showScore(){
   score_onleds(left1hit, left2hit, left3hit);
 }
 
-void loop()
-{
+void loop(){
   int switch_nr = io_extender_check_switches();
   if (switch_nr == 1){
     Play_mp3_file(FIEEEW);
@@ -87,6 +106,12 @@ void loop()
     Play_mp3_file(JAMMER);
     // do_servo(9, 60);
     // score_counter += 100;
+    nr_balls_left --;
+    if (nr_balls_left == 0){
+      store_score(score_counter);
+      next_player();
+    }
+    show_user_and_balls();
     light_show(4000);
   }  
   if (switch_nr == 10){  //red button
@@ -94,10 +119,11 @@ void loop()
     reset_lefthit();
     do_servo(9, 0);
     score_counter = 0;
+    display_oled(true, 0,16, get_top_scores(), true);
   }  
   if (switch_nr == 9){  //green button
-    Play_mp3_file(KOEKOEK_KLOK);
-    //score_counter = 0;
+    next_player();
+    // Play_mp3_file(KLIK_KLAK);
   }
   if (switch_nr == 11){  //left side button 1
     left1hit = true;
@@ -123,20 +149,17 @@ void loop()
 
   if (left1hit & left2hit & left3hit){
     Play_mp3_file(SUPER_GOOD);
-    do_servo(9, 0);
     score_onleds(left1hit, left2hit, left3hit);
     score_counter += 100;
     blink_leds(left1hit, left2hit, left3hit, 2000);
     reset_lefthit();
+    do_servo(9, 0);
   }
 
   if (tilt()){
     Play_mp3_file(TOE_TOKKK);
-    do_servo(9, 0);
-    score_counter = 0;
-    reset_lefthit();
-    showScore();
     delay(1000);
+    next_player();
   }
 
   if (switch_nr > 0){
@@ -146,14 +169,11 @@ void loop()
   }
 
   int keyboard_char = get_keyboard_char();
-  if (keyboard_char > 0)
+  if ((keyboard_char != 0)  && (keyboard_char != 0xAA))
   {
-    Serial.print(keyboard_char);
-    oled_screen_text.remove(oled_screen_text.length()-1);  // remove cursor
-    if (keyboard_char == 0x08) oled_screen_text.remove(oled_screen_text.length()-1);
-    else oled_screen_text += (char)keyboard_char;
-    oled_screen_text += "_";  // add cursor
+    oled_screen_text = menu_process_key(keyboard_char);
     display_oled(true, 0,16, oled_screen_text, true);
+    if (oled_screen_text == "") show_user_and_balls();
   }
   delay(2);
 
