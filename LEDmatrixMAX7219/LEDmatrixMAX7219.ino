@@ -112,7 +112,7 @@ using MD_Parola library
 MD_Parola myDisplay = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
  
 void setup() {
-
+  Serial.begin(115200);
 
   myDisplay.begin();
   myDisplay.setIntensity(4);
@@ -123,5 +123,6 @@ void setup() {
 void loop() {
   if (myDisplay.displayAnimate()) {
     myDisplay.displayReset();
+    Serial.println(F('Reset animation'));
   }
 }
