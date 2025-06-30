@@ -65,6 +65,11 @@ void uv_index()
 
 void setup() {
   Serial.begin(11500);
+  sleep(1);
+  Serial.print(__FILE__);
+  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush();  
 }
 
 void loop() {

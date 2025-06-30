@@ -18,6 +18,11 @@ void setup() {
 
   tm.reset();
   tm.test();
+  
+  Serial.print(__FILE__);
+  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush();    
 }
 
 pulse_t pulse = PULSE1_16;
