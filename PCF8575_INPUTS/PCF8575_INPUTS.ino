@@ -41,8 +41,8 @@ void loop()
   {
     uint16_t value = PCF_20.read16();
     Serial.print("#38:\t");
-    Serial.println(value);
-    delay(50);
+    Serial.println(value, HEX);
+    delay(5);
   }
 
 }
