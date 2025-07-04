@@ -41,31 +41,40 @@ void uv_index()
 
   //condition for UV state
   if(UV_index<=2){ 
-    quality = "   LOW ";
+    quality = " LOW ";
   }
   else if(UV_index > 2 && UV_index <=5){
-   quality = "   MOD ";
+   quality = " MODERATE ";
   }
   else if(UV_index>5 && UV_index<=7){
-   quality = "   HIGH ";
+   quality = " HIGH ";
   }
   else if(UV_index>7 && UV_index<=10){
-   quality = "VERY HIGH";
+   quality = "VERY HIGH ";
   }
   else{ // > 10
    quality = " EXTREME ";
   }
 
-  // some printing TBD
-
+  // result printing
+  Serial.print(F("UV index: "));
+  Serial.print(UV_index);
+  Serial.print(F(', '));
+  Serial.println(quality);
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(11500);
+  sleep(1);
+  Serial.print(__FILE__);
+  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush();  
 }
 
 void loop() {
+
   uv_index();
 
-  delay(1000);
+  delay(10000);
 }

@@ -112,16 +112,22 @@ using MD_Parola library
 MD_Parola myDisplay = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
  
 void setup() {
-
+  Serial.begin(115200);
 
   myDisplay.begin();
   myDisplay.setIntensity(4);
   myDisplay.displayClear();
   myDisplay.displayScroll("Demo MAX 7219", PA_CENTER, PA_SCROLL_LEFT, 200);
+
+  Serial.print(__FILE__);
+  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
 }
  
 void loop() {
   if (myDisplay.displayAnimate()) {
     myDisplay.displayReset();
+    Serial.println(F('Reset animation'));
   }
 }
