@@ -17,7 +17,7 @@
 #include "mp3player.h"
 
 #include<Wire.h>
-#include "tilt_sensor.h"
+// #include "tilt_sensor.h"
 
 #include "ps2_keyboard.h"
 #include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
@@ -71,7 +71,6 @@ void setup(){
   Play_mp3_file(INTRO_MELODY);
   light_show(20000);
   show_leds_rainbow();
-  tilt_setup();
   setup_ps2_keyboard();
   setup_oled_display();
   display_oled(true, 0,16, get_top_scores(), true);
@@ -177,7 +176,7 @@ void loop(){
     do_servo(9, 0);
   }
 
-  if (tilt()){
+  if (switch_nr == 2){ // tilt contact
     Play_mp3_file(TOE_TOKKK);
     delay(1000);
     display_oled(true, 0,16, String("TILT...\nNext player"), true);
