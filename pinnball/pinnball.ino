@@ -62,6 +62,11 @@ void next_player(){
   show_user_and_balls();
 }
 
+void save_tilt_state()
+{
+  tilt = true;
+}
+
 void setup(){
   Serial.begin(115200);
   setup_io_extender();
@@ -77,7 +82,7 @@ void setup(){
   setup_oled_display();
   display_oled(true, 0,16, get_top_scores(), true);
   pinMode(TILT_PIN, INPUT_PULLUP);
-  // digitalPinToInterrupt(TILT_PIN);
+  attachInterrupt(digitalPinToInterrupt(TILT_PIN), save_tilt_state, FALLING);
 }
 
 bool left1hit = false;
@@ -180,11 +185,12 @@ void loop(){
     do_servo(9, 0);
   }
 
-  if (!digitalRead(TILT_PIN)){ // tilt contact
+  if (tilt){ // tilt contact
     Play_mp3_file(TOE_TOKKK);
     display_oled(true, 0,16, String("TILT...\nNext player"), true);
     blink_all_leds(10000);
     next_player();
+    tilt = false;
   }
 
   if (switch_nr > 0){
