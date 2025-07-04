@@ -12,12 +12,20 @@
 //#define display_i2c_Address 0x3d //initialize with the I2C addr 0x3D Typically Adafruit OLED's
 #define OLED_RESET     -1
 
-bool display_debug=true;
+#define DEBUG 0
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debugln(x) Serial.println(x)
+#else
+#define debug(x)
+#define debugln(x)
+#endif
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void display_oled( bool clear, int x, int y, String text, bool activate){
-  if (display_debug) Serial.println(text);
+  delay(2);
+  debugln(text);
   if (clear) display.clearDisplay();
   display.setCursor(x,y);
   display.print(text);
@@ -37,4 +45,5 @@ void setup_oled_display() {
   display.display();
 }
 
-
+#undef debug
+#undef debugln

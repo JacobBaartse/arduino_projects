@@ -4,6 +4,16 @@
 /// @example ColorPalette.ino
 
 
+#define DEBUG 0
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debugln(x) Serial.println(x)
+#else
+#define debug(x)
+#define debugln(x)
+#endif
+
+
 #define LED_PIN     13
 #define NUM_LEDS    120
 #define BRIGHTNESS  25
@@ -53,9 +63,8 @@ void SetupBlackAndWhiteStripedPalette();
 
 
 void score_onleds(bool left1hit, bool left2hit, bool left3hit){
-    // Serial.print("Show leds score");
-    // FastLED.clear();
-  // Fill NUM_LEDS pixels starting at leds[4]
+    debugln("Show leds score");
+
     fill_solid(leds, NUM_LEDS, CRGB::Gray);
 
     if (left3hit) {  leds[8] = CRGB::Green;  leds[9] = CRGB::Green;}
@@ -245,8 +254,10 @@ void blink_leds(bool left1hit, bool left2hit, bool left3hit, int duration_ms){
 void blink_all_leds(int duration_ms){
     while (duration_ms>0){
         fill_solid(leds, NUM_LEDS, CRGB::Gray);
+        FastLED.show();
         delay(50);
         fill_solid(leds, NUM_LEDS, CRGB::Black);
+        FastLED.show();
         delay(50);
         duration_ms -=100;
     }
@@ -276,6 +287,8 @@ void light_show(int duration)
 
 }
 
+#undef debug
+#undef debugln
 
 // Additional notes on FastLED compact palettes:
 //

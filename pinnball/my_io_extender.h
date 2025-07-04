@@ -4,6 +4,14 @@
 // PURPOSE: demo
 //     URL: https://github.com/RobTillaart/PCF8575
 
+#define DEBUG 0
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debugln(x) Serial.println(x)
+#else
+#define debug(x)
+#define debugln(x)
+#endif
 
 
 //  adjust addresses if needed
@@ -12,10 +20,11 @@ int pin7 = 7;  // connect to int pin of pcf8575
 int pin7_val = 0;
 int bit_zero = 0x0001;
 
+uint16_t xor_value = 0b1111111111110010;
 void setup_io_extender()
 {
-  Serial.print("PCF8575_LIB_VERSION:\t");
-  Serial.println(PCF8575_LIB_VERSION);
+  debug("PCF8575_LIB_VERSION:\t");
+  debugln(PCF8575_LIB_VERSION);
   pinMode(pin7, INPUT_PULLUP);
   Wire.begin();
   PCF_20.begin();
@@ -28,16 +37,20 @@ uint8_t io_extender_check_switches()
   if (pin7_val == 0)
   {
     uint16_t value = PCF_20.read16();
-    value ^= 0b1111111111110011;  // 0xffff;
-    Serial.println(value);
+    value ^= xor_value;  // 1 for normaly open,  0 for normaly closed.
+    debugln(value);
 
     while (value > 0)
     {
       pos +=1;
       value  = value >> 1;
     }
-    Serial.print("button pushed: ");
-    Serial.println(pos);
+    debug("button pushed: ");
+    debugln(pos);
+//    delay(5);
   }
   return pos;
 }
+
+#undef debug
+#undef debugln

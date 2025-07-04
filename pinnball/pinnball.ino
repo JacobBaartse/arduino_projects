@@ -30,6 +30,16 @@
 
 #define NR_BALLS 4
 
+#define DEBUG 0
+
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debugln(x) Serial.println(x)
+#else
+#define debug(x)
+#define debugln(x)
+#endif
+
 String oled_screen_text = "_";
 
 uint32_t score_counter = 0;
@@ -48,7 +58,6 @@ void next_player(){
   reset_lefthit();
   showScore();
   show_user_and_balls();
-  // blink_all_leds(5000);
 }
 
 void setup(){
@@ -59,10 +68,9 @@ void setup(){
   lcd.print(score_counter, 0);
   ledstrip_setup();
   setup_mp3_player();
-  // Play_mp3_file(INTRO_MELODY);
-  // light_show(20000);
-  // show_leds_rainbow();
-  // myRedWhiteBluePalette_p;
+  Play_mp3_file(INTRO_MELODY);
+  light_show(20000);
+  show_leds_rainbow();
   tilt_setup();
   setup_ps2_keyboard();
   setup_oled_display();
@@ -84,35 +92,43 @@ void showScore(){
   score_onleds(left1hit, left2hit, left3hit);
 }
 
+long cannon_micros;
+
 void loop(){
   int switch_nr = io_extender_check_switches();
-  if (switch_nr == 1){
-    Play_mp3_file(FIEEEW);
-    score_counter += 10;
-    light_show(825);
+  if (switch_nr == 15){  // BALL ON DECK
+    long speed = millis() - cannon_micros;
+    debug("speed : ");
+    debugln(speed);
+    Play_mp3_file(KOEKOEK_KLOK);
+    if (speed < 400) score_counter += (400 - speed);
+    display_oled(true, 0,16, String("speed: ")+ String((float)900 / speed) + String("Km/h") , true);
+    light_show(2825);
   }
-  if (switch_nr == 2){
+  if (switch_nr == 2){  // UNUSED FOR NOW
     Play_mp3_file(DO_RE_MI);
     score_counter += 100;
     light_show(1600);
   }
-  if (switch_nr == 3){
+  if (switch_nr == 3){  // CANNON 
+    cannon_micros = millis();
     Play_mp3_file(CANNON_SHOT);
     do_servo(9, 60);
     score_counter += 100;
-    light_show(2150);
   }  
   if (switch_nr == 4){
-    Play_mp3_file(JAMMER);
-    // do_servo(9, 60);
-    // score_counter += 100;
+    Play_mp3_file(JAMMER);  // BALL OUT
     nr_balls_left --;
     if (nr_balls_left == 0){
       store_score(score_counter);
+      display_oled(true, 0,16, String(score_counter) + String("\nBalls: 0"), true);
+      blink_all_leds(5000);
       next_player();
     }
-    show_user_and_balls();
-    light_show(4000);
+    else{
+      show_user_and_balls();
+      light_show(4000);
+    }
   }  
   if (switch_nr == 10){  //red button
     Play_mp3_file(GUN_SHOT);
@@ -146,6 +162,11 @@ void loop(){
     blink_leds(false, false, left3hit, 5000);
     score_counter += 5;
   }
+  if (switch_nr == 1){ // ROTARY SENSOR
+    Play_mp3_file(Y1_KORT_PR);
+    light_show(100);
+    score_counter += 9;
+  }  
 
   if (left1hit & left2hit & left3hit){
     Play_mp3_file(SUPER_GOOD);
@@ -159,11 +180,14 @@ void loop(){
   if (tilt()){
     Play_mp3_file(TOE_TOKKK);
     delay(1000);
+    display_oled(true, 0,16, String("TILT...\nNext player"), true);
+    blink_all_leds(10000);
     next_player();
   }
 
   if (switch_nr > 0){
-    Serial.println(switch_nr);
+    debug("switch number: ");
+    debugln(switch_nr);
     showScore();
     if (switch_nr == 10) show_leds_rainbow();
   }
@@ -179,3 +203,5 @@ void loop(){
 
 }
 
+#undef debug
+#undef debugln

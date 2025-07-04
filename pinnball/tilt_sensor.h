@@ -1,4 +1,13 @@
 
+#define DEBUG 1
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debugln(x) Serial.println(x)
+#else
+#define debug(x)
+#define debugln(x)
+#endif
+
 
 const int mpu_addr=0x68;  // I2C address of the MPU-6050
 
@@ -56,8 +65,10 @@ bool tilt() {
   
   if (read_status_ready())
   {
-    int movement =  Gyro_X();
-    if (movement > 8){
+
+    int movementx =  Gyro_X();
+    int movementy =  Gyro_Y();
+    if (movementx > (8 + movementy)){
       return true;
     }
   }

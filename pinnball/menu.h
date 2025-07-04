@@ -21,6 +21,15 @@
 #define FREE 0
 #define DELETED 0xff
 
+#define DEBUG 0
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debugln(x) Serial.println(x)
+#else
+#define debug(x)
+#define debugln(x)
+#endif
+
 
 
 struct UserObject {
@@ -44,8 +53,8 @@ String get_player()
     EEPROM.get(idx_current_player, readObject);
     if (readObject.status==FREE) idx_current_player=-16;  // next loop will increase to 0 again.
     else if (readObject.status == ACTIVE || menu_state!= PLAY_MODE) {
-      Serial.print(idx_current_player);
-      Serial.println(readObject.name);
+      debug(idx_current_player);
+      debugln(readObject.name);
       return String(readObject.name);
     }
 
@@ -102,8 +111,8 @@ int find_free_slot(){
   for (int i=0; i<1000; i+=16){
     UserObject readObject;
     EEPROM.get(i, readObject);
-    Serial.print("find free slot Object status: ");
-    Serial.println(readObject.status);
+    debug("find free slot Object status: ");
+    debugln(readObject.status);
     if ((readObject.status==0) || (readObject.status ==0xff))
       return i;
   }
@@ -114,8 +123,8 @@ int find_free_slot(){
 String store_new_user(String username){
   int address = find_free_slot();
   if (address >= 0){
-    Serial.print("store_new_user : ");
-    Serial.println(username);
+    debug("store_new_user : ");
+    debugln(username);
     UserObject newUser;
     newUser.status = ACTIVE;
     strcpy(newUser.name, username.c_str());
@@ -129,7 +138,7 @@ String store_new_user(String username){
 }
 
 String menu_process_key(int keyboard_char){
-  Serial.println("State: " + String(menu_state));
+  debugln("State: " + String(menu_state));
   if (keyboard_char == WINDOWS_KEY){
     edit_mode=false;
     menu_state = MAIN_MENU;
@@ -246,3 +255,6 @@ String menu_process_key(int keyboard_char){
 
   return "";
 }
+
+#undef debug
+#undef debugln

@@ -57,7 +57,7 @@ const int TONG_TING_HIGH = 32;
 const int TRRRRR = 33;
 const int WOOOWOWOW = 34;
 const int XILOFOON_UP = 35;
-
+const int Y1_KORT_PR = 36;
 
 
 void setup_mp3_player() {
