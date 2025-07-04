@@ -1,2 +1,2 @@
-#define SECRET_SSID "ssid"
-#define SECRET_PASS "password"
+#define SECRET_SSID "JM_theWifiPoint"
+#define SECRET_PASS "caliper@pen9145"

@@ -1,0 +1,57 @@
+
+Turn Left
+s1 s2
+ 1 1
+ 1 0
+ 0 0
+ 0 1
+ 1 1
+
+Turn Right
+ 1 1
+ 0 1
+ 0 0
+ 1 0
+ 1 1
+
+Turn a bit Right and then back
+ 1 1
+ 1 0
+ 1 1
+
+Turn a bit Left and then right
+ 1 1
+ 0 1
+ 1 1
+
+Turn a bit more Right and then back
+ 1 1
+ 0 1
+ 0 0
+ 0 1
+ 1 1
+
+Turn a bit more Left and then back
+ 1 1
+ 1 0
+ 0 0
+ 1 0
+ 1 1
+
+Turn a bit more more Left and then back
+ 1 1
+ 1 0
+ 0 0
+ 0 1
+ 0 0
+ 1 0
+ 1 1
+
+Turn a bit more more Right and then back
+ 1 1
+ 0 1
+ 0 0
+ 1 0
+ 0 0
+ 0 1
+ 1 1
