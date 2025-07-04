@@ -29,6 +29,7 @@
 #include "menu.h"
 
 #define NR_BALLS 4
+#define TILT_PIN 3
 
 #define DEBUG 0
 
@@ -45,6 +46,7 @@ String oled_screen_text = "_";
 uint32_t score_counter = 0;
 int nr_balls_left = NR_BALLS;
 String current_player_name = "";
+bool tilt = false;
 
 void show_user_and_balls(){
   display_oled(true, 0,16, current_player_name+ String("\nBalls: ") + String(nr_balls_left), true);
@@ -74,6 +76,8 @@ void setup(){
   setup_ps2_keyboard();
   setup_oled_display();
   display_oled(true, 0,16, get_top_scores(), true);
+  pinMode(TILT_PIN, INPUT_PULLUP);
+  // digitalPinToInterrupt(TILT_PIN);
 }
 
 bool left1hit = false;
@@ -176,9 +180,8 @@ void loop(){
     do_servo(9, 0);
   }
 
-  if (switch_nr == 2){ // tilt contact
+  if (!digitalRead(TILT_PIN)){ // tilt contact
     Play_mp3_file(TOE_TOKKK);
-    delay(1000);
     display_oled(true, 0,16, String("TILT...\nNext player"), true);
     blink_all_leds(10000);
     next_player();
