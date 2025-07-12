@@ -113,7 +113,7 @@ void loop(){
     display_oled(true, 0,16, String("speed: ")+ String((float)900 / speed) + String("Km/h") , true);
     light_show(2825);
   }
-  if (switch_nr == 2){  // UNUSED FOR NOW
+  if (switch_nr == 2){  // ramp down
     Play_mp3_file(DO_RE_MI);
     score_counter += 100;
     light_show(1600);
@@ -188,7 +188,7 @@ void loop(){
   if (tilt){ // tilt contact
     Play_mp3_file(TOE_TOKKK);
     display_oled(true, 0,16, String("TILT...\nNext player"), true);
-    blink_all_leds(10000);
+    blink_all_leds(5000);
     next_player();
     tilt = false;
   }
