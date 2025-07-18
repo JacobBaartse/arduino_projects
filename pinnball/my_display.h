@@ -21,7 +21,7 @@ void display_setup(){
   // lcd.backlight(); // turn on the backlight led
 
   // if no backlight control is given, you can also use:
-  lcd.begin(5, 12, 4); // (cs, wr, Data)
+  lcd.begin(5, 6, 4); // (cs, wr, Data)
   lcd.clear(); // clear the screen
 }
 

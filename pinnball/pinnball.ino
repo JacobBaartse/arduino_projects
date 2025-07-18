@@ -1,7 +1,8 @@
-#include "PCF8575.h"
 
-#include <Servo.h>
-#include "my_servo.h"
+#include "simple_matrix.h"
+#include "display8x8matrixes.h"
+
+#include "PCF8575.h"
 
 #include "my_io_extender.h"
 
@@ -17,7 +18,8 @@
 #include "mp3player.h"
 
 #include<Wire.h>
-// #include "tilt_sensor.h"
+#include <Adafruit_PWMServoDriver.h>
+#include "my_servo.h"
 
 #include "ps2_keyboard.h"
 #include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
@@ -55,7 +57,7 @@ void show_user_and_balls(){
 void next_player(){
   current_player_name = get_player();
   nr_balls_left = NR_BALLS;
-  do_servo(9, 0);
+  do_servo(0, 0);
   score_counter = 0;
   reset_lefthit();
   showScore();
@@ -68,6 +70,7 @@ void save_tilt_state()
 }
 
 void setup(){
+  setup_8x8matrix();
   Serial.begin(115200);
   setup_io_extender();
   setup_servo();
@@ -75,8 +78,8 @@ void setup(){
   lcd.print(score_counter, 0);
   ledstrip_setup();
   setup_mp3_player();
-  Play_mp3_file(INTRO_MELODY);
-  light_show(20000);
+  // Play_mp3_file(INTRO_MELODY);
+  // light_show(20000);
   show_leds_rainbow();
   setup_ps2_keyboard();
   setup_oled_display();
@@ -121,7 +124,7 @@ void loop(){
   if (switch_nr == 3){  // CANNON 
     cannon_micros = millis();
     Play_mp3_file(CANNON_SHOT);
-    do_servo(9, 60);
+    do_servo(0, 60);
     score_counter += 100;
   }  
   if (switch_nr == 4){
@@ -141,7 +144,7 @@ void loop(){
   if (switch_nr == 10){  //red button
     Play_mp3_file(GUN_SHOT);
     reset_lefthit();
-    do_servo(9, 0);
+    do_servo(0, 0);
     score_counter = 0;
     display_oled(true, 0,16, get_top_scores(), true);
   }  
@@ -182,12 +185,13 @@ void loop(){
     score_counter += 100;
     blink_leds(left1hit, left2hit, left3hit, 2000);
     reset_lefthit();
-    do_servo(9, 0);
+    do_servo(0, 0);
   }
 
   if (tilt){ // tilt contact
     Play_mp3_file(TOE_TOKKK);
     display_oled(true, 0,16, String("TILT...\nNext player"), true);
+    disp.print(tilt_text);
     blink_all_leds(5000);
     next_player();
     tilt = false;

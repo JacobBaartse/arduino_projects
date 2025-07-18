@@ -1,0 +1,46 @@
+Overzicht
+Rapporteer item
+MAX7219 is een geïntegreerde seriële invoer/uitvoer gemeenschappelijke kathode-displaydriver, het verbindt de microprocessor 8-cijferige 7-segmentcijferige LED-display, u kunt ook het staaflijndiagramdisplay of 64 aansluiten op een onafhankelijke LED.Het bevat een stuk BCD-encoder van het type B, een meerkanaals scanlus en een segmentdriver, en er is ook één 8*8 het statische RAM dat wordt gebruikt om elke gegevens op te slaan.Er wordt slechts één extern register gebruikt om elke LED de segmenten van de stroom in te stellen.
+
+Een handige vierdraads seriële interface kan alle microprocessors voor algemeen gebruik aansluiten.Elke gegevens kunnen worden geadresseerd zonder al het beeldscherm te herschrijven tijdens het updaten.MAX7219 kunt u ook codering of niet-encodering selecteren voor elke gegevens.
+Het hele apparaat bevat een uit-modus met een laag stroomverbruik van 150 μA, analoge en digitale helderheidsregeling, een scanlimietregister stelt gebruikers in staat 1-8 bit gegevens weer te geven, en een andere maakt alle LED-lichtdetectiemodi mogelijk.
+
+Gewoon nodig3 Een IO-poort kan worden aangestuurd1 Een puntmatrix!Er is geen flikkering bij het display van de dotmatrix!Ondersteunt cascadering!
+
+Moduleparameters:
+
+1.Eén enkele module kan één 8*8 gemeenschappelijke kathodengitter aansturen
+
+2.Werkspanning module: 5V
+
+3.Modulegrootte: lengte 12,8 CM X breedte3,2 CM X hoog1,3 CM
+
+4.Met 64 vaste schroefgaten, opening 3 mm
+
+5.De modulaire riem Io-interface ter ondersteuning van cascade met meerdere modules
+
+bedradingsinstructies:
+
+1.De linkerkant van de module is de invoerpoort en de rechterkant is de uitvoerpoort.
+
+2.Bij het besturen van een enkele module hoeft u alleen de CPU van de ingangspoort aan te sluiten
+
+3.Wanneer meerdere modules trapselen, zijn 1 de ingangsterminals van elke module aangesloten op de CPU, de uitgangsaansluiting 2 de ingang van de module 2 de uitgangsterminals van elke module zijn aangesloten op 3 de ingang van modules, enzovoort...
+
+To51 single-chip microcomputer, bijvoorbeeld:
+
+VCC → 5V
+
+GND → GND
+
+DIN → P2,2
+
+CS → P2.1
+
+CLK → P2.0
+
+factuur:
+
+1.MAX7219 dot Matrix-module van vier-in-één (afgewerkt product, met dot-matrix, is getest)
+
+2,20 cm DuPont-lijn 5P

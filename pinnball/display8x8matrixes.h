@@ -1,4 +1,4 @@
-#include "simple_matrix.h" //Import the library
+#include "simple_matrix.h"
 
 /*
 Initialize the library. The 4 means that the CS pin is connected to pin D4.
@@ -16,12 +16,12 @@ Store the text to be displayed in memory
 The PROGMEM means that the text will be stored in the Arduino's
 flash memory instead of RAM. This means that you can a lot more stuff (~27000 characters available on the Uno)
 */
-const char text[] PROGMEM = "Jo 1234 Ma 1234 Ja 1234 Sj 1234";
+const char tilt_text[] PROGMEM = "    TILT    TILTTILT    TILT";
 //Defines "textDelay" as 25ms (Delay between when the display scroll by 1 pixel to the left).
 #define textDelay 25
 
 //This code will run only once when the Arduino is turned on.
-void setup(){
+void setup_8x8matrix(){
   //Starts the library
   disp.begin();
   /*
@@ -34,12 +34,12 @@ void setup(){
 }
 
 //After void setup(), this code will run and loop forever.
-void loop(){
-  //Scroll the text "text". The "textDelay" determines how long each
-  //    frame is in mS.
-  // disp.scrollTextPROGMEMRightToLeft(text, textDelay);
-  disp.print(text);
+// void loop(){
+//   //Scroll the text "text". The "textDelay" determines how long each
+//   //    frame is in mS.
+//   // disp.scrollTextPROGMEMRightToLeft(text, textDelay);
+//   disp.print(text);
 
-  //After scolling, delay by 1 second.
-  delay(1000);
-}
+//   //After scolling, delay by 1 second.
+//   delay(1000);
+// }

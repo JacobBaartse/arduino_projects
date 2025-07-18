@@ -14,7 +14,7 @@
 #endif
 
 
-#define LED_PIN     13
+#define LED_PIN     8
 #define NUM_LEDS    120
 #define BRIGHTNESS  25
 #define LED_TYPE    WS2812B
