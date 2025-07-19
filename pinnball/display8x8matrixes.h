@@ -9,7 +9,7 @@ The disp means that any future function calls to the library uses "disp" as the
 library's object name. For example, the library has a function called
 "setIntensity", you need to write "disp.setIntensity" to call that function.
 */
-simpleMatrix disp(10, 24);  // cs pin, num modules
+simpleMatrix disp_8x8_matrix(10, 24);  // cs pin, num modules
 
 /*
 Store the text to be displayed in memory
@@ -23,14 +23,14 @@ const char tilt_text[] PROGMEM = "    TILT    TILTTILT    TILT";
 //This code will run only once when the Arduino is turned on.
 void setup_8x8matrix(){
   //Starts the library
-  disp.begin();
+  disp_8x8_matrix.begin();
   /*
    * If you notice that the display is upside-down per display, uncomment the following line
    */
   //disp.invertIndividualDisplays();
   
   //Set the LED's intensity. This value can be anywhere between 0 and 15.
-  disp.setIntensity(0x01);
+  disp_8x8_matrix.setIntensity(0x01);
 }
 
 //After void setup(), this code will run and loop forever.

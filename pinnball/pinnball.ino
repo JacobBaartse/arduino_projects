@@ -50,18 +50,15 @@ int nr_balls_left = NR_BALLS;
 String current_player_name = "";
 bool tilt = false;
 
-void show_user_and_balls(){
-  display_oled(true, 0,16, current_player_name+ String("\nBalls: ") + String(nr_balls_left), true);
-}
 
 void next_player(){
   current_player_name = get_player();
+  disp_8x8_matrix.print(current_player_name.c_str(), 1);
   nr_balls_left = NR_BALLS;
   do_servo(0, 0);
   score_counter = 0;
   reset_lefthit();
   showScore();
-  show_user_and_balls();
 }
 
 void save_tilt_state()
@@ -86,6 +83,7 @@ void setup(){
   display_oled(true, 0,16, get_top_scores(), true);
   pinMode(TILT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(TILT_PIN), save_tilt_state, FALLING);
+  next_player();
 }
 
 bool left1hit = false;
@@ -101,6 +99,15 @@ void reset_lefthit(){
 void showScore(){
   lcd.print(score_counter, 0);
   score_onleds(left1hit, left2hit, left3hit);
+
+  // display_oled(true, 0,16, current_player_name+ String("\nBalls: ") + String(nr_balls_left), true);
+
+  String screen_text = current_player_name;
+  while (screen_text.length() < 10) screen_text += " ";
+  screen_text += String(score_counter);
+  while (screen_text.length() < 16) screen_text += " ";
+  screen_text += String("   Balls: ") + String(nr_balls_left);
+  disp_8x8_matrix.print(screen_text.c_str());
 }
 
 long cannon_micros;
@@ -113,7 +120,9 @@ void loop(){
     debugln(speed);
     Play_mp3_file(KOEKOEK_KLOK);
     if (speed < 400) score_counter += (400 - speed);
-    display_oled(true, 0,16, String("speed: ")+ String((float)900 / speed) + String("Km/h") , true);
+    String speed_text = String("speed: ")+ String((float)900 / speed) + String("Km/h");
+    // display_oled(true, 0,16, speed_text, true);
+    disp_8x8_matrix.print(speed_text.c_str());
     light_show(2825);
   }
   if (switch_nr == 2){  // ramp down
@@ -132,12 +141,11 @@ void loop(){
     nr_balls_left --;
     if (nr_balls_left == 0){
       store_score(score_counter);
-      display_oled(true, 0,16, String(score_counter) + String("\nBalls: 0"), true);
+      // display_oled(true, 0,16, String(score_counter) + String("\nBalls: 0"), true);
       blink_all_leds(5000);
       next_player();
     }
     else{
-      show_user_and_balls();
       light_show(4000);
     }
   }  
@@ -190,8 +198,8 @@ void loop(){
 
   if (tilt){ // tilt contact
     Play_mp3_file(TOE_TOKKK);
-    display_oled(true, 0,16, String("TILT...\nNext player"), true);
-    disp.print(tilt_text);
+    // display_oled(true, 0,16, String("TILT...\nNext player"), true);
+    disp_8x8_matrix.print(tilt_text);
     blink_all_leds(5000);
     next_player();
     tilt = false;
@@ -209,7 +217,6 @@ void loop(){
   {
     oled_screen_text = menu_process_key(keyboard_char);
     display_oled(true, 0,16, oled_screen_text, true);
-    if (oled_screen_text == "") show_user_and_balls();
   }
   delay(2);
 
