@@ -53,7 +53,6 @@ bool tilt = false;
 
 void next_player(){
   current_player_name = get_player();
-  disp_8x8_matrix.print(current_player_name.c_str(), 1);
   nr_balls_left = NR_BALLS;
   do_servo(0, 0);
   score_counter = 0;
@@ -96,18 +95,21 @@ void reset_lefthit(){
     left3hit = false;
 }
 
+long keep_matrix_millies = 0;
+
 void showScore(){
   lcd.print(score_counter, 0);
   score_onleds(left1hit, left2hit, left3hit);
 
-  // display_oled(true, 0,16, current_player_name+ String("\nBalls: ") + String(nr_balls_left), true);
+  if (millis() > keep_matrix_millies){
+    String screen_text = current_player_name;
+    while (screen_text.length() < 10) screen_text += " ";
+    screen_text += String(score_counter);
+    while (screen_text.length() < 16) screen_text += " ";
+    screen_text += String("   Balls: ") + String(nr_balls_left);
+    disp_8x8_matrix.print(screen_text.c_str());
+  }
 
-  String screen_text = current_player_name;
-  while (screen_text.length() < 10) screen_text += " ";
-  screen_text += String(score_counter);
-  while (screen_text.length() < 16) screen_text += " ";
-  screen_text += String("   Balls: ") + String(nr_balls_left);
-  disp_8x8_matrix.print(screen_text.c_str());
 }
 
 long cannon_micros;
@@ -120,9 +122,11 @@ void loop(){
     debugln(speed);
     Play_mp3_file(KOEKOEK_KLOK);
     if (speed < 400) score_counter += (400 - speed);
+
     String speed_text = String("speed: ")+ String((float)900 / speed) + String("Km/h");
-    // display_oled(true, 0,16, speed_text, true);
     disp_8x8_matrix.print(speed_text.c_str());
+    keep_matrix_millies = millis() + 10000;
+
     light_show(2825);
   }
   if (switch_nr == 2){  // ramp down
