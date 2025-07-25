@@ -4,6 +4,9 @@
   by Amir Mohammad Shojaee @ Electropeak
   Home
 
+
+Interfacing GUVA-S12SD UV Sensor Module with Arduino https://share.google/tjHDq4e84UuuewAk1 
+
 */
 
 // void setup() 
@@ -36,20 +39,20 @@ void uv_index()
   int UV_index;
   String quality = ""; 
   sensorValue = analogRead(A0);
-  sensorVoltage = sensorValue/1024*5.0;
-  UV_index= sensorVoltage/0.1;
+  sensorVoltage = (sensorValue / 1024) * 5.0;
+  UV_index= sensorVoltage / 0.1;
 
   //condition for UV state
-  if(UV_index<=2){ 
+  if(UV_index <= 2){ 
     quality = " LOW ";
   }
-  else if(UV_index > 2 && UV_index <=5){
+  else if(UV_index > 2 && UV_index <= 5){
    quality = " MODERATE ";
   }
-  else if(UV_index>5 && UV_index<=7){
+  else if(UV_index > 5 && UV_index <= 7){
    quality = " HIGH ";
   }
-  else if(UV_index>7 && UV_index<=10){
+  else if(UV_index > 7 && UV_index <= 10){
    quality = "VERY HIGH ";
   }
   else{ // > 10
@@ -65,7 +68,7 @@ void uv_index()
 
 void setup() {
   Serial.begin(11500);
-  sleep(1);
+  delay(1000);
   Serial.print(__FILE__);
   Serial.print(F("\n, creation/build time: "));
   Serial.println(__TIMESTAMP__);

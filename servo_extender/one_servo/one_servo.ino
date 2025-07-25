@@ -2,6 +2,8 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
+// https://learn.adafruit.com/16-channel-pwm-servo-driver
+
 // called this way, it uses the default address 0x40
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
@@ -14,6 +16,11 @@ uint8_t servonum = 0;   // just test servo on output 0
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
+  Serial.print(__FILE__);
+  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
 
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);
@@ -21,7 +28,6 @@ void setup() {
 
   delay(10);
 }
-
 
 void loop() {
   // Drive each servo one at a time using setPWM()
