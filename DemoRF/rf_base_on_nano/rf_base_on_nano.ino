@@ -6,6 +6,18 @@
 #include "RF24.h"
 #include <SPI.h>
 
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+// https://learn.adafruit.com/16-channel-pwm-servo-driver
+
+// called this way, it uses the default address 0x40
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+#define SERVOMIN   90 // This is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  490 // This is the 'maximum' pulse length count (out of 4096)
+#define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
+
 #define radioChannel 104
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -16,6 +28,7 @@ const uint16_t node00 = 00; // Address of the home/host/controller node in Octal
 
 unsigned long const keywordvalM = 0xfeedbeef; 
 unsigned long const keywordvalS = 0xbeeffeed; 
+unsigned long const keywordvalJ = 0xbcdffeda;
 
 struct joystick_payload{
   uint32_t keyword;
@@ -49,6 +62,10 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
+  pwm.begin();
+  pwm.setOscillatorFrequency(27000000);
+  pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
+
   SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
@@ -62,30 +79,90 @@ void setup() {
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
 
+// data for servo's
+uint16_t x1value;
+uint16_t y1value;
+uint16_t x2value;
+uint16_t y3value;
+
+// data from remote control (joystick)
+uint16_t xvalue;
+uint16_t yvalue;
+uint8_t mcount;
+uint8_t jbvalue;
+uint8_t sw1value;
+uint8_t sw2value;
+
+void interpretdata(bool fresh, unsigned long curtime){
+  // remember the data
+  static unsigned long receivedtime = 0;
+  static uint8_t itemtomove = 0;
+
+  if (fresh){ // new data received
+    if (sw1value > 10)
+      itemtomove  = 1;
+    if (sw2value > 10)
+      itemtomove  = 2;
+    if (itemtomove == 1){
+
+    }
+    if (itemtomove == 2){
+
+    }
+    receivedtime = curtime;
+  }
+  if (itemtomove > 0){
+
+  }
+
+}
+
 //===== Receiving =====//
-void receiveRFnetwork(){
+bool receiveRFnetwork(){
+  bool mreceived = false;
 
-  while (network.available()){ // Is there any incoming data?
+  // Check for incoming data details
+  while (network.available()) {
     RF24NetworkHeader header;
-    network_payload Rxdata;
-    network.read(header, &Rxdata, sizeof(Rxdata)); // Read the incoming data
-    if (header.from_node != node00) {
-      Serial.print(F("received unexpected message, from_node: "));
-      Serial.println(header.from_node);
-      break;
-    }
-    if (Rxdata.keyword == keywordvalS){
+    network.peek(header);
+  
+    switch(header.type) {
+      // Display the incoming millis() values from sensor nodes
+      case 'J': 
+        joystick_payload payload;
+        network.read(header, &payload, sizeof(payload));
+        Serial.print(F("Received from Joystick nodeId: "));
+        Serial.print(header.from_node);
+        Serial.print(F(", timing: "));
+        Serial.println(payload.timing);
+        if (payload.keyword == keywordvalJ) {
+          // message received from joystick 
+          mcount = payload.count;
 
-      Serial.println(F("new data received"));
-    }
-    else{
-      Serial.println(F("Keyword failure"));
+          xvalue = payload.xvalue;
+          yvalue = payload.yvalue;
+          jbvalue = payload.bvalue;
+          sw1value = payload.sw1value;
+          sw2value = payload.sw2value;
+
+          // end of joystick message collection      
+          mreceived = true;
+        }
+        else{
+          Serial.println(F("Wrong Joystick keyword")); 
+        }
+        break;
+      default: 
+        network.read(header, 0, 0);
+        Serial.print(F("TBD header.type: "));
+        Serial.println(header.type);
     }
   }
+  return mreceived;
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool fresh){
+void transmitRFnetwork(){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
@@ -96,30 +173,12 @@ bool transmitRFnetwork(bool fresh){
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
     sendingTimer = currentRFmilli;
 
-    joystick_payload Txdata;
-    Txdata.keyword = keywordvalM;
+    network_payload Txdata;
+    Txdata.keyword = keywordvalS;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
-    Txdata.xvalue = xValue;
-    Txdata.yvalue = yValue;
-    Txdata.bvalue = bValue;
-    Txdata.sw1value = sw1Value;
-    Txdata.sw2value = sw2Value;
 
-    Serial.print(F("Message: "));
-    Serial.print(Txdata.count);
-    Serial.print(F(", xvalue: "));
-    Serial.print(Txdata.xvalue);
-    Serial.print(F(", yvalue: "));
-    Serial.print(Txdata.yvalue);
-    Serial.print(F(", bvalue: "));
-    Serial.print(Txdata.bvalue);
-    Serial.print(F(", sw1value: "));
-    Serial.print(Txdata.sw1value);        
-    Serial.print(F(", sw2value: "));
-    Serial.println(Txdata.sw2value);
-
-    RF24NetworkHeader header0(node00, 'J'); // address where the data is going
+    RF24NetworkHeader header0(node00, 'S'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
       failcount++;
@@ -128,10 +187,6 @@ bool transmitRFnetwork(bool fresh){
     }
     Serial.print(F("Message send ")); 
     if (w_ok){
-      bValue = 0; 
-      sw1Value = 0;
-      sw2Value = 0;
-      fresh = false;
       failcount = 0;
     }    
     else{
@@ -142,22 +197,16 @@ bool transmitRFnetwork(bool fresh){
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
 
-    if (failcount > 10){
-      fresh = false; // do not send a lot of messages continously
-    }
-
-    if(!fresh){ // clear buttons status always after 5 seconds
-      bValue = 0; 
-      sw1Value = 0;
-      sw2Value = 0;
-    }
-
   }
-
-  return fresh;
 }
 
+bool driveServo(uint8_t servonum, uint16_t pulselen){
 
+  pwm.setPWM(servonum, 0, pulselen);
+
+}
+
+bool newdata = false;
 
 void loop() {
 
@@ -166,13 +215,17 @@ void loop() {
 
   currentmilli = millis();
 
-  receiveRFnetwork();
+  newdata = receiveRFnetwork();
 
-  //************************ sensors ****************//
+  interpretdata(newdata, currentmilli);
+
+  //************************ sensors/actuators ****************//
+
+  // depending on received data, driveServo() (one or more commands)
 
 
-  //************************ sensors ****************//
+  //************************ sensors/actuators ****************//
 
-  newdata = transmitRFnetwork(newdata);
+  transmitRFnetwork();
 
 }
