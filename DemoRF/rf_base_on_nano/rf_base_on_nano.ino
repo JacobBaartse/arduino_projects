@@ -1,33 +1,17 @@
 /*
- * RF-Nano, no headers, USB-C with joystick connected, using RF24network library
+ * RF-Nano, base node for demo purposes
  */
 
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
-//#include "printf.h"
 
 #define radioChannel 104
-
-#define VRX_PIN  A1 // Arduino pin connected to VRX pin
-#define VRY_PIN  A0 // Arduino pin connected to VRY pin
-#define SW_PIN   2  // Arduino pin connected to SW  pin, supporting interrupts
-#define SW_PIN1  4  // Arduino pin connected to button 1
-#define SW_PIN2  6  // Arduino pin connected to button 2
-
-uint16_t xValue = 0; // To store value of the X axis
-uint16_t yValue = 0; // To store value of the Y axis
-uint8_t bValue = 0; // To store value of the button
-uint8_t sw1Value = 0; // To store value of switch1
-uint8_t sw2Value = 0; // To store value of switch2
-uint16_t remx = 0;
-uint16_t remy = 0;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
-const uint16_t node01 = 01; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
 
 unsigned long const keywordvalM = 0xfeedbeef; 
@@ -55,51 +39,6 @@ struct network_payload {
   unsigned long data3;
 };
 
-bool newdata = false;
-
-uint8_t checkSwitchButton1(uint8_t DigPin){
-  static bool remval = false;
-  static uint8_t b1val = 0;
-
-  bool pressval = (digitalRead(DigPin) == LOW);
-  if (pressval){
-    if (remval){
-      if (b1val < 0xff) b1val++;
-    }
-    else {
-      Serial.println(F(" button 1"));
-      b1val = 100; // debouncing
-      newdata = true;
-    }
-  }
-  else {
-    if (b1val > 0) b1val--;
-  }
-  remval = pressval;
-  return b1val;
-}
-
-uint8_t checkSwitchButton2(uint8_t DigPin){
-  static bool remval = false;
-  static uint8_t b2val = 0;
-
-  bool pressval = (digitalRead(DigPin) == LOW);
-  if (pressval){
-    if (remval){
-      if (b2val < 0xff) b2val++;
-    }
-    else {
-      Serial.println(F(" button 2"));
-      b2val = 100; // debouncing
-      newdata = true;
-    }
-  }
-  else {
-    if (b2val > 0) b2val--;
-  }
-  remval = pressval;
-  return b2val;
-}
 
 void setup() {
   Serial.begin(115200);
@@ -117,17 +56,9 @@ void setup() {
   }
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS);
-  network.begin(radioChannel, node01);
-
-  pinMode(SW_PIN, INPUT_PULLUP);
-  pinMode(SW_PIN1, INPUT_PULLUP);
-  pinMode(SW_PIN2, INPUT_PULLUP);
-
-  attachInterrupt(digitalPinToInterrupt(SW_PIN), joyButton, FALLING);
-
-  //printf_begin();
+  network.begin(radioChannel, node00);
 }
- 
+
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
 
@@ -221,37 +152,15 @@ bool transmitRFnetwork(bool fresh){
       sw2Value = 0;
     }
 
-    // // print data using &Txdata, sizeof(Txdata)
-    // //Serial.println((char*)&Txdata);
-    // Serial.println(F("--:"));
-    // char buff[3] = "";
-    // uint8_t* ptr = (uint8_t*)&Txdata;
-    // for (size_t i = 0; i < sizeof(Txdata); i++)
-    // {
-    //   printf(buff, "%02x", (*(ptr + i)));
-    //   Serial.print(buff);
-    // }
-    // // for(int i = 0; i < sizeof(Txdata); i++)
-    // // {
-    // //   char byteval = ((char*)&Txdata)[i];
-    // //   printf(buff, "%02X", (uint8_t)byteval);
-    // //   Serial.print(buff);
-    // // }
-    // Serial.println(F("<--"));
   }
 
   return fresh;
 }
 
-int divX = 0;
-int divY = 0;
-int divXr = 0;
-int divYr = 0;
+
 
 void loop() {
 
-  sw1Value = checkSwitchButton1(SW_PIN1);
-  sw2Value = checkSwitchButton2(SW_PIN2);
 
   network.update();
 
@@ -261,63 +170,9 @@ void loop() {
 
   //************************ sensors ****************//
 
-  xValue = analogRead(VRX_PIN);
-  yValue = analogRead(VRY_PIN);
-
-  // calculate trigger, difference with previous measurements
-  // this did not work when put in 1 line in the if statement
-  // the abs value was printed several times < 0 (which should never happen)
-  // that is why it is now over multiple lines
-  divXr = xValue - remx;
-  divYr = yValue - remy;
-  divX = abs(divXr);
-  divY = abs(divYr);
-  // if ((divY > 1)||(divX > 1)){
-  //   Serial.print(F("dX: "));
-  //   Serial.print(divX);    
-  //   Serial.print(F(", dY: "));
-  //   Serial.println(divY);
-  // }
-  if ((divY > 4)||(divX > 4)){
-    Serial.println(F("----"));  
-    Serial.print(F("X: "));
-    Serial.print(xValue);
-    Serial.print(F(", rX: "));
-    Serial.print(remx);
-    Serial.print(F(", dX: "));
-    Serial.println(divX);
-    Serial.print(F("Y: "));
-    Serial.print(yValue);
-    Serial.print(F(", rY: "));
-    Serial.print(remy);    
-    Serial.print(F(", dY: "));
-    Serial.println(divY);    
-    remx = xValue; 
-    remy = yValue;
-    newdata = true;
-  }
 
   //************************ sensors ****************//
 
   newdata = transmitRFnetwork(newdata);
 
-}
-
-void joyButton(){
-  static unsigned long buttontime = 0;
-  //static int buttonstate = HIGH;
-  static unsigned long counter = 0;
-
-  if (currentmilli - buttontime > 500){ // debounce to smaller than one press and processing per second
-    buttontime = currentmilli;
-    counter++;
-    Serial.print(F("Joy button press: "));
-    Serial.println(counter);
-    //Serial.print(F(": "));
-    //buttonstate = digitalRead(SW_PIN);
-    //if (buttonstate == LOW) bValue = 0xfe; // button pressed
-    bValue = 0xfe; // button pressed
-    //Serial.println(bValue);
-    newdata = true;
-  }
 }
