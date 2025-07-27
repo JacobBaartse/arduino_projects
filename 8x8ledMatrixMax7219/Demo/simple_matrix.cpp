@@ -23,20 +23,18 @@ Originally designed for the University of New Haven's
 
 #define DATA_PIN A3
 #define CLK_PIN A2
-#define CS_PIN A1
+
 void SPI_transfer(uint8_t data){
-    // shift out the data
+    // PRINTS("\nBitBang in stead of SPI");
     shiftOut(DATA_PIN, CLK_PIN, MSBFIRST, data);
 }
 
 void SPI_begin(){
-    // PRINTS("\nBitBang SPI");
-    pinMode(DATA_PIN, OUTPUT);
     pinMode(CLK_PIN, OUTPUT);
+    digitalWrite(CLK_PIN, HIGH);
 
-    // initialize our preferred CS pin (could be same as SS)
-    pinMode(CS_PIN, OUTPUT);
-    digitalWrite(CS_PIN, HIGH);
+    pinMode(DATA_PIN, OUTPUT);
+    digitalWrite(DATA_PIN, HIGH);
 }
 
 
@@ -46,6 +44,8 @@ Constructor
 //The library's constructor. Sets the internal _DL_PIN value to pin and
 //sends the pin as an OUTPUT and turns it HIGH
 simpleMatrix::simpleMatrix(int pin, unsigned int numb_modules){
+
+    // // initialize our preferred CS pin (could be same as SS)
     _DL_PIN = pin;
     _NUMB_OF_LED_MATRICES = numb_modules;
     // Internal 2D array that is addressed by row and by the LED matrix number that is used to update the displays
@@ -109,11 +109,15 @@ void simpleMatrix::senddisplay(){
 //Initalizes the library. Starts the SPI periferal and sends nessesary commands
 void simpleMatrix::begin(){
     SPI_begin();
-    // SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
     sendCommandtoAll(0x0C,0x00); //Enter shutdown mode
-    sendCommandtoAll(0x0B,0x07); //MAX7219 scan all 8 digits(in this case 8 rows)
-    sendCommandtoAll(0x0A,0x0F); //Set to max intensity
-    sendCommandtoAll(0x0F,0x00); //Exit test-display Mode
+    sendCommandtoAll(0x0A,0x01); //Set to low intensity
+
+    for (int i=0; i<3; i++){ // it takes some multiple timnes to get all displays up and running after a power cycle. 
+    // if you have more then 12 8x8 modules
+        sendCommandtoAll(0x0B,0x07); //MAX7219 scan all 8 digits(in this case 8 rows)
+        sendCommandtoAll(0x0F,0x00); //Exit test-display Mode
+    }
+
     sendCommandtoAll(0x09,0x00); //No decoding
     clearDisplay(); //Clear display
     sendCommandtoAll(0x0C,0x01); //Exit shutdown mode
