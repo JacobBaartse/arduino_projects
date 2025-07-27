@@ -145,8 +145,8 @@ void receiveRFnetwork(){
       break;
     }
     if (Rxdata.keyword == keywordvalS){
-
       Serial.println(F("new data received"));
+
     }
     else{
       Serial.println(F("Keyword failure"));

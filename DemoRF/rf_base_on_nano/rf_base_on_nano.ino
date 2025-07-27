@@ -79,8 +79,47 @@ void setup() {
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
 
+// data for servo's
+uint16_t x1value;
+uint16_t y1value;
+uint16_t x2value;
+uint16_t y3value;
+
+// data from remote control (joystick)
+uint16_t xvalue;
+uint16_t yvalue;
+uint8_t mcount;
+uint8_t jbvalue;
+uint8_t sw1value;
+uint8_t sw2value;
+
+void interpretdata(bool fresh, unsigned long curtime){
+  // remember the data
+  static unsigned long receivedtime = 0;
+  static uint8_t itemtomove = 0;
+
+  if (fresh){ // new data received
+    if (sw1value > 10)
+      itemtomove  = 1;
+    if (sw2value > 10)
+      itemtomove  = 2;
+    if (itemtomove == 1){
+
+    }
+    if (itemtomove == 2){
+
+    }
+    receivedtime = curtime;
+  }
+  if (itemtomove > 0){
+
+  }
+
+}
+
 //===== Receiving =====//
-void receiveRFnetwork(){
+bool receiveRFnetwork(){
+  bool mreceived = false;
 
   // Check for incoming data details
   while (network.available()) {
@@ -98,11 +137,16 @@ void receiveRFnetwork(){
         Serial.println(payload.timing);
         if (payload.keyword == keywordvalJ) {
           // message received from joystick 
+          mcount = payload.count;
 
+          xvalue = payload.xvalue;
+          yvalue = payload.yvalue;
+          jbvalue = payload.bvalue;
+          sw1value = payload.sw1value;
+          sw2value = payload.sw2value;
 
-
-
-          // end of joystick message processing      
+          // end of joystick message collection      
+          mreceived = true;
         }
         else{
           Serial.println(F("Wrong Joystick keyword")); 
@@ -114,10 +158,11 @@ void receiveRFnetwork(){
         Serial.println(header.type);
     }
   }
+  return mreceived;
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool fresh){
+void transmitRFnetwork(){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
@@ -128,65 +173,31 @@ bool transmitRFnetwork(bool fresh){
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
     sendingTimer = currentRFmilli;
 
-    // joystick_payload Txdata;
-    // Txdata.keyword = keywordvalM;
-    // Txdata.timing = currentRFmilli;
-    // Txdata.count = counter++;
-    // Txdata.xvalue = xValue;
-    // Txdata.yvalue = yValue;
-    // Txdata.bvalue = bValue;
-    // Txdata.sw1value = sw1Value;
-    // Txdata.sw2value = sw2Value;
+    network_payload Txdata;
+    Txdata.keyword = keywordvalS;
+    Txdata.timing = currentRFmilli;
+    Txdata.count = counter++;
 
-    // Serial.print(F("Message: "));
-    // Serial.print(Txdata.count);
-    // Serial.print(F(", xvalue: "));
-    // Serial.print(Txdata.xvalue);
-    // Serial.print(F(", yvalue: "));
-    // Serial.print(Txdata.yvalue);
-    // Serial.print(F(", bvalue: "));
-    // Serial.print(Txdata.bvalue);
-    // Serial.print(F(", sw1value: "));
-    // Serial.print(Txdata.sw1value);        
-    // Serial.print(F(", sw2value: "));
-    // Serial.println(Txdata.sw2value);
-
-    // RF24NetworkHeader header0(node00, 'J'); // address where the data is going
-    // w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-    // if (!w_ok){ // retry
-    //   failcount++;
-    //   delay(50);
-    //   w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-    // }
-    // Serial.print(F("Message send ")); 
-    // if (w_ok){
-    //   bValue = 0; 
-    //   sw1Value = 0;
-    //   sw2Value = 0;
-    //   fresh = false;
-    //   failcount = 0;
-    // }    
-    // else{
-    //   Serial.print(F("failed "));
-    //   failcount++;
-    // }
-    // Serial.print(Txdata.count);
-    // Serial.print(F(", "));
-    // Serial.println(currentRFmilli);
-
-    // if (failcount > 10){
-    //   fresh = false; // do not send a lot of messages continously
-    // }
-
-    // if(!fresh){ // clear buttons status always after 5 seconds
-    //   bValue = 0; 
-    //   sw1Value = 0;
-    //   sw2Value = 0;
-    // }
+    RF24NetworkHeader header0(node00, 'S'); // address where the data is going
+    w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
+    if (!w_ok){ // retry
+      failcount++;
+      delay(50);
+      w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
+    }
+    Serial.print(F("Message send ")); 
+    if (w_ok){
+      failcount = 0;
+    }    
+    else{
+      Serial.print(F("failed "));
+      failcount++;
+    }
+    Serial.print(Txdata.count);
+    Serial.print(F(", "));
+    Serial.println(currentRFmilli);
 
   }
-
-  return fresh;
 }
 
 bool driveServo(uint8_t servonum, uint16_t pulselen){
@@ -194,7 +205,6 @@ bool driveServo(uint8_t servonum, uint16_t pulselen){
   pwm.setPWM(servonum, 0, pulselen);
 
 }
-
 
 bool newdata = false;
 
@@ -205,7 +215,9 @@ void loop() {
 
   currentmilli = millis();
 
-  receiveRFnetwork();
+  newdata = receiveRFnetwork();
+
+  interpretdata(newdata, currentmilli);
 
   //************************ sensors/actuators ****************//
 
@@ -214,6 +226,6 @@ void loop() {
 
   //************************ sensors/actuators ****************//
 
-  newdata = transmitRFnetwork(newdata);
+  transmitRFnetwork();
 
 }
