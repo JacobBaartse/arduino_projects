@@ -32,6 +32,7 @@ const uint16_t node00 = 00; // Address of the home/host/controller node in Octal
 
 unsigned long const keywordvalM = 0xfeedbeef; 
 unsigned long const keywordvalS = 0xbeeffeed; 
+unsigned long const keywordvalJ = 0xbcdffeda; 
 
 struct joystick_payload{
   uint32_t keyword;
@@ -166,7 +167,7 @@ bool transmitRFnetwork(bool fresh){
     sendingTimer = currentRFmilli;
 
     joystick_payload Txdata;
-    Txdata.keyword = keywordvalM;
+    Txdata.keyword = keywordvalJ;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
     Txdata.xvalue = xValue;
@@ -220,24 +221,6 @@ bool transmitRFnetwork(bool fresh){
       sw1Value = 0;
       sw2Value = 0;
     }
-
-    // // print data using &Txdata, sizeof(Txdata)
-    // //Serial.println((char*)&Txdata);
-    // Serial.println(F("--:"));
-    // char buff[3] = "";
-    // uint8_t* ptr = (uint8_t*)&Txdata;
-    // for (size_t i = 0; i < sizeof(Txdata); i++)
-    // {
-    //   printf(buff, "%02x", (*(ptr + i)));
-    //   Serial.print(buff);
-    // }
-    // // for(int i = 0; i < sizeof(Txdata); i++)
-    // // {
-    // //   char byteval = ((char*)&Txdata)[i];
-    // //   printf(buff, "%02X", (uint8_t)byteval);
-    // //   Serial.print(buff);
-    // // }
-    // Serial.println(F("<--"));
   }
 
   return fresh;
