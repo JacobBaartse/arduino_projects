@@ -112,18 +112,18 @@ void showScore(){
 
 }
 
-long cannon_micros;
+long cannon_millies;
 
 void loop(){
   int switch_nr = io_extender_check_switches();
   if (switch_nr == 15){  // BALL ON DECK
-    long speed = millis() - cannon_micros;
+    long speed = millis() - cannon_millies;
     debug("speed : ");
     debugln(speed);
     Play_mp3_file(KOEKOEK_KLOK);
     if (speed < 400) score_counter += (400 - speed);
 
-    String speed_text = String("speed: ")+ String((float)900 / speed) + String("Km/h");
+    String speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
     disp_8x8_matrix.print(speed_text.c_str());
     keep_matrix_millies = millis() + 10000;
 
@@ -135,17 +135,17 @@ void loop(){
     light_show(1600);
   }
   if (switch_nr == 3){  // CANNON 
-    cannon_micros = millis();
+    cannon_millies = millis();
     Play_mp3_file(CANNON_SHOT);
     do_servo(0, 60);
     score_counter += 100;
   }  
   if (switch_nr == 4){
-    Play_mp3_file(JAMMER);  // BALL OUT
     nr_balls_left --;
+    showScore();
+    Play_mp3_file(JAMMER);  // BALL OUT
     if (nr_balls_left == 0){
       store_score(score_counter);
-      // display_oled(true, 0,16, String(score_counter) + String("\nBalls: 0"), true);
       blink_all_leds(5000);
       next_player();
     }
