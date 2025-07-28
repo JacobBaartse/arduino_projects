@@ -16,7 +16,7 @@
 
 #include "SPI.h"
 #include "Adafruit_GFX.h"
-#include <Fonts/FreeMono12pt7b.h>
+#include <Fonts/FreeMono18pt7b.h>
 #include "Adafruit_ILI9341.h"
 #include "touch.h"
 
@@ -43,7 +43,7 @@ void setup() {
   ts_setup();
  
   tft.begin();
-  tft.setFont(&FreeMono12pt7b);
+  tft.setFont(&FreeMono18pt7b);
 
   // read diagnostics (optional but can help debug problems)
   // uint8_t x = tft.readcommand8(ILI9341_RDMODE);
@@ -108,14 +108,14 @@ struct keyboard_row{
   int16_t tuch_start_x;
 };
 
-const int v_offset = 215;
+const int v_offset = 115;
 const int h_offset = 20;
 const int num_rows = 4;
 const keyboard_row keyboard[num_rows] PROGMEM ={
-  {"`1234567890-=", "~!@#$%^&*()_+",  0,  0, 13, 681},
-  {"qwertyuiop[]" , "QWERTYUIOP{}" , 20, 25, 12, 927},
-  {"asdfghjkl;'"  , "ASDFGHJKL:\"" , 27, 50, 11, 1050},
-  {"\\zxcvbnm,./" , "|ZXCVBNM<>?"  , 17, 75, 11, 900}
+  {"`1234567890-=", "~!@#$%^&*()_+",  0,  0, 13, 550},
+  {"qwertyuiop[]" , "QWERTYUIOP{}" , 20, 28, 12, 670},
+  {"asdfghjkl;'"  , "ASDFGHJKL:\"" , 27, 56, 11, 744},
+  {"\\zxcvbnm,./" , "|ZXCVBNM<>?"  , 17, 84, 11, 604}
 };
 
 
@@ -126,7 +126,7 @@ void get_character(int8_t row, uint16_t x, bool shift){
   Serial.println(x);
   if (x > keyboard[row].tuch_start_x){
     x -= keyboard[row].tuch_start_x;
-    x /=190;
+    x /=226;
     Serial.print("position in row: ");
     Serial.println(x);
     if (x < keyboard[row].num_chars){
@@ -149,7 +149,7 @@ void onScreenKeyboard(bool shift) {
       if (shift) tft.print(keyboard[i].shift_keys);
       else tft.print(keyboard[i].keys);
     }
-    tft.setCursor(h_offset + 10, v_offset + 100);
+    tft.setCursor(h_offset + 10, v_offset + 112);
     if (shift) tft.print("v del spa ent");
     else  tft.print("^ del spa ent");
 
@@ -164,26 +164,26 @@ void onScreenKeyboard(bool shift) {
       Serial.print(p1.y);
       Serial.println();
       delay(200);
-      if (p1.y > 3470){
-        if (p1.x<1000){
+      if (p1.y > 3250){
+        if (p1.x<881){
           Serial.println("shift");
           shift = !shift;
           dowhile = false;
         } 
-        else if (p1.x<1800){
+        else if (p1.x<1730){
           Serial.println("del");
         } 
-        else if (p1.x<2650){
+        else if (p1.x<2700){
           Serial.println("space");
         } 
         else{
           Serial.println("enter");
         }
       } 
-      else if (p1.y > 3200) get_character(3, p1.x, shift);
-      else if (p1.y > 2896) get_character(2, p1.x, shift);
-      else if (p1.y > 2680) get_character(1, p1.x, shift);
-      else if (p1.y > 2318) get_character(0, p1.x, shift);
+      else if (p1.y > 2890) get_character(3, p1.x, shift);
+      else if (p1.y > 2450) get_character(2, p1.x, shift);
+      else if (p1.y > 2030) get_character(1, p1.x, shift);
+      else if (p1.y > 1780) get_character(0, p1.x, shift);
       else Serial.println("above");
     }
   }
@@ -191,7 +191,7 @@ void onScreenKeyboard(bool shift) {
 
 
 void loop(void) {
-    // tft.setRotation(rotation);
+    tft.setRotation(1);
     onScreenKeyboard(false);
     delay(100);
 }
