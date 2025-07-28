@@ -15,8 +15,14 @@
 #define SW_PIN1  4  // Arduino pin connected to button 1
 #define SW_PIN2  6  // Arduino pin connected to button 2
 
+uint8_t xnValue = 0; // To store value of the X axis
+uint8_t ynValue = 0; // To store value of the Y axis
+uint8_t xpValue = 0; // To store value of the X axis
+uint8_t ypValue = 0; // To store value of the Y axis
 uint16_t xValue = 0; // To store value of the X axis
 uint16_t yValue = 0; // To store value of the Y axis
+uint16_t RefxValue = 0; // To store value of the X axis
+uint16_t RefyValue = 0; // To store value of the Y axis
 uint8_t bValue = 0; // To store value of the button
 uint8_t sw1Value = 0; // To store value of switch1
 uint8_t sw2Value = 0; // To store value of switch2
@@ -37,8 +43,10 @@ unsigned long const keywordvalJ = 0xbcdffeda;
 struct joystick_payload{
   uint32_t keyword;
   uint32_t timing;
-  uint16_t xvalue;
-  uint16_t yvalue;
+  uint8_t xmvalue;
+  uint8_t xpvalue;
+  uint8_t ymvalue;
+  uint8_t ypvalue;
   uint8_t count;
   uint8_t bvalue;
   uint8_t sw1value;
@@ -104,7 +112,10 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+
+  RefxValue = analogRead(VRX_PIN);
+  RefyValue = analogRead(VRY_PIN);
+
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
   Serial.print(F(", creation/build time: "));
@@ -170,18 +181,20 @@ bool transmitRFnetwork(bool fresh){
     Txdata.keyword = keywordvalJ;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
-    Txdata.xvalue = xValue;
-    Txdata.yvalue = yValue;
+    Txdata.xmvalue = xnValue;
+    Txdata.xpvalue = xpValue;    
+    Txdata.ymvalue = ynValue;
+    Txdata.ypvalue = ypValue;
     Txdata.bvalue = bValue;
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
 
     Serial.print(F("Message: "));
     Serial.print(Txdata.count);
-    Serial.print(F(", xvalue: "));
-    Serial.print(Txdata.xvalue);
-    Serial.print(F(", yvalue: "));
-    Serial.print(Txdata.yvalue);
+    // Serial.print(F(", xvalue: "));
+    // Serial.print(Txdata.xvalue);
+    // Serial.print(F(", yvalue: "));
+    // Serial.print(Txdata.yvalue);
     Serial.print(F(", bvalue: "));
     Serial.print(Txdata.bvalue);
     Serial.print(F(", sw1value: "));
@@ -247,20 +260,56 @@ void loop() {
   xValue = analogRead(VRX_PIN);
   yValue = analogRead(VRY_PIN);
 
-  // calculate trigger, difference with previous measurements
-  // this did not work when put in 1 line in the if statement
-  // the abs value was printed several times < 0 (which should never happen)
-  // that is why it is now over multiple lines
-  divXr = xValue - remx;
-  divYr = yValue - remy;
-  divX = abs(divXr);
-  divY = abs(divYr);
-  // if ((divY > 1)||(divX > 1)){
-  //   Serial.print(F("dX: "));
-  //   Serial.print(divX);    
+  // // calculate trigger, difference with previous measurements
+  // // this did not work when put in 1 line in the if statement
+  // // the abs value was printed several times < 0 (which should never happen)
+  // // that is why it is now over multiple lines
+  // divXr = xValue - remx;
+  // divYr = yValue - remy;
+  // divX = abs(divXr);
+  // divY = abs(divYr);
+  // // if ((divY > 1)||(divX > 1)){
+  // //   Serial.print(F("dX: "));
+  // //   Serial.print(divX);    
+  // //   Serial.print(F(", dY: "));
+  // //   Serial.println(divY);
+  // // }
+  // if ((divY > 4)||(divX > 4)){
+  //   Serial.println(F("----"));  
+  //   Serial.print(F("X: "));
+  //   Serial.print(xValue);
+  //   Serial.print(F(", rX: "));
+  //   Serial.print(remx);
+  //   Serial.print(F(", dX: "));
+  //   Serial.println(divX);
+  //   Serial.print(F("Y: "));
+  //   Serial.print(yValue);
+  //   Serial.print(F(", rY: "));
+  //   Serial.print(remy);    
   //   Serial.print(F(", dY: "));
-  //   Serial.println(divY);
+  //   Serial.println(divY);    
+  //   remx = xValue; 
+  //   remy = yValue;
+  //   newdata = true;
   // }
+
+  if (xValue < RefxValue){
+    xnValue = map(xValue, 0, RefxValue, 0, 255);
+    xpValue = 0;
+  }
+  else {
+    xnValue = 0;
+    xpValue = map(xValue, RefxValue, 1024, 0, 255);
+  }
+  if (yValue < RefyValue){
+    ynValue = map(yValue, 0, RefyValue, 0, 255);
+    ypValue = 0;
+  }
+  else {
+    ynValue = 0;
+    ypValue = map(yValue, RefyValue, 1024, 0, 255);
+  }
+
   if ((divY > 4)||(divX > 4)){
     Serial.println(F("----"));  
     Serial.print(F("X: "));
