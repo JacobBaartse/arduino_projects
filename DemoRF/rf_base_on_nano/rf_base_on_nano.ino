@@ -33,8 +33,10 @@ unsigned long const keywordvalJ = 0xbcdffeda;
 struct joystick_payload{
   uint32_t keyword;
   uint32_t timing;
-  uint16_t xvalue;
-  uint16_t yvalue;
+  uint8_t xmvalue;
+  uint8_t xpvalue;
+  uint8_t ymvalue;
+  uint8_t ypvalue;
   uint8_t count;
   uint8_t bvalue;
   uint8_t sw1value;
@@ -83,11 +85,13 @@ unsigned long currentmilli = 0;
 uint16_t x1value;
 uint16_t y1value;
 uint16_t x2value;
-uint16_t y3value;
+uint16_t y2value;
 
 // data from remote control (joystick)
-uint16_t xvalue;
-uint16_t yvalue;
+uint8_t xmvalue;
+uint8_t xpvalue;
+uint8_t ymvalue;
+uint8_t ypvalue;
 uint8_t mcount;
 uint8_t jbvalue;
 uint8_t sw1value;
@@ -139,8 +143,10 @@ bool receiveRFnetwork(){
           // message received from joystick 
           mcount = payload.count;
 
-          xvalue = payload.xvalue;
-          yvalue = payload.yvalue;
+          xmvalue = payload.xmvalue;
+          ymvalue = payload.ymvalue;
+          xpvalue = payload.xpvalue;
+          ypvalue = payload.ypvalue;
           jbvalue = payload.bvalue;
           sw1value = payload.sw1value;
           sw2value = payload.sw2value;
@@ -162,7 +168,7 @@ bool receiveRFnetwork(){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(){
+void transmitRFnetwork(bool fresh){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
@@ -170,13 +176,14 @@ void transmitRFnetwork(){
 
   // Every 5 seconds, or on new data
   unsigned long currentRFmilli = millis();
-  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
+  //if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
+  if (fresh){
     sendingTimer = currentRFmilli;
 
     network_payload Txdata;
     Txdata.keyword = keywordvalS;
     Txdata.timing = currentRFmilli;
-    Txdata.count = counter++;
+    Txdata.counter = counter++;
 
     RF24NetworkHeader header0(node00, 'S'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
@@ -193,7 +200,7 @@ void transmitRFnetwork(){
       Serial.print(F("failed "));
       failcount++;
     }
-    Serial.print(Txdata.count);
+    Serial.print(Txdata.counter);
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
 
@@ -207,6 +214,7 @@ bool driveServo(uint8_t servonum, uint16_t pulselen){
 }
 
 bool newdata = false;
+bool ack = false;
 
 void loop() {
 
@@ -226,6 +234,6 @@ void loop() {
 
   //************************ sensors/actuators ****************//
 
-  transmitRFnetwork();
+  transmitRFnetwork(ack);
 
 }
