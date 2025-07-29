@@ -35,6 +35,8 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
 // Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, TFT_RST, TFT_MISO);
 
 TS_Point p1;
+int16_t screen_width;
+int16_t screen_height;
 
 void setup() {
   Serial.begin(115200);
@@ -44,6 +46,7 @@ void setup() {
  
   tft.begin();
   tft.setFont(&FreeMono18pt7b);
+  tft.setRotation(1);
 
   // read diagnostics (optional but can help debug problems)
   // uint8_t x = tft.readcommand8(ILI9341_RDMODE);
@@ -60,40 +63,40 @@ void setup() {
 //Cross for touch calibration
   // tft.drawLine(x1, y1, x2, y2, color);
   tft.fillScreen(ILI9341_BLACK);
-  tft.drawLine(0, 0, 10, 10, ILI9341_WHITE);
-  tft.drawLine(0, 10, 10, 0, ILI9341_WHITE);
+  // tft.drawLine(0, 0, 10, 10, ILI9341_WHITE);
+  // tft.drawLine(0, 10, 10, 0, ILI9341_WHITE);
 
-  p1 = get_touch();
-  tft.fillScreen(ILI9341_BLACK);
-  Serial.print("Left top x = ");
-  Serial.print(p1.x);
-  Serial.print(", y = ");
-  Serial.print(p1.y);
-  Serial.println();
-  delay(200);
+  // p1 = get_touch();
+  // tft.fillScreen(ILI9341_BLACK);
+  // Serial.print("Left top x = ");
+  // Serial.print(p1.x);
+  // Serial.print(", y = ");
+  // Serial.print(p1.y);
+  // Serial.println();
+  // delay(200);
 
-  int16_t t_x1=p1.x;
-  int16_t t_y1=p1.y;
+  // int16_t t_x1=p1.x;
+  // int16_t t_y1=p1.y;
 
-  int16_t w = tft.width();
-  int16_t h = tft.height();
-  Serial.print("screen with");
-  Serial.println(w);
-  Serial.print("screen height");
-  Serial.println(h);
+  screen_width = tft.width();
+  screen_height = tft.height();
+  Serial.print("screen width ");
+  Serial.println(screen_width);
+  Serial.print("screen height ");
+  Serial.println(screen_height);
 
-  tft.drawLine(w-1, h-1, w-11, h-11, ILI9341_WHITE);
-  tft.drawLine(w-1, h-11, w-11, h-1, ILI9341_WHITE);
-  p1 = get_touch();
-  tft.fillScreen(ILI9341_BLACK);
-  Serial.print("Right bottom x = ");
-  Serial.print(p1.x);
-  Serial.print(", y = ");
-  Serial.print(p1.y);
-  Serial.println();
-  delay(200);
-  int16_t t_x2=p1.x;
-  int16_t t_y2=p1.y;
+  // tft.drawLine(w-1, h-1, w-11, h-11, ILI9341_WHITE);
+  // tft.drawLine(w-1, h-11, w-11, h-1, ILI9341_WHITE);
+  // p1 = get_touch();
+  // tft.fillScreen(ILI9341_BLACK);
+  // Serial.print("Right bottom x = ");
+  // Serial.print(p1.x);
+  // Serial.print(", y = ");
+  // Serial.print(p1.y);
+  // Serial.println();
+  // delay(200);
+  // int16_t t_x2=p1.x;
+  // int16_t t_y2=p1.y;
 }
 
 
@@ -119,6 +122,20 @@ const keyboard_row keyboard[num_rows] PROGMEM ={
 };
 
 
+String input = "";
+String prev_input = "";
+
+void update_input(){
+  tft.setTextColor(ILI9341_BLACK);  
+  tft.setCursor(0,20);
+  tft.write((prev_input + String("_")).c_str());  
+  
+  tft.setTextColor(ILI9341_WHITE);    
+  tft.setCursor(0,20);
+  tft.write((input + String("_")).c_str());
+  prev_input = input;
+}
+
 void get_character(int8_t row, uint16_t x, bool shift){
   Serial.print("row");
   Serial.print(row);
@@ -131,32 +148,36 @@ void get_character(int8_t row, uint16_t x, bool shift){
     Serial.println(x);
     if (x < keyboard[row].num_chars){
       Serial.print("Char: ");
-      if (shift) Serial.println(keyboard[row].shift_keys[x]);
-      else Serial.println(keyboard[row].keys[x]);
+      if (shift) input += keyboard[row].shift_keys[x];
+      else input += keyboard[row].keys[x];
     }
+    update_input();
   }
 
 }
 
 void onScreenKeyboard(bool shift) {
   tft.setTextColor(ILI9341_WHITE);  
+
   while (true){
-    Serial.print("onScreen first wile");
-    tft.fillScreen(ILI9341_BLACK);
+
+    const int font_height = 22;
+    tft.fillRect(0, v_offset-font_height, screen_width, screen_height-v_offset + font_height, ILI9341_BLACK);  // x, y, w, h, color
+
     //print onscreen keyboard.
     for (int i=0; i<num_rows; i++){
       tft.setCursor(h_offset+keyboard[i].x, v_offset+keyboard[i].y);
       if (shift) tft.print(keyboard[i].shift_keys);
       else tft.print(keyboard[i].keys);
     }
-    tft.setCursor(h_offset + 10, v_offset + 112);
-    if (shift) tft.print("v del spa ent");
-    else  tft.print("^ del spa ent");
+    tft.setCursor(h_offset + 4, v_offset + 112);
+    tft.print("Aa <-- spa ent");
+
+    update_input();
 
     // check key pressed.
     bool dowhile = true;
     while (dowhile){
-      Serial.print("onScreen second wile");
       p1 = get_touch();
       Serial.print("x = ");
       Serial.print(p1.x);
@@ -172,9 +193,13 @@ void onScreenKeyboard(bool shift) {
         } 
         else if (p1.x<1730){
           Serial.println("del");
+          input = input.substring(0,input.length()-1);
+          update_input();
         } 
         else if (p1.x<2700){
           Serial.println("space");
+          input += " ";
+          update_input();
         } 
         else{
           Serial.println("enter");
@@ -191,7 +216,7 @@ void onScreenKeyboard(bool shift) {
 
 
 void loop(void) {
-    tft.setRotation(1);
+
     onScreenKeyboard(false);
     delay(100);
 }
