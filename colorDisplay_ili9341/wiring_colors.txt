@@ -1,0 +1,13 @@
+d13	blue-white
+d12	blue
+d11	green-white
+d10	green
+d9	brown-white
+d8	brown
+d7	orange-white
+d6	orange
+
+vcc 	red
+gnd 	black
+
+if the wires are a bit longer they have to be shielded
