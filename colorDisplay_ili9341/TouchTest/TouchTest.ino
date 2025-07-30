@@ -1,7 +1,7 @@
 #include <XPT2046_Touchscreen.h>
 #include <SPI.h>
 
-#define CS_PIN  4 //7
+#define CS_PIN  7
 // MOSI=11, MISO=12, SCK=13
 
 //XPT2046_Touchscreen ts(CS_PIN);

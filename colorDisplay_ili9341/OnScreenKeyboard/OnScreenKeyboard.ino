@@ -22,8 +22,8 @@
 
 // For the Adafruit shield, these are the default.
 #define TFT_DC 9
-#define TFT_CS 6 // 10
-#define TFT_RST 5 // 8
+#define TFT_CS 10
+#define TFT_RST 8
 #define TFT_MOSI 11
 #define TFT_CLK 13
 #define TFT_MISO 12
@@ -186,17 +186,17 @@ void onScreenKeyboard(bool shift) {
       Serial.println();
       delay(200);
       if (p1.y > 3250){
-        if (p1.x<881){
+        if (p1.x<1057){
           Serial.println("shift");
           shift = !shift;
           dowhile = false;
         } 
-        else if (p1.x<1730){
+        else if (p1.x<1974){
           Serial.println("del");
           input = input.substring(0,input.length()-1);
           update_input();
         } 
-        else if (p1.x<2700){
+        else if (p1.x<2856){
           Serial.println("space");
           input += " ";
           update_input();

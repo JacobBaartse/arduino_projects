@@ -20,8 +20,8 @@
 
 // For the Adafruit shield, these are the default.
 #define TFT_DC 9
-#define TFT_CS 6 // 10
-#define TFT_RST 5 // 8
+#define TFT_CS 10
+#define TFT_RST 8
 #define TFT_MOSI 11
 #define TFT_CLK 13
 #define TFT_MISO 12
