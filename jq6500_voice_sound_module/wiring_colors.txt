@@ -1,0 +1,4 @@
+5v	red
+gnd	black
+d1 tx	brown
+d0 rx	brown-white

@@ -1,0 +1,4 @@
+5v	red
+gnd	black
+scl	green
+dsa	green-white

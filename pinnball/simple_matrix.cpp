@@ -1,3 +1,4 @@
+#include "api/Common.h"
 #include "Arduino.h"
 #include "simple_matrix.h"
 #include "font.h"
@@ -23,6 +24,7 @@ Originally designed for the University of New Haven's
 
 #define DATA_PIN A3
 #define CLK_PIN A2
+
 
 void SPI_transfer(uint8_t data){
     // PRINTS("\nBitBang in stead of SPI");

@@ -1,0 +1,5 @@
+5v	orange-white
+gnd	blue
+scl	green
+sda	orange
+int	d4	brown

@@ -9,7 +9,7 @@ The disp means that any future function calls to the library uses "disp" as the
 library's object name. For example, the library has a function called
 "setIntensity", you need to write "disp.setIntensity" to call that function.
 */
-simpleMatrix disp_8x8_matrix(10, 24);  // cs pin, num modules
+simpleMatrix disp_8x8_matrix(A1, 24);  // cs pin, num modules
 
 /*
 Store the text to be displayed in memory

@@ -6,10 +6,6 @@
 
 #include "my_io_extender.h"
 
-#include <HT1621.h> // 7 segment display
-#include "my_display.h"
-
-
 #include <FastLED.h>
 #include "my_led_strip.h"
 
@@ -21,11 +17,15 @@
 #include <Adafruit_PWMServoDriver.h>
 #include "my_servo.h"
 
-#include "ps2_keyboard.h"
-#include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
-#include <Adafruit_GFX.h>
-#include "font_16pix_high.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
-#include "sh1106_display.h"
+// #include "ps2_keyboard.h"
+// #include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
+#include "SPI.h"
+#include "Adafruit_GFX.h"
+#include <Fonts/FreeMono18pt7b.h>
+#include "Adafruit_ILI9341.h"
+#include "touch.h"
+// #include "font_16pix_high.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+// #include "sh1106_display.h"
 
 #include <EEPROM.h>
 #include "menu.h"
@@ -70,16 +70,16 @@ void setup(){
   Serial.begin(115200);
   setup_io_extender();
   setup_servo();
-  display_setup();
-  lcd.print(score_counter, 0);
+  // display_setup();
+  // lcd.print(score_counter, 0);
   ledstrip_setup();
   setup_mp3_player();
   // Play_mp3_file(INTRO_MELODY);
   // light_show(20000);
   show_leds_rainbow();
-  setup_ps2_keyboard();
-  setup_oled_display();
-  display_oled(true, 0,16, get_top_scores(), true);
+  // setup_ps2_keyboard();
+  // setup_oled_display();
+  // display_oled(true, 0,16, get_top_scores(), true);
   pinMode(TILT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(TILT_PIN), save_tilt_state, FALLING);
   next_player();
@@ -98,7 +98,7 @@ void reset_lefthit(){
 long keep_matrix_millies = 0;
 
 void showScore(){
-  lcd.print(score_counter, 0);
+  // lcd.print(score_counter, 0);
   score_onleds(left1hit, left2hit, left3hit);
 
   if (millis() > keep_matrix_millies){
@@ -158,7 +158,7 @@ void loop(){
     reset_lefthit();
     do_servo(0, 0);
     score_counter = 0;
-    display_oled(true, 0,16, get_top_scores(), true);
+    // display_oled(true, 0,16, get_top_scores(), true);
   }  
   if (switch_nr == 9){  //green button
     next_player();
@@ -216,13 +216,13 @@ void loop(){
     if (switch_nr == 10) show_leds_rainbow();
   }
 
-  int keyboard_char = get_keyboard_char();
-  if ((keyboard_char != 0)  && (keyboard_char != 0xAA))
-  {
-    oled_screen_text = menu_process_key(keyboard_char);
-    display_oled(true, 0,16, oled_screen_text, true);
-  }
-  delay(2);
+  // int keyboard_char = get_keyboard_char();
+  // if ((keyboard_char != 0)  && (keyboard_char != 0xAA))
+  // {
+  //   oled_screen_text = menu_process_key(keyboard_char);
+  //   display_oled(true, 0,16, oled_screen_text, true);
+  // }
+  delay(50);
 
 }
 

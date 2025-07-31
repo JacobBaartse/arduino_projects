@@ -1,0 +1,5 @@
+5v	orange
+gnd	brown
+din	A3	blue
+cs	A1	blue-white
+clk	A2	green
