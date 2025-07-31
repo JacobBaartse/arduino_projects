@@ -4,7 +4,7 @@
 // PURPOSE: demo
 //     URL: https://github.com/RobTillaart/PCF8575
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG == 1
 #define debug(x) Serial.print(x)
 #define debugln(x) Serial.println(x)
@@ -47,7 +47,7 @@ uint8_t io_extender_check_switches()
     }
     debug("button pushed: ");
     debugln(pos);
-//    delay(5);
+    if (pos == 1) xor_value ^= 0b0000000000000001; // prevent spinner to give points to next player keep track of last value of spinner
   }
   return pos;
 }

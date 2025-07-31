@@ -222,7 +222,7 @@ void loop(){
   //   oled_screen_text = menu_process_key(keyboard_char);
   //   display_oled(true, 0,16, oled_screen_text, true);
   // }
-  delay(50);
+  delay(2);
 
 }
 
