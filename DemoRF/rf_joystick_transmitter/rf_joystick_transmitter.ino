@@ -7,7 +7,7 @@
 #include <SPI.h>
 //#include "printf.h"
 
-#define radioChannel 104
+#define radioChannel 102
 
 #define VRX_PIN  A1 // Arduino pin connected to VRX pin
 #define VRY_PIN  A0 // Arduino pin connected to VRY pin
@@ -112,10 +112,7 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
 
 void setup() {
   Serial.begin(115200);
-
-  RefxValue = analogRead(VRX_PIN);
-  RefyValue = analogRead(VRY_PIN);
-
+  delay(1000);
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
   Serial.print(F(", creation/build time: "));
@@ -127,9 +124,13 @@ void setup() {
     Serial.println(F("Radio hardware error."));
     while (true) delay(1000);
   }
+  
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, node01);
+
+  RefxValue = analogRead(VRX_PIN);
+  RefyValue = analogRead(VRY_PIN);
 
   pinMode(SW_PIN, INPUT_PULLUP);
   pinMode(SW_PIN1, INPUT_PULLUP);
@@ -191,10 +192,22 @@ bool transmitRFnetwork(bool fresh){
 
     Serial.print(F("Message: "));
     Serial.print(Txdata.count);
-    // Serial.print(F(", xvalue: "));
-    // Serial.print(Txdata.xvalue);
-    // Serial.print(F(", yvalue: "));
-    // Serial.print(Txdata.yvalue);
+    if (xnValue > o){
+      Serial.print(F(", xnvalue: "));
+      Serial.print(Txdata.xmvalue);
+    }
+    if (xpValue > o){
+      Serial.print(F(", xpvalue: "));
+      Serial.print(Txdata.xpvalue);
+    }
+    if (ynValue > o){
+      Serial.print(F(", ynvalue: "));
+      Serial.print(Txdata.ymvalue);
+    }
+    if (ypValue > o){
+      Serial.print(F(", ypvalue: "));
+      Serial.print(Txdata.ypvalue);
+    }    
     Serial.print(F(", bvalue: "));
     Serial.print(Txdata.bvalue);
     Serial.print(F(", sw1value: "));
@@ -260,72 +273,42 @@ void loop() {
   xValue = analogRead(VRX_PIN);
   yValue = analogRead(VRY_PIN);
 
-  // // calculate trigger, difference with previous measurements
-  // // this did not work when put in 1 line in the if statement
-  // // the abs value was printed several times < 0 (which should never happen)
-  // // that is why it is now over multiple lines
-  // divXr = xValue - remx;
-  // divYr = yValue - remy;
-  // divX = abs(divXr);
-  // divY = abs(divYr);
-  // // if ((divY > 1)||(divX > 1)){
-  // //   Serial.print(F("dX: "));
-  // //   Serial.print(divX);    
-  // //   Serial.print(F(", dY: "));
-  // //   Serial.println(divY);
-  // // }
-  // if ((divY > 4)||(divX > 4)){
-  //   Serial.println(F("----"));  
-  //   Serial.print(F("X: "));
-  //   Serial.print(xValue);
-  //   Serial.print(F(", rX: "));
-  //   Serial.print(remx);
-  //   Serial.print(F(", dX: "));
-  //   Serial.println(divX);
-  //   Serial.print(F("Y: "));
-  //   Serial.print(yValue);
-  //   Serial.print(F(", rY: "));
-  //   Serial.print(remy);    
-  //   Serial.print(F(", dY: "));
-  //   Serial.println(divY);    
-  //   remx = xValue; 
-  //   remy = yValue;
-  //   newdata = true;
-  // }
-
   if (xValue < RefxValue){
-    xnValue = map(xValue, 0, RefxValue, 0, 255);
+    xnValue = map(xValue, 0, RefxValue, 255, 0);
     xpValue = 0;
   }
   else {
     xnValue = 0;
-    xpValue = map(xValue, RefxValue, 1024, 0, 255);
+    xpValue = map(xValue, RefxValue, 1023, 0, 255);
   }
-  if (yValue < RefyValue){
-    ynValue = map(yValue, 0, RefyValue, 0, 255);
+  if (yValue > RefyValue){
+    ynValue = map(yValue, RefyValue, 1023, 0, 255);
     ypValue = 0;
   }
   else {
     ynValue = 0;
-    ypValue = map(yValue, RefyValue, 1024, 0, 255);
+    ypValue = map(yValue, 0, RefyValue, 255, 0);
   }
 
-  if ((divY > 4)||(divX > 4)){
+  if ((xpValue > 0)||(xnValue > 0)||(ypValue > 0)||(ynValue > 0)){
     Serial.println(F("----"));  
-    Serial.print(F("X: "));
+    Serial.print(F("Xr: "));
+    Serial.print(RefxValue);
+    Serial.print(F(", X: "));
     Serial.print(xValue);
-    Serial.print(F(", rX: "));
-    Serial.print(remx);
-    Serial.print(F(", dX: "));
-    Serial.println(divX);
-    Serial.print(F("Y: "));
-    Serial.print(yValue);
-    Serial.print(F(", rY: "));
-    Serial.print(remy);    
-    Serial.print(F(", dY: "));
-    Serial.println(divY);    
-    remx = xValue; 
-    remy = yValue;
+    Serial.print(F(", Yr: "));
+    Serial.print(RefyValue);
+    Serial.print(F(", Y: "));
+    Serial.println(yValue);
+
+    Serial.print(F("Xn: "));
+    Serial.print(xnValue);
+    Serial.print(F(", Xp: "));
+    Serial.print(xpValue);
+    Serial.print(F(", Yn: "));
+    Serial.print(ynValue);
+    Serial.print(F(", Yp: "));
+    Serial.println(ypValue);    
     newdata = true;
   }
 

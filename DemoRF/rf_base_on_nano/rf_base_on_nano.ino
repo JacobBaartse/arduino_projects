@@ -18,7 +18,7 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define SERVOMAX  490 // This is the 'maximum' pulse length count (out of 4096)
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 
-#define radioChannel 104
+#define radioChannel 102
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
@@ -81,11 +81,11 @@ void setup() {
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
 
-// data for servo's
-uint16_t x1value;
-uint16_t y1value;
-uint16_t x2value;
-uint16_t y2value;
+// data for servo's (pulse length)
+uint16_t x1value = 0;
+uint16_t y1value = 0;
+uint16_t x2value = 0;
+uint16_t y2value = 0;
 
 // data from remote control (joystick)
 uint8_t xmvalue;
@@ -97,6 +97,17 @@ uint8_t jbvalue;
 uint8_t sw1value;
 uint8_t sw2value;
 
+//
+
+void driveobject(uint8_t itemnumber){
+  if (itemnumber == 1){
+
+  }
+  if (itemnumber == 2){
+
+  } 
+}
+
 void interpretdata(bool fresh, unsigned long curtime){
   // remember the data
   static unsigned long receivedtime = 0;
@@ -107,16 +118,16 @@ void interpretdata(bool fresh, unsigned long curtime){
       itemtomove  = 1;
     if (sw2value > 10)
       itemtomove  = 2;
-    if (itemtomove == 1){
+    // if (itemtomove == 1){
 
-    }
-    if (itemtomove == 2){
+    // }
+    // if (itemtomove == 2){
 
-    }
+    // }
     receivedtime = curtime;
   }
   if (itemtomove > 0){
-
+    driveobject(itemtomove);
   }
 
 }
