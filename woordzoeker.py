@@ -32,15 +32,11 @@ directions = [(0, 1), (1, 0), (1, 1), (-1, 1), (0, -1), (-1, 0), (-1, -1), (1, -
 
 def can_place(word, row, col, dr, dc):
     for il in range(len(word)):
-
         r, c = row + dr * il, col + dc * il
-
         if not (0 <= r < grid_size and 0 <= c < grid_size):
             return False
-
         if grid[r][c] not in ("", word[il]):
             return False
-
     return True
 
 
@@ -76,10 +72,10 @@ pdf = FPDF()
 pdf.add_page()
 pdf.set_font("Arial", size=12)
 
-line = "Woordzoeker – Thema: Souvenirs"
+line = "Woordzoeker: Souvenirs"
 pdf.cell(0, 10, txt=line.encode('utf-8').decode('latin-1'), ln=True)
 
-line = "Zoek de woorden en ontdek de zin in de overgebleven letters!"
+line = "Zoek de woorden en ontdek de oplossing in de overgebleven letters!"
 pdf.cell(0, 10, txt=line.encode('utf-8').decode('latin-1'), ln=True)
 pdf.ln(5)
 
