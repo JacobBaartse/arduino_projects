@@ -25,9 +25,9 @@ RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
+uint16_t joynode = 00; // address for the receiving message
 
 unsigned long const keywordvalM = 0xfeedbeef; 
-unsigned long const keywordvalS = 0xbeeffeed; 
 unsigned long const keywordvalJ = 0xbcdffeda;
 
 struct joystick_payload{
@@ -147,6 +147,7 @@ bool receiveRFnetwork(){
         joystick_payload payload;
         network.read(header, &payload, sizeof(payload));
         Serial.print(F("Received from Joystick nodeId: "));
+        joynode = header.from_node;
         Serial.print(header.from_node);
         Serial.print(F(", timing: "));
         Serial.println(payload.timing);
@@ -192,11 +193,11 @@ void transmitRFnetwork(bool fresh){
     sendingTimer = currentRFmilli;
 
     network_payload Txdata;
-    Txdata.keyword = keywordvalS;
+    Txdata.keyword = keywordvalM;
     Txdata.timing = currentRFmilli;
     Txdata.counter = counter++;
 
-    RF24NetworkHeader header0(node00, 'S'); // address where the data is going
+    RF24NetworkHeader header0(joynode, 'M'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
       failcount++;
@@ -218,10 +219,9 @@ void transmitRFnetwork(bool fresh){
   }
 }
 
-bool driveServo(uint8_t servonum, uint16_t pulselen){
-
+void driveServo(uint8_t servonum, uint8_t pos){
+  uint16_t pulselen = map(pos, 0, 180, SERVOMIN, SERVOMAX);
   pwm.setPWM(servonum, 0, pulselen);
-
 }
 
 bool newdata = false;

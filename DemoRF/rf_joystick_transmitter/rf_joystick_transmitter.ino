@@ -5,7 +5,6 @@
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
-//#include "printf.h"
 
 #define radioChannel 102
 
@@ -15,19 +14,19 @@
 #define SW_PIN1  4  // Arduino pin connected to button 1
 #define SW_PIN2  6  // Arduino pin connected to button 2
 
-uint8_t xnValue = 0; // To store value of the X axis
-uint8_t ynValue = 0; // To store value of the Y axis
-uint8_t xpValue = 0; // To store value of the X axis
-uint8_t ypValue = 0; // To store value of the Y axis
+uint8_t xnValue = 0; // To store value of the X axis to the left
+uint8_t ynValue = 0; // To store value of the Y axis to the bottom
+uint8_t xpValue = 0; // To store value of the X axis to the right
+uint8_t ypValue = 0; // To store value of the Y axis to the top
+
 uint16_t xValue = 0; // To store value of the X axis
 uint16_t yValue = 0; // To store value of the Y axis
-uint16_t RefxValue = 0; // To store value of the X axis
-uint16_t RefyValue = 0; // To store value of the Y axis
-uint8_t bValue = 0; // To store value of the button
+uint16_t RefxValue = 0; // To store startup value of the X axis
+uint16_t RefyValue = 0; // To store startup value of the Y axis
+
+uint8_t bValue = 0; // To store value of the joystick button
 uint8_t sw1Value = 0; // To store value of switch1
 uint8_t sw2Value = 0; // To store value of switch2
-uint16_t remx = 0;
-uint16_t remy = 0;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
@@ -37,7 +36,6 @@ const uint16_t node01 = 01; // Address of this node in Octal format (04, 031, et
 const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
 
 unsigned long const keywordvalM = 0xfeedbeef; 
-unsigned long const keywordvalS = 0xbeeffeed; 
 unsigned long const keywordvalJ = 0xbcdffeda; 
 
 struct joystick_payload{
@@ -136,9 +134,7 @@ void setup() {
   pinMode(SW_PIN1, INPUT_PULLUP);
   pinMode(SW_PIN2, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(SW_PIN), joyButton, FALLING);
-
-  //printf_begin();
+  attachInterrupt(digitalPinToInterrupt(SW_PIN), joyButton, FALLING); // trigger when joystick button pressed
 }
  
 unsigned long receiveTimer = 0;
@@ -156,12 +152,12 @@ void receiveRFnetwork(){
       Serial.println(header.from_node);
       break;
     }
-    if (Rxdata.keyword == keywordvalS){
-      Serial.println(F("new data received"));
+    if (Rxdata.keyword == keywordvalM){
+      Serial.println(F("RF data received"));
 
     }
     else{
-      Serial.println(F("Keyword failure"));
+      Serial.println(F("Received keyword failure"));
     }
   }
 }
@@ -192,19 +188,19 @@ bool transmitRFnetwork(bool fresh){
 
     Serial.print(F("Message: "));
     Serial.print(Txdata.count);
-    if (xnValue > o){
+    if (xnValue > 0){
       Serial.print(F(", xnvalue: "));
       Serial.print(Txdata.xmvalue);
     }
-    if (xpValue > o){
+    if (xpValue > 0){
       Serial.print(F(", xpvalue: "));
       Serial.print(Txdata.xpvalue);
     }
-    if (ynValue > o){
+    if (ynValue > 0){
       Serial.print(F(", ynvalue: "));
       Serial.print(Txdata.ymvalue);
     }
-    if (ypValue > o){
+    if (ypValue > 0){
       Serial.print(F(", ypvalue: "));
       Serial.print(Txdata.ypvalue);
     }    
@@ -252,10 +248,6 @@ bool transmitRFnetwork(bool fresh){
   return fresh;
 }
 
-int divX = 0;
-int divY = 0;
-int divXr = 0;
-int divYr = 0;
 
 void loop() {
 
@@ -290,7 +282,7 @@ void loop() {
     ypValue = map(yValue, 0, RefyValue, 255, 0);
   }
 
-  if ((xpValue > 0)||(xnValue > 0)||(ypValue > 0)||(ynValue > 0)){
+  if ((xpValue > 2)||(xnValue > 2)||(ypValue > 2)||(ynValue > 2)){ // small threshold for sending data
     Serial.println(F("----"));  
     Serial.print(F("Xr: "));
     Serial.print(RefxValue);
@@ -320,7 +312,6 @@ void loop() {
 
 void joyButton(){
   static unsigned long buttontime = 0;
-  //static int buttonstate = HIGH;
   static unsigned long counter = 0;
 
   if (currentmilli - buttontime > 500){ // debounce to smaller than one press and processing per second
@@ -328,11 +319,7 @@ void joyButton(){
     counter++;
     Serial.print(F("Joy button press: "));
     Serial.println(counter);
-    //Serial.print(F(": "));
-    //buttonstate = digitalRead(SW_PIN);
-    //if (buttonstate == LOW) bValue = 0xfe; // button pressed
     bValue = 0xfe; // button pressed
-    //Serial.println(bValue);
     newdata = true;
   }
 }
