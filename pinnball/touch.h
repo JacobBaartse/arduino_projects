@@ -19,6 +19,7 @@ void ts_setup() {
 TS_Point get_touch() {
   while (ts.touched() == false){
     // wait for touched
+    delay(2);
   }
   
   TS_Point p = ts.getPoint();

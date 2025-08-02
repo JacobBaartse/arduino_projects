@@ -17,15 +17,12 @@
 #include <Adafruit_PWMServoDriver.h>
 #include "my_servo.h"
 
-// #include "ps2_keyboard.h"
-// #include <Adafruit_SH110X.h>  //Adafruit SH110X by Adafruit
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include <Fonts/FreeMono18pt7b.h>
 #include "Adafruit_ILI9341.h"
 #include "touch.h"
-// #include "font_16pix_high.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
-// #include "sh1106_display.h"
+#include "OnScreenKeyboard.h"
 
 #include <EEPROM.h>
 #include "menu.h"
@@ -43,7 +40,7 @@
 #define debugln(x)
 #endif
 
-String oled_screen_text = "_";
+String menu_text = "_";
 
 uint32_t score_counter = 0;
 int nr_balls_left = NR_BALLS;
@@ -52,7 +49,7 @@ bool tilt = false;
 
 
 void next_player(){
-  current_player_name = get_player();
+  current_player_name = get_player(false);
   nr_balls_left = NR_BALLS;
   do_servo(0, 0);
   score_counter = 0;
@@ -66,20 +63,17 @@ void save_tilt_state()
 }
 
 void setup(){
-  setup_8x8matrix();
   Serial.begin(115200);
+  setup_8x8matrix();
+  onScreen_keyboard_setup();
   setup_io_extender();
   setup_servo();
-  // display_setup();
-  // lcd.print(score_counter, 0);
   ledstrip_setup();
   setup_mp3_player();
   // Play_mp3_file(INTRO_MELODY);
   // light_show(20000);
   show_leds_rainbow();
-  // setup_ps2_keyboard();
-  // setup_oled_display();
-  // display_oled(true, 0,16, get_top_scores(), true);
+  show_text_on_screen(get_top_scores());
   pinMode(TILT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(TILT_PIN), save_tilt_state, FALLING);
   next_player();
@@ -98,7 +92,6 @@ void reset_lefthit(){
 long keep_matrix_millies = 0;
 
 void showScore(){
-  // lcd.print(score_counter, 0);
   score_onleds(left1hit, left2hit, left3hit);
 
   if (millis() > keep_matrix_millies){
@@ -158,7 +151,7 @@ void loop(){
     reset_lefthit();
     do_servo(0, 0);
     score_counter = 0;
-    // display_oled(true, 0,16, get_top_scores(), true);
+    show_text_on_screen(get_top_scores());
   }  
   if (switch_nr == 9){  //green button
     next_player();
@@ -188,7 +181,7 @@ void loop(){
   if (switch_nr == 1){ // ROTARY SENSOR
     Play_mp3_file(Y1_KORT_PR);
     light_show(100);
-    score_counter += 9;
+    score_counter += 4;
   }  
 
   if (left1hit & left2hit & left3hit){
@@ -202,7 +195,6 @@ void loop(){
 
   if (tilt){ // tilt contact
     Play_mp3_file(TOE_TOKKK);
-    // display_oled(true, 0,16, String("TILT...\nNext player"), true);
     disp_8x8_matrix.print(tilt_text);
     blink_all_leds(5000);
     next_player();
@@ -216,12 +208,11 @@ void loop(){
     if (switch_nr == 10) show_leds_rainbow();
   }
 
-  // int keyboard_char = get_keyboard_char();
-  // if ((keyboard_char != 0)  && (keyboard_char != 0xAA))
-  // {
-  //   oled_screen_text = menu_process_key(keyboard_char);
-  //   display_oled(true, 0,16, oled_screen_text, true);
-  // }
+  if (switch_nr == 10)
+  {
+    do_menu();
+    show_text_on_screen(get_top_scores());
+  }
   delay(2);
 
 }

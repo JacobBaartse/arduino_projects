@@ -39,28 +39,39 @@ struct UserObject {
 };
 
 
-String screen_text = "_";
-byte menu_state = PLAY_MODE;
-bool edit_mode = false;
-
 int idx_current_player=-16;
 UserObject readObject;
 
-String get_player()
-{
-  idx_current_player+=16;
-  for (; idx_current_player<1000; idx_current_player+=16){
-    EEPROM.get(idx_current_player, readObject);
-    if (readObject.status==FREE) idx_current_player=-16;  // next loop will increase to 0 again.
-    else if (readObject.status == ACTIVE || menu_state!= PLAY_MODE) {
-      debug(idx_current_player);
-      debugln(readObject.name);
-      return String(readObject.name);
-    }
 
-  }
+String get_current_player(){
+  if (readObject.status==ACTIVE) return "Name: " + String(readObject.name) + "\nScore: " + String(readObject.score) + "\nStatus:  Active";
+  else                           return "Name: " + String(readObject.name) + "\nScore: " + String(readObject.score) + "\nStatus:Inactive";
 }
 
+String get_player(bool all_info)
+{
+  debugln("get player");
+  idx_current_player+=16;
+  int count = 0;
+  for (; idx_current_player<1000; idx_current_player+=16){
+    count+=1;
+    debug("idx curreent player");
+    debugln(idx_current_player);
+    EEPROM.get(idx_current_player, readObject);
+    debug(readObject.status);
+    if (readObject.status==FREE) idx_current_player=-16;  // next loop will increase to 0 again.
+    else if (readObject.status == ACTIVE || all_info) {
+      debug(idx_current_player);
+      debugln(readObject.name);
+      if (all_info) return get_current_player();
+      return readObject.name;
+    }
+    if (count > 63){
+      if (all_info) return "No user found\nScore: --\nStatus: --";
+      else return "xxx";
+    }
+  }
+}
 
 void store_score(uint32_t score_counter){
   UserObject readObject;
@@ -70,7 +81,6 @@ void store_score(uint32_t score_counter){
     EEPROM.put(idx_current_player, readObject);
   }
 }
-
 
 String get_top_scores(){
   UserObject top[4];
@@ -137,123 +147,63 @@ String store_new_user(String username){
   }
 }
 
-String menu_process_key(int keyboard_char){
-  debugln("State: " + String(menu_state));
-  if (keyboard_char == WINDOWS_KEY){
-    edit_mode=false;
-    menu_state = MAIN_MENU;
-    return "1 play\n2 Add user\n3 Edit user"; //\n4 select users";
-  }
-  if (menu_state == MAIN_MENU){
-    switch(keyboard_char){
-      case int('1'):
-        menu_state = PLAY_MODE;
-      break;
-      case int('2'):
-        menu_state = ADD_USER;
-        edit_mode=true;
-        screen_text = "New username:\n_";
-        return  "New username:\n_";
-      break;
-      case int('3'):
-        menu_state = SELECT_EDIT_USER;
-        return get_player() + String("\nDown for more\nEnter For edit");
-      break;
-      case int('4'):
-        menu_state = SELECT_USERS;
-      break;
-      case int('5'):
-        menu_state = DELETE_USER;
-      break;
-      case int('0'):
-        return get_player().c_str();
-      break;      
-      // case DOWN_ARROW:
-      //   return "5 Delete user";
-      // break;
-      // case UP_ARROW:
-      //   return "1 play\n2 Add user\n3 Edit user\n4 select users";
-      // break;
-      default:
-        menu_state = PLAY_MODE;
-    }
-  }
-  if (menu_state == ADD_USER){
-    if (keyboard_char == ENTER_KEY){
-      // store new user
-      int start_of_user = screen_text.indexOf(ENTER_KEY) + 1;
-      String user = screen_text.substring(start_of_user, start_of_user+9);
-      user.remove(user.length()-1);
-      screen_text = "";
-      edit_mode=false;
-      menu_state = PLAY_MODE;
-      return store_new_user(user);
-    }
-  }
-  if (menu_state == SELECT_EDIT_USER){
-    switch(keyboard_char){
-      case DOWN_ARROW:
-        return get_player() + String("\nDown for more\nEnter For edit");
-        break;
-      case ENTER_KEY:
-        menu_state == EDIT_USER;
-        return String("1 Change name\n2 Reset score\n3 Disable user\n4 Enable user"); 
-        break;
-    }
-  }
 
-  if (menu_state == SELECT_EDIT_USER){
-    switch(keyboard_char){
-      case int('1'):
-        menu_state = UPDATE_USER_NAME;
-        edit_mode=true;
-        screen_text = String("New username:\n_") + readObject.name;
-        return  String("New username:\n_") + readObject.name;
-        break;
-      case int('2'):
-        menu_state == PLAY_MODE;
-        readObject.score=0;
-        EEPROM.put(idx_current_player, readObject);
-        return String("Score set to 0"); 
-        break;
-      case int('3'):
-        menu_state == PLAY_MODE;
-        readObject.status=INACTIVE;
-        EEPROM.put(idx_current_player, readObject);
-        return String("State set to inactive"); 
-        break;
-      case int('4'):
-        menu_state == PLAY_MODE;
-        readObject.status=ACTIVE;
-        EEPROM.put(idx_current_player, readObject);
-        return String("State set to active"); 
-        break;
-    }
-  }  
-  if (menu_state == UPDATE_USER_NAME){
-    if (keyboard_char == ENTER_KEY){
-      menu_state == PLAY_MODE;
-      // store new username
-      int start_of_user = screen_text.indexOf(ENTER_KEY) + 1;
-      String user = screen_text.substring(start_of_user, start_of_user+9);
-      user.remove(user.length()-1);
-      strcpy(readObject.name, user.c_str());
+void add_user(){
+  Serial.println("add user");
+  String user = onScreenKeyboard_get_string(true, "", "add user name");
+  Serial.println(user);
+  // store new user
+  String result = store_new_user(user);
+  show_text_on_screen_time(result, 2000);
+  return;
+}
+
+
+void edit_user(){
+  Serial.println("edit user");
+  idx_current_player = -16;
+  get_player(true);
+  while (true){
+    int selected_line = show_menu_on_screen(get_current_player() + "\n next\n save");
+    switch (selected_line){
+    case 0: 
+      strcpy(readObject.name, onScreenKeyboard_get_string(true, "", "new user name").c_str());
+      break;
+    case 1: 
+      readObject.score = 0;
+      break;
+    case 2: 
+      if (readObject.status == ACTIVE) readObject.status = INACTIVE;
+      else readObject.status = ACTIVE;
+      break;
+    case 3:
+      Serial.println("edit user next");
       EEPROM.put(idx_current_player, readObject);
-      screen_text = "";
-      edit_mode=false;
-      return "New name stored.";
+      get_player(true);
+      break;
+    default: 
+      EEPROM.put(idx_current_player, readObject);
+      return;
+    }
+  }
+}
+
+void do_menu(){
+  while(true){
+    int selected_line = show_menu_on_screen("play\nAdd user\nEdit user");
+
+    switch (selected_line){
+      case 0: return;
+      case 1: 
+        add_user();
+        break;
+      case 2: 
+        edit_user();
+        break;
+      default: return;
     }
   }
 
-  if (edit_mode){
-    if (screen_text.length() > 0) screen_text.remove(screen_text.length()-1);  // remove cursor
-    if (screen_text.length() > 0 && keyboard_char == BACK_SPACE) screen_text.remove(screen_text.length()-1);
-    if ((keyboard_char > 31) && (keyboard_char < 128)) screen_text += (char)keyboard_char;
-    screen_text += "_";  // add cursor
-    return screen_text;
-  }
-
-  return "";
 }
 
 #undef debug

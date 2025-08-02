@@ -7,6 +7,15 @@
 #define TFT_CLK 13
 #define TFT_MISO 12
 
+#define DEBUG 0
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debugln(x) Serial.println(x)
+#else
+#define debug(x)
+#define debugln(x)
+#endif
+
 
 // Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
@@ -18,7 +27,7 @@ int16_t screen_width;
 int16_t screen_height;
 
 void onScreen_keyboard_setup() {
-  Serial.println("ILI9341 Test!"); 
+  debugln("ILI9341 Test!"); 
 
   ts_setup();
   tft.begin();
@@ -43,10 +52,10 @@ void onScreen_keyboard_setup() {
 
   screen_width = tft.width();
   screen_height = tft.height();
-  Serial.print("screen width ");
-  Serial.println(screen_width);
-  Serial.print("screen height ");
-  Serial.println(screen_height);
+  debug("screen width ");
+  debugln(screen_width);
+  debug("screen height ");
+  debugln(screen_height);
 }
 
 
@@ -77,27 +86,27 @@ String prev_input = "";
 
 void update_input(){
   tft.setTextColor(ILI9341_BLACK);  
-  tft.setCursor(0,20);
+  tft.setCursor(0,50);
   tft.write((prev_input + String("_")).c_str());  
   
   tft.setTextColor(ILI9341_WHITE);    
-  tft.setCursor(0,20);
+  tft.setCursor(0,50);
   tft.write((input + String("_")).c_str());
   prev_input = input;
 }
 
 void get_character(int8_t row, uint16_t x, bool shift){
-  Serial.print("row");
-  Serial.print(row);
-  Serial.print(" x ");
-  Serial.println(x);
+  debug("row");
+  debug(row);
+  debug(" x ");
+  debugln(x);
   if (x > keyboard[row].tuch_start_x){
     x -= keyboard[row].tuch_start_x;
     x /=226;
-    Serial.print("position in row: ");
-    Serial.println(x);
+    debug("position in row: ");
+    debugln(x);
     if (x < keyboard[row].num_chars){
-      Serial.print("Char: ");
+      debug("Char: ");
       if (shift) input += keyboard[row].shift_keys[x];
       else input += keyboard[row].keys[x];
     }
@@ -106,9 +115,13 @@ void get_character(int8_t row, uint16_t x, bool shift){
 
 }
 
-void onScreenKeyboard(bool shift) {
+String onScreenKeyboard_get_string(bool shift, String value, String label) {
+  tft.fillScreen(ILI9341_BLACK);
+  input = value;
+  prev_input = "";
   tft.setTextColor(ILI9341_WHITE);  
-
+  tft.setCursor(0,20);
+  tft.write(label.c_str());
   while (true){
 
     const int font_height = 22;
@@ -121,7 +134,7 @@ void onScreenKeyboard(bool shift) {
       else tft.print(keyboard[i].keys);
     }
     tft.setCursor(h_offset + 4, v_offset + 112);
-    tft.print("Aa <-- spa ent");
+    tft.print("Aa <-- spa ok");
 
     update_input();
 
@@ -129,44 +142,65 @@ void onScreenKeyboard(bool shift) {
     bool dowhile = true;
     while (dowhile){
       p1 = get_touch();
-      Serial.print("x = ");
-      Serial.print(p1.x);
-      Serial.print(", y = ");
-      Serial.print(p1.y);
-      Serial.println();
+      debug("x = ");
+      debug(p1.x);
+      debug(", y = ");
+      debug(p1.y);
+      debugln();
       delay(200);
       if (p1.y > 3250){
         if (p1.x<1057){
-          Serial.println("shift");
+          debugln("shift");
           shift = !shift;
           dowhile = false;
         } 
         else if (p1.x<1974){
-          Serial.println("del");
+          debugln("del");
           input = input.substring(0,input.length()-1);
           update_input();
         } 
         else if (p1.x<2856){
-          Serial.println("space");
+          debugln("space");
           input += " ";
           update_input();
         } 
         else{
-          Serial.println("enter");
+          debugln("ok");
+          return input;
         }
       } 
       else if (p1.y > 2890) get_character(3, p1.x, shift);
       else if (p1.y > 2450) get_character(2, p1.x, shift);
       else if (p1.y > 2030) get_character(1, p1.x, shift);
       else if (p1.y > 1780) get_character(0, p1.x, shift);
-      else Serial.println("above");
+      else debugln("above");
     }
   }
 }
 
-
-void onscreenkeyboard_loop(void) {
-
-    onScreenKeyboard(false);
-    delay(100);
+void show_text_on_screen(String text){
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setCursor(0,20);
+  tft.write(text.c_str());  
 }
+
+void show_text_on_screen_time(String text, long duration){
+  show_text_on_screen(text);
+  delay(duration);  
+}
+
+
+int show_menu_on_screen(String menu_text){
+  show_text_on_screen(menu_text);  
+  p1 = get_touch();
+  debug("x = ");
+  debug(p1.x);
+  debug(", y = ");
+  debug(p1.y);
+  debugln();
+  return (p1.y-494)/450;
+}
+
+
+#undef debug
+#undef debugln
