@@ -83,8 +83,8 @@ void store_score(uint32_t score_counter){
 }
 
 String get_top_scores(){
-  UserObject top[4];
-  for (int j=0; j<4; j++){
+  UserObject top[7];
+  for (int j=0; j<7; j++){
     top[j].score = -1;
   }
   for (int i=0; i<1000; i+=16){
@@ -92,7 +92,7 @@ String get_top_scores(){
     EEPROM.get(i, readObject);
     if ((readObject.status==0) || (readObject.status ==0xff)){
       String top_score_string = "";
-      for (int j=0; j<4; j++)
+      for (int j=0; j<7; j++)
         if (top[j].score >=0) 
           top_score_string += String(top[j].name) + String(" ") + String(top[j].score) + String("\n");
       return top_score_string;
@@ -100,7 +100,7 @@ String get_top_scores(){
     else{
       if (readObject.status == ACTIVE)
       {
-        for (int j=0; j<4; j++){
+        for (int j=0; j<7; j++){
           if (readObject.score > top[j].score){
             int tmp_score = top[j].score;
             char tmp_name[10];
@@ -149,9 +149,9 @@ String store_new_user(String username){
 
 
 void add_user(){
-  Serial.println("add user");
+  debugln("add user");
   String user = onScreenKeyboard_get_string(true, "", "add user name");
-  Serial.println(user);
+  debugln(user);
   // store new user
   String result = store_new_user(user);
   show_text_on_screen_time(result, 2000);
@@ -160,7 +160,7 @@ void add_user(){
 
 
 void edit_user(){
-  Serial.println("edit user");
+  debugln("edit user");
   idx_current_player = -16;
   get_player(true);
   while (true){
@@ -177,7 +177,7 @@ void edit_user(){
       else readObject.status = ACTIVE;
       break;
     case 3:
-      Serial.println("edit user next");
+      debugln("edit user next");
       EEPROM.put(idx_current_player, readObject);
       get_player(true);
       break;
