@@ -208,7 +208,7 @@ void loop(){
     if (switch_nr == 10) show_leds_rainbow();
   }
 
-  if (switch_nr == 10)
+  if (switch_nr == 17)
   {
     do_menu();
     show_text_on_screen(get_top_scores());

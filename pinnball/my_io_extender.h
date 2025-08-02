@@ -39,6 +39,9 @@ uint8_t io_extender_check_switches()
     uint16_t value = PCF_20.read16();
     value ^= xor_value;  // 1 for normaly open,  0 for normaly closed.
     debugln(value);
+    
+    //key combination for entering menu red and green button together.
+    if (value == 0b0000001100000000) return 17;
 
     while (value > 0)
     {
