@@ -17,6 +17,9 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define SERVOMIN   90 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  490 // This is the 'maximum' pulse length count (out of 4096)
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
+#define POS_MIN   0 
+#define POS_HALF 90 
+#define POS_MAX 180 
 
 #define radioChannel 102
 
@@ -80,6 +83,8 @@ void setup() {
 
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
+unsigned long object1time = 0;
+unsigned long object2time = 0;
 
 // data for servo's (pulse length)
 uint16_t x1value = 0;
@@ -99,13 +104,46 @@ uint8_t sw2value;
 
 //
 
-void driveobject(uint8_t itemnumber){
-  if (itemnumber == 1){
+void driveServo(uint8_t servonum, uint8_t pos){
+  uint16_t pulselen = map(pos, 0, 180, SERVOMIN, SERVOMAX);
+  pwm.setPWM(servonum, 0, pulselen);
+}
 
+void pauseServo(uint8_t servonum){ // check what this exactly does, does it turn the power off?
+  pwm.setPWM(servonum, 0, 0);
+}
+
+void driveobject(uint8_t itemnumber){
+  uint8_t posx = POS_HALF;
+  uint8_t posy = POS_HALF;
+  // translate x and y values from network to pos values for servo's
+  uint8_t posx1 = map(xmvalue, 0, 255, POS_HALF, POS_MIN);
+  uint8_t posx2 = map(xpvalue, 0, 255, POS_HALF, POS_MAX);
+  uint8_t posy1 = map(ymvalue, 0, 255, POS_HALF, POS_MIN);
+  uint8_t posy2 = map(ypvalue, 0, 255, POS_HALF, POS_MAX);
+  
+  posx = posx1/2 + posx2/2;
+  posy = posy1/2 + posy2/2;
+
+  if (itemnumber == 1){
+    driveServo(0, posx); // x coordination
+    driveServo(1, posy); // y coordination
   }
   if (itemnumber == 2){
-
+    driveServo(2, posx); // x coordination
+    driveServo(3, posy); // y coordination
   } 
+}
+
+void checkobjectdrive(unsigned long curtime){
+  if (curtime - object1time > 5000){
+    pauseServo(0);
+    pauseServo(1);
+  }
+  if (curtime - object2time > 5000){
+    pauseServo(2);
+    pauseServo(3);
+  }
 }
 
 void interpretdata(bool fresh, unsigned long curtime){
@@ -118,18 +156,16 @@ void interpretdata(bool fresh, unsigned long curtime){
       itemtomove  = 1;
     if (sw2value > 10)
       itemtomove  = 2;
-    // if (itemtomove == 1){
-
-    // }
-    // if (itemtomove == 2){
-
-    // }
-    receivedtime = curtime;
+    if (itemtomove == 1){
+      object1time = curtime; 
+    }
+    if (itemtomove == 2){
+      object2time = curtime; 
+    }
   }
   if (itemtomove > 0){
     driveobject(itemtomove);
   }
-
 }
 
 //===== Receiving =====//
@@ -219,16 +255,10 @@ void transmitRFnetwork(bool fresh){
   }
 }
 
-void driveServo(uint8_t servonum, uint8_t pos){
-  uint16_t pulselen = map(pos, 0, 180, SERVOMIN, SERVOMAX);
-  pwm.setPWM(servonum, 0, pulselen);
-}
-
 bool newdata = false;
 bool ack = false;
 
 void loop() {
-
 
   network.update();
 
@@ -236,14 +266,14 @@ void loop() {
 
   newdata = receiveRFnetwork();
 
+  //************************ sensors/actuators ****************//
+
+  // depending on received data, driveServo() (one or more commands)
   interpretdata(newdata, currentmilli);
 
   //************************ sensors/actuators ****************//
 
-  // depending on received data, driveServo() (one or more commands)
-
-
-  //************************ sensors/actuators ****************//
+  checkobjectdrive(currentmilli);
 
   transmitRFnetwork(ack);
 
