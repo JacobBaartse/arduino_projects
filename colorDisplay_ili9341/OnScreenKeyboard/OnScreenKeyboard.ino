@@ -60,23 +60,7 @@ void setup() {
   // x = tft.readcommand8(ILI9341_RDSELFDIAG);
   // Serial.print("Self Diagnostic: 0x"); Serial.println(x, HEX); 
 
-//Cross for touch calibration
-  // tft.drawLine(x1, y1, x2, y2, color);
   tft.fillScreen(ILI9341_BLACK);
-  // tft.drawLine(0, 0, 10, 10, ILI9341_WHITE);
-  // tft.drawLine(0, 10, 10, 0, ILI9341_WHITE);
-
-  // p1 = get_touch();
-  // tft.fillScreen(ILI9341_BLACK);
-  // Serial.print("Left top x = ");
-  // Serial.print(p1.x);
-  // Serial.print(", y = ");
-  // Serial.print(p1.y);
-  // Serial.println();
-  // delay(200);
-
-  // int16_t t_x1=p1.x;
-  // int16_t t_y1=p1.y;
 
   screen_width = tft.width();
   screen_height = tft.height();
@@ -85,21 +69,7 @@ void setup() {
   Serial.print("screen height ");
   Serial.println(screen_height);
 
-  // tft.drawLine(w-1, h-1, w-11, h-11, ILI9341_WHITE);
-  // tft.drawLine(w-1, h-11, w-11, h-1, ILI9341_WHITE);
-  // p1 = get_touch();
-  // tft.fillScreen(ILI9341_BLACK);
-  // Serial.print("Right bottom x = ");
-  // Serial.print(p1.x);
-  // Serial.print(", y = ");
-  // Serial.print(p1.y);
-  // Serial.println();
-  // delay(200);
-  // int16_t t_x2=p1.x;
-  // int16_t t_y2=p1.y;
 }
-
-
 
 
 struct keyboard_row{
@@ -127,11 +97,11 @@ String prev_input = "";
 
 void update_input(){
   tft.setTextColor(ILI9341_BLACK);  
-  tft.setCursor(0,20);
+  tft.setCursor(0,50);
   tft.write((prev_input + String("_")).c_str());  
   
   tft.setTextColor(ILI9341_WHITE);    
-  tft.setCursor(0,20);
+  tft.setCursor(0,50);
   tft.write((input + String("_")).c_str());
   prev_input = input;
 }
@@ -156,8 +126,13 @@ void get_character(int8_t row, uint16_t x, bool shift){
 
 }
 
-void onScreenKeyboard(bool shift) {
+String onScreenKeyboard(bool shift, String value, String label) {
+  tft.fillScreen(ILI9341_BLACK);
+  input = value;
+  prev_input = "";
   tft.setTextColor(ILI9341_WHITE);  
+  tft.setCursor(0,20);
+  tft.write(label.c_str());
 
   while (true){
 
@@ -203,6 +178,7 @@ void onScreenKeyboard(bool shift) {
         } 
         else{
           Serial.println("enter");
+          return input;
         }
       } 
       else if (p1.y > 2890) get_character(3, p1.x, shift);
@@ -216,7 +192,7 @@ void onScreenKeyboard(bool shift) {
 
 
 void loop(void) {
-
-    onScreenKeyboard(false);
-    delay(100);
+  String response = onScreenKeyboard(false, "example input", "input_question:");
+  Serial.println(response);
+  delay(100);
 }
