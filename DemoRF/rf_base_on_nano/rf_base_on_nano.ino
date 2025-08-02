@@ -104,8 +104,26 @@ uint8_t sw2value;
 
 //
 
+// /*
+//  * angleToPulse(int ang)
+//  * gets angle in degree and returns the pulse width
+//  * also prints the value on seial monitor
+//  * written by Ahmad Nejrabi for Robojax, Robojax.com
+//  */
+// int angleToPulse(int ang){
+//    int pulse = map(ang,0, 180, SERVOMIN,SERVOMAX);// map angle of 0 to 180 to Servo min and Servo max 
+//    Serial.print("Angle: ");Serial.print(ang);
+//    Serial.print(" pulse: ");Serial.println(pulse);
+//    return pulse;
+// }
+
 void driveServo(uint8_t servonum, uint8_t pos){
   uint16_t pulselen = map(pos, 0, 180, SERVOMIN, SERVOMAX);
+  // uint16_t pulselen2 = angleToPulse(pos);
+  // Serial.print(F("Pulse: "));
+  // Serial.print(pulselen);
+  // Serial.print(F(", "));
+  // Serial.println(pulselen2);
   pwm.setPWM(servonum, 0, pulselen);
 }
 
