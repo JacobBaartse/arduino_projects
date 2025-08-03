@@ -128,39 +128,75 @@ void driveServo(uint8_t servonum, uint8_t pos){
 }
 
 void pauseServo(uint8_t servonum){ // check what this exactly does, does it turn the power off?
+  Serial.print(F("pauseServo: "));
+  Serial.println(servonum);
   pwm.setPWM(servonum, 0, 0);
 }
 
+uint8_t memPos[][2] = {
+  { 90, 90 }, // not used
+  { 90, 90 }, // item 1
+  { 90, 90 }, // item 2
+}; 
+
 void driveobject(uint8_t itemnumber){
-  uint8_t posx = POS_HALF;
-  uint8_t posy = POS_HALF;
+  uint8_t posx = memPos[itemnumber][0];
+  uint8_t posy = memPos[itemnumber][1];
+  bool fresh = false;
+
   // translate x and y values from network to pos values for servo's
   uint8_t posx1 = map(xmvalue, 0, 255, POS_HALF, POS_MIN);
   uint8_t posx2 = map(xpvalue, 0, 255, POS_HALF, POS_MAX);
   uint8_t posy1 = map(ymvalue, 0, 255, POS_HALF, POS_MIN);
   uint8_t posy2 = map(ypvalue, 0, 255, POS_HALF, POS_MAX);
-  
-  posx = posx1/2 + posx2/2;
-  posy = posy1/2 + posy2/2;
 
-  if (itemnumber == 1){
-    driveServo(0, posx); // x coordination
-    driveServo(1, posy); // y coordination
+  // for X if rotating left
+  if (posx < POS_HALF){
+    posx = posx1;
   }
-  if (itemnumber == 2){
-    driveServo(2, posx); // x coordination
-    driveServo(3, posy); // y coordination
-  } 
+  // for X if rotating right
+  else {
+    posx = posx2;
+  }
+  // for Y if low
+  if (posy < POS_HALF){
+    posy = posy1;
+  }
+  // for Y if high
+  else {
+    posy = posy2;
+  }
+
+  if (fresh ||(posx != memPos[itemnumber][0])||(posy != memPos[itemnumber][1])){
+    Serial.print(F("Pos X: "));
+    Serial.print(posx);
+    Serial.print(F(", pos Y: "));
+    Serial.println(posy);
+
+    memPos[itemnumber][0] = posx;
+    memPos[itemnumber][1] = posy;
+
+    if (itemnumber == 1){
+      driveServo(0, posx); // x coordination
+      driveServo(1, posy); // y coordination
+    }
+    if (itemnumber == 2){
+      driveServo(2, posx); // x coordination
+      driveServo(3, posy); // y coordination
+    } 
+  }
 }
 
 void checkobjectdrive(unsigned long curtime){
-  if (curtime - object1time > 5000){
+  if ((unsigned long)(curtime - object1time) > 5000){
     pauseServo(0);
     pauseServo(1);
+    object1time = curtime;
   }
-  if (curtime - object2time > 5000){
+  if ((unsigned long)(curtime - object2time) > 5000){
     pauseServo(2);
     pauseServo(3);
+    object2time = curtime;
   }
 }
 
@@ -187,7 +223,7 @@ void interpretdata(bool fresh, unsigned long curtime){
 }
 
 //===== Receiving =====//
-bool receiveRFnetwork(){
+bool receiveRFnetwork(unsigned long currentRFmilli){
   bool mreceived = false;
 
   // Check for incoming data details
@@ -216,6 +252,14 @@ bool receiveRFnetwork(){
           jbvalue = payload.bvalue;
           sw1value = payload.sw1value;
           sw2value = payload.sw2value;
+          Serial.print(F("xmvalue: "));
+          Serial.print(xmvalue);
+          Serial.print(F(", xpvalue: "));
+          Serial.print(xpvalue);
+          Serial.print(F(", ymvalue: "));
+          Serial.print(ymvalue);
+          Serial.print(F(", ypvalue: "));
+          Serial.println(ypvalue);
 
           // end of joystick message collection      
           mreceived = true;
@@ -234,16 +278,17 @@ bool receiveRFnetwork(){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh){
+void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
 
   // Every 5 seconds, or on new data
-  unsigned long currentRFmilli = millis();
   //if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
-  if (fresh){
+  if (fresh)
+    if ((unsigned long)(currentRFmilli - sendingTimer) > 5000){
+
     sendingTimer = currentRFmilli;
 
     network_payload Txdata;
@@ -282,7 +327,7 @@ void loop() {
 
   currentmilli = millis();
 
-  newdata = receiveRFnetwork();
+  newdata = receiveRFnetwork(currentmilli);
 
   //************************ sensors/actuators ****************//
 
@@ -293,6 +338,6 @@ void loop() {
 
   checkobjectdrive(currentmilli);
 
-  transmitRFnetwork(ack);
+  transmitRFnetwork(ack, currentmilli);
 
 }
