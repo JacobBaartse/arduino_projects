@@ -18,6 +18,7 @@
 // #define CFG_PIN7 9
 
 #define PIR_PIN 4
+#define BUTTON_PIN 5
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -53,6 +54,8 @@ void setup() {
   // pinMode(CFG_PIN6, INPUT_PULLUP);
   // pinMode(CFG_PIN7, INPUT_PULLUP);
   pinMode(PIR_PIN, INPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
     detectornode++;
@@ -105,29 +108,9 @@ void setup() {
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
 uint8_t detectionValue = 0;
+bool activePIR = false;
+bool activeBUTTON = false;
 
-bool trackPIR(bool pirStatus, unsigned long currentmillis){
-  static unsigned long startPIRtime = 0;
-  static bool PIRactive = false;
-  bool info = false;
-
-  if (PIRactive){
-    if ((unsigned long)(currentmillis - startPIRtime) > 5000){
-      PIRactive = false;
-      detectionValue = 0;
-    }
-  }
-  else {
-    if (pirStatus){
-      startPIRtime = currentmillis;
-      info = true;
-      detectionValue = 0x0f;
-    }
-    if (detectionValue < 0xff)
-      detectionValue++;
-  }
-  return info;
-}
 
 //===== Receiving =====//
 void receiveRFnetwork(unsigned long currentRFmilli){
@@ -214,7 +197,6 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   return fresh;
 }
 
-bool activePIR = false;
 
 void loop() {
 
@@ -226,10 +208,12 @@ void loop() {
 
   //************************ sensors ****************//
 
-  activePIR = (digitalRead(PIR_PIN) == LOW);
+  if (digitalRead(PIR_PIN) == LOW){
+    activePIR = true;
+    newdata = true;
+  }
 
   //************************ sensors ****************//
-  newdata = trackPIR(activePIR, currentmilli);
 
   newdata = transmitRFnetwork(newdata, currentmilli);
 
