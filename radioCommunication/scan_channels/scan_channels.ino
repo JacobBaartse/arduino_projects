@@ -41,12 +41,12 @@
 // #define CSN_PIN 8
 
 // RF Nano
-// #define CE_PIN 10
-// #define CSN_PIN 9
+#define CE_PIN 10
+#define CSN_PIN 9
 
 // RF Nano, microUSB
-#define CE_PIN 9
-#define CSN_PIN 10
+// #define CE_PIN 9
+// #define CSN_PIN 10
 
 // SMD projects:
 // #define CE_PIN 9

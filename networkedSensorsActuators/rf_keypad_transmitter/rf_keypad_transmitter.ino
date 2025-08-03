@@ -5,7 +5,6 @@
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
-//#include "printf.h"
 #include <Keypad.h>
 
 #define radioChannel 106
@@ -20,8 +19,6 @@ char hexaKeys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-// byte rowPins[ROWS] = {9, 8, 7, 6}; 
-// byte colPins[COLS] = {5, 4, 3, 2}; 
 byte rowPins[ROWS] = {5, 4, 3, 2}; 
 byte colPins[COLS] = {A0, 8, 7, 6}; 
 
@@ -35,7 +32,7 @@ const uint16_t node01 = 02; // Address of this node in Octal format (04, 031, et
 const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
 
 unsigned long const keywordvalM = 0xfeedbeef; 
-unsigned long const keywordvalS = 0xbeeffeed; 
+unsigned long const keywordvalK = 0xbeeffeed; 
 
 struct keypad_payload{
   uint32_t keyword;
@@ -88,7 +85,6 @@ void setup() {
   network.begin(radioChannel, node01);
 
   clearkeypadcache();
-
 }
  
 unsigned long receiveTimer = 0;
@@ -96,7 +92,7 @@ unsigned long currentmilli = 0;
 unsigned long keyingtime = 0;
 
 //===== Receiving =====//
-void receiveRFnetwork(){
+void receiveRFnetwork(unsigned long currentRFmilli){
 
   while (network.available()){ // Is there any incoming data?
     RF24NetworkHeader header;
@@ -107,9 +103,10 @@ void receiveRFnetwork(){
       Serial.println(header.from_node);
       break;
     }
-    if (Rxdata.keyword == keywordvalS){
-
+    if (Rxdata.keyword == keywordvalM){
       Serial.println(F("new data received"));
+
+
     }
     else{
       Serial.println(F("Keyword failure"));
@@ -118,18 +115,18 @@ void receiveRFnetwork(){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh){
+void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static unsigned long counter = 0;
+  static uint8_t failcount = 0;
   bool w_ok;
 
   // Every 10 seconds, or on new data
-  unsigned long currentRFmilli = millis();
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 10000)){
     sendingTimer = currentRFmilli;
 
     keypad_payload Txdata;
-    Txdata.keyword = keywordvalM;
+    Txdata.keyword = keywordvalK;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
     for (int i=0;i<=maxkeys;i++){
@@ -145,29 +142,18 @@ void transmitRFnetwork(bool fresh){
     Serial.print(F("Message send ")); 
     if (w_ok){
       clearkeypadcache();
+      failcount = 0;
     }    
     else{
       Serial.print(F("failed "));
+      failcount++;
     }
     Serial.println(currentRFmilli);
+  }
 
-    // // print data using &Txdata, sizeof(Txdata)
-    // //Serial.println((char*)&Txdata);
-    // Serial.println(F("--:"));
-    // char buff[3] = "";
-    // uint8_t* ptr = (uint8_t*)&Txdata;
-    // for (size_t i = 0; i < sizeof(Txdata); i++)
-    // {
-    //   printf(buff, "%02x", (*(ptr + i)));
-    //   Serial.print(buff);
-    // }
-    // // for(int i = 0; i < sizeof(Txdata); i++)
-    // // {
-    // //   char byteval = ((char*)&Txdata)[i];
-    // //   printf(buff, "%02X", (uint8_t)byteval);
-    // //   Serial.print(buff);
-    // // }
-    // Serial.println(F("<--"));
+  if (failcount > 10){
+    failcount = 0;
+    clearkeypadcache();
   }
 }
 
@@ -177,7 +163,7 @@ void loop() {
 
   currentmilli = millis();
 
-  receiveRFnetwork();
+  receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
 
@@ -199,6 +185,6 @@ void loop() {
 
   //************************ sensors ****************//
 
-  transmitRFnetwork(newdata);
+  transmitRFnetwork(newdata, currentmilli);
 
 }

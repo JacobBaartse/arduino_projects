@@ -7,7 +7,6 @@
 #include <SPI.h>
 //#include "Arduino.h"
 
-
 #define radioChannel 104 // dit wordt instelbaar
 
 
@@ -15,7 +14,7 @@
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
-uint16_t detectornode; // Address of this node in Octal format (04, 031, etc.)
+uint16_t detectornode = 00; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
@@ -64,9 +63,22 @@ void setup() {
  
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
+uint16_t detectorscount = 0;
+
+void trackDetections(unsigned long currentmillis){
+
+  if (detectorscount > 0){
+    // activate LED and sound
+
+  }
+  else {
+    // turn off LED and sound
+
+  }
+}
 
 //===== Receiving =====//
-uint16_t receiveRFnetwork(){
+uint16_t receiveRFnetwork(unsigned long currentRFmilli){
   uint16_t nodereceived = 00;
 
   while (network.available()){ // Is there any incoming data?
@@ -82,6 +94,12 @@ uint16_t receiveRFnetwork(){
     if (Rxdata.keyword == keywordvalD){
       Serial.println(F("new data received"));
 
+      if (detectorscount < 0xff00)
+        detectorscount += Rxdata.dvalue;
+      Serial.print(F("detectorscount: "));
+      Serial.print(detectorscount);
+      Serial.print(F(", timing: "));
+      Serial.print(currentRFmilli);
     }
     else{
       Serial.println(F("Keyword failure"));
@@ -91,14 +109,13 @@ uint16_t receiveRFnetwork(){
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool fresh, uint16_t node_id){
+void transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
 
   // Every 5 seconds, or on new data
-  unsigned long currentRFmilli = millis();
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
     sendingTimer = currentRFmilli;
 
@@ -111,7 +128,6 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id){
     // Txdata.sw2value = sw2Value;
 
     Serial.print(F("Message: "));
-    Serial.print(Txdata.count);
     // Serial.print(F(", xvalue: "));
     // Serial.print(Txdata.xvalue);
     // Serial.print(F(", yvalue: "));
@@ -126,7 +142,6 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id){
     RF24NetworkHeader header0(node_id, 'D'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
-      failcount++;
       delay(50);
       w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     }
@@ -136,7 +151,7 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id){
       // sw1Value = 0;
       // sw2Value = 0;
       // fresh = false;
-      // failcount = 0;
+      failcount = 0;
     }    
     else{
       Serial.print(F("failed "));
@@ -150,37 +165,29 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id){
       fresh = false; // do not send a lot of messages continously
     }
 
-    if(!fresh){ // clear buttons status always after 5 seconds
-      // bValue = 0; 
-      // sw1Value = 0;
-      // sw2Value = 0;
-    }
   }
 
-  return fresh;
 }
 
 uint16_t snode = 00;
 
 void loop() {
 
-  // sw1Value = checkSwitchButton1(SW_PIN1);
-  // sw2Value = checkSwitchButton2(SW_PIN2);
-
   network.update();
 
   currentmilli = millis();
 
-  snode = receiveRFnetwork();
+  snode = receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
 
   // snode is nodereceived  if > 0
-  if (snode > 0)
-    newdata = true;
+  newdata = (snode > 0);
 
   //************************ sensors ****************//
 
-  newdata = transmitRFnetwork(newdata, snode);
+  trackDetections(currentmilli);
+
+  transmitRFnetwork(newdata, snode, currentmilli);
 
 }
