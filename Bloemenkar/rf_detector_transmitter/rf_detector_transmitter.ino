@@ -1,24 +1,23 @@
 /*
- * RF-Nano, no headers, USB-C with joystick connected, using RF24network library
+ * RF-Nano, headers, USB-C with joystick connected, using RF24network library
  */
 
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
-//#include "printf.h"
 
-#define radioChannel 104 // dit wordt instelbaar
+#define radioChannel 98 // dit wordt mogelijk instelbaar
 
-#define CFG_PIN0 2
-#define CFG_PIN1 3
-#define CFG_PIN2 4
-#define CFG_PIN3 5
-#define CFG_PIN4 6
-#define CFG_PIN5 7
-#define CFG_PIN6 8
-#define CFG_PIN7 9
+#define CFG_PIN0 A0
+#define CFG_PIN1 A1
+#define CFG_PIN2 A2
+#define CFG_PIN3 A3
+// #define CFG_PIN4 6
+// #define CFG_PIN5 7
+// #define CFG_PIN6 8
+// #define CFG_PIN7 9
 
-#define PIR_PIN 10
+#define PIR_PIN 4
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -49,10 +48,11 @@ void setup() {
   pinMode(CFG_PIN1, INPUT_PULLUP);
   pinMode(CFG_PIN2, INPUT_PULLUP);
   pinMode(CFG_PIN3, INPUT_PULLUP);
-  pinMode(CFG_PIN4, INPUT_PULLUP);
-  pinMode(CFG_PIN5, INPUT_PULLUP);
-  pinMode(CFG_PIN6, INPUT_PULLUP);
-  pinMode(CFG_PIN7, INPUT_PULLUP);
+  // pinMode(CFG_PIN4, INPUT_PULLUP);
+  // pinMode(CFG_PIN5, INPUT_PULLUP);
+  // pinMode(CFG_PIN6, INPUT_PULLUP);
+  // pinMode(CFG_PIN7, INPUT_PULLUP);
+  pinMode(PIR_PIN, INPUT);
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
     detectornode++;
@@ -61,33 +61,35 @@ void setup() {
     detectornode = detectornode + 2;
   }
   if (digitalRead(CFG_PIN2) == LOW){ // PIN active
-    detectornode = detectornode + 4;
+
   }
   if (digitalRead(CFG_PIN3) == LOW){ // PIN active
 
   }
-  if (digitalRead(CFG_PIN4) == LOW){ // PIN active
 
-  }
-  if (digitalRead(CFG_PIN5) == LOW){ // PIN active
+  // if (digitalRead(CFG_PIN4) == LOW){ // PIN active
 
-  }
-  if (digitalRead(CFG_PIN6) == LOW){ // PIN active
+  // }
+  // if (digitalRead(CFG_PIN5) == LOW){ // PIN active
 
-  }
-  if (digitalRead(CFG_PIN7) == LOW){ // PIN active
+  // }
+  // if (digitalRead(CFG_PIN6) == LOW){ // PIN active
 
-  }
+  // }
+  // if (digitalRead(CFG_PIN7) == LOW){ // PIN active
+
+  // }
 
   // detectornode = depending on settings
   // radioChannel = depending on settings
   // PA level can be depending on settings
 
-
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
+  Serial.print(F("Detectornode: "));
+  Serial.println(detectornode);
   Serial.flush(); 
 
   SPI.begin();
@@ -98,8 +100,6 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, detectornode);
-
-  pinMode(PIR_PIN, INPUT);
 }
 
 unsigned long receiveTimer = 0;

@@ -1,13 +1,12 @@
 /*
- * RF-Nano, no headers, USB-C with joystick connected, using RF24network library
+ * RF-Nano, headers, USB-C, using RF24network library
  */
 
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
-//#include "Arduino.h"
 
-#define radioChannel 104 // dit wordt instelbaar
+#define radioChannel 98 // dit wordt mogelijk instelbaar
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -66,6 +65,8 @@ unsigned long currentmilli = 0;
 uint16_t detectorscount = 0;
 
 void trackDetections(unsigned long currentmillis){
+  static unsigned long activationTime = 0;
+  static uint16_t detectamount = 0;
 
   if (detectorscount > 0){
     // activate LED and sound
@@ -160,11 +161,6 @@ void transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     Serial.print(Txdata.count);
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
-
-    if (failcount > 10){
-      fresh = false; // do not send a lot of messages continously
-    }
-
   }
 
 }
@@ -181,13 +177,14 @@ void loop() {
 
   //************************ sensors ****************//
 
-  // snode is nodereceived  if > 0
+  // snode is nodereceived, if > 0
   newdata = (snode > 0);
 
   //************************ sensors ****************//
 
   trackDetections(currentmilli);
 
-  transmitRFnetwork(newdata, snode, currentmilli);
+  // possible to send ack to detector node
+  //transmitRFnetwork(newdata, snode, currentmilli);
 
 }
