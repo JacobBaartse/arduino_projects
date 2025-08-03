@@ -71,7 +71,8 @@ uint8_t checkSwitchButton1(uint8_t DigPin){
   bool pressval = (digitalRead(DigPin) == LOW);
   if (pressval){
     if (remval){
-      if (b1val < 0xff) b1val++;
+      if (b1val < 0xff) 
+        b1val++;
     }
     else {
       Serial.println(F(" button 1"));
@@ -80,7 +81,8 @@ uint8_t checkSwitchButton1(uint8_t DigPin){
     }
   }
   else {
-    if (b1val > 0) b1val--;
+    if (b1val > 0) 
+      b1val--;
   }
   remval = pressval;
   return b1val;
@@ -93,7 +95,8 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
   bool pressval = (digitalRead(DigPin) == LOW);
   if (pressval){
     if (remval){
-      if (b2val < 0xff) b2val++;
+      if (b2val < 0xff) 
+        b2val++;
     }
     else {
       Serial.println(F(" button 2"));
@@ -102,7 +105,8 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
     }
   }
   else {
-    if (b2val > 0) b2val--;
+    if (b2val > 0) 
+      b2val--;
   }
   remval = pressval;
   return b2val;
@@ -141,7 +145,7 @@ unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
 
 //===== Receiving =====//
-void receiveRFnetwork(){
+void receiveRFnetwork(unsigned long currentRFmilli){
 
   while (network.available()){ // Is there any incoming data?
     RF24NetworkHeader header;
@@ -153,7 +157,9 @@ void receiveRFnetwork(){
       break;
     }
     if (Rxdata.keyword == keywordvalM){
-      Serial.println(F("RF data received"));
+      Serial.print(F("Timestamp: "));
+      Serial.print(currentRFmilli);
+      Serial.println(F(", RF data received"));
 
     }
     else{
@@ -163,14 +169,13 @@ void receiveRFnetwork(){
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool fresh){
+bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
 
   // Every 5 seconds, or on new data
-  unsigned long currentRFmilli = millis();
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
     sendingTimer = currentRFmilli;
 
@@ -186,30 +191,36 @@ bool transmitRFnetwork(bool fresh){
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
 
-    Serial.print(F("Message: "));
-    Serial.print(Txdata.count);
+    Serial.print(F("Data: "));
     if (xnValue > 0){
-      Serial.print(F(", xnvalue: "));
+      Serial.print(F(" xnvalue: "));
       Serial.print(Txdata.xmvalue);
     }
     if (xpValue > 0){
-      Serial.print(F(", xpvalue: "));
+      Serial.print(F(" xpvalue: "));
       Serial.print(Txdata.xpvalue);
     }
     if (ynValue > 0){
-      Serial.print(F(", ynvalue: "));
+      Serial.print(F(" ynvalue: "));
       Serial.print(Txdata.ymvalue);
     }
     if (ypValue > 0){
-      Serial.print(F(", ypvalue: "));
+      Serial.print(F(" ypvalue: "));
       Serial.print(Txdata.ypvalue);
     }    
-    Serial.print(F(", bvalue: "));
-    Serial.print(Txdata.bvalue);
-    Serial.print(F(", sw1value: "));
-    Serial.print(Txdata.sw1value);        
-    Serial.print(F(", sw2value: "));
-    Serial.println(Txdata.sw2value);
+    if (bValue > 0){
+      Serial.print(F(" bvalue: "));
+      Serial.print(Txdata.bvalue);
+    }
+    if (sw1Value > 0){
+      Serial.print(F(" sw1value: "));
+      Serial.print(Txdata.sw1value);        
+    }
+    if (sw2Value > 0){
+      Serial.print(F(" sw2value: "));
+      Serial.print(Txdata.sw2value);
+    }
+    Serial.println();
 
     RF24NetworkHeader header0(node00, 'J'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
@@ -258,7 +269,7 @@ void loop() {
 
   currentmilli = millis();
 
-  receiveRFnetwork();
+  receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
 
@@ -306,7 +317,7 @@ void loop() {
 
   //************************ sensors ****************//
 
-  newdata = transmitRFnetwork(newdata);
+  newdata = transmitRFnetwork(newdata, currentmilli);
 
 }
 
