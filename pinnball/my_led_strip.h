@@ -21,9 +21,60 @@
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
-
+#define SCROLING_RAINBOW     1
+#define RAINBOW         2
+#define SPARKLING       3
+#define RUN_AROUND      4
+#define FADE_IN_OUT 5
 
 #define UPDATES_PER_SECOND 100
+
+long prev_millis_leds=0;
+void pattern_on_ledstrip(int pattern, long start_millis, long duration){
+    long now = millis();
+    uint8_t position;
+    if (now > start_millis + duration)
+        pattern = RAINBOW;  // The default pattern if nothing else is active.
+    switch (pattern){
+        case SCROLING_RAINBOW:
+            for (uint8_t i=0; i<NUM_LEDS; i++)
+                leds[(i+millis()/30)%NUM_LEDS] = CHSV(4*i, 200, 255);  // hue , saturation, value
+            break;
+        case RAINBOW:
+             for (uint8_t i=0; i<NUM_LEDS; i++)
+                leds[i] = CHSV(2*i, 255, 255);
+            break;    
+        case SPARKLING:
+            if (now > prev_millis_leds + 20){
+                prev_millis_leds = now;
+                leds[random8(0, NUM_LEDS - 1)] = CRGB(255,255,255);
+                fadeToBlackBy(leds, NUM_LEDS, 40);
+            }
+            break; 
+        case RUN_AROUND:
+            position = (uint8_t) (now /10 %NUM_LEDS);
+            for (uint8_t i=0; i<NUM_LEDS; i++)
+            {
+                uint8_t index = (position+i)%NUM_LEDS;
+
+                if (i > 60)
+                    leds[index] = CRGB(255,255,255);
+                else
+                    leds[index] = CRGB(0,0,0);
+            }
+            break;
+        case FADE_IN_OUT:
+            int brightness = ((now - start_millis)) % 512;
+            if (brightness > 255)
+                brightness = 511 - brightness;
+
+            for (uint8_t i=0; i<NUM_LEDS; i++)
+                leds[i] = CHSV(2*i, 255, (uint8_t) brightness);
+            break;
+
+    }
+}
+
 
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
@@ -62,18 +113,53 @@ void SetupTotallyRandomPalette();
 void SetupBlackAndWhiteStripedPalette();
 
 
-void score_onleds(bool left1hit, bool left2hit, bool left3hit){
+bool left1hit = false;
+bool left2hit = false;
+bool left3hit = false;
+long left1blink_until = 0;
+long left2blink_until = 0;
+long left3blink_until = 0;
+long leftblinkall_until = 0;
+
+void leds_on(int led1, int led2, CRGB color){
+    leds[led1] = color;  
+    leds[led2] = color;
+}
+
+void blink(int led1, int led2, CRGB color){
+    if (millis() % 100 > 50) 
+        color = CRGB::Black;
+    leds[led1] = color;  
+    leds[led2] = color;
+}
+
+void reset_left_hit(){
+    left1hit = false;
+    left2hit = false;
+    left3hit = false;
+}
+
+void score_onleds(){
     debugln("Show leds score");
+    long now = millis();
+    if ((left3hit & left3blink_until>now)| leftblinkall_until>now) blink(8, 9,  CRGB::Green);
+    else if (left3hit) leds_on(8, 9,  CRGB::Green);
+         else leds_on(8, 9,  CRGB::Black);
 
-    fill_solid(leds, NUM_LEDS, CRGB::Gray);
+    if ((left2hit & left2blink_until>now)| leftblinkall_until>now) blink(10, 11,  CRGB::Red);
+    else if (left2hit) leds_on(10, 11,  CRGB::Red);
+             else leds_on(10, 11,  CRGB::Black);
+             
+    if ((left1hit & left1blink_until>now)| leftblinkall_until>now) blink(12, 13,  CRGB::Blue);
+    else if (left1hit) leds_on(12, 13,  CRGB::Blue);
+             else leds_on(12, 13,  CRGB::Black);
 
-    if (left3hit) {  leds[8] = CRGB::Green;  leds[9] = CRGB::Green;}
-    else {  leds[8] = CRGB::Black;  leds[9] = CRGB::Black;}
-    if (left2hit) { leds[10] = CRGB::Red; leds[11] = CRGB::Red;}
-    else { leds[10] = CRGB::Black; leds[11] = CRGB::Black;}
-    if (left1hit) { leds[12] = CRGB::Blue; leds[13] = CRGB::Blue;}
-    else { leds[12] = CRGB::Black; leds[13] = CRGB::Black;}
-    FastLED.show();
+    if (left1hit & left2hit & left3hit)
+        if (left1blink_until<now & left2blink_until<now & left3blink_until<now)
+        {
+            leftblinkall_until = now + 2000;
+            reset_left_hit();
+        }
 }
 
 void ledstrip_setup() {
@@ -81,6 +167,7 @@ void ledstrip_setup() {
     // delay( 3000 ); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(  BRIGHTNESS );
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);
     FastLED.clear();
     FastLED.show();
 
@@ -241,15 +328,6 @@ const TProgmemPalette16 myRedWhiteBluePalette_p FL_PROGMEM =
 };
 
 
-void blink_leds(bool left1hit, bool left2hit, bool left3hit, int duration_ms){
-    while (duration_ms>0){
-      score_onleds(false, false, false);
-      delay(50);
-      score_onleds(left1hit, left2hit, left3hit);
-      delay(50);
-      duration_ms -=100;
-    }
-}
 
 void blink_all_leds(int duration_ms){
     while (duration_ms>0){

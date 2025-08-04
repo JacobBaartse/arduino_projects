@@ -1,13 +1,13 @@
 
+#include <FastLED.h>
+#include "my_led_strip.h"
+
 #include "simple_matrix.h"
 #include "display8x8matrixes.h"
 
 #include "PCF8575.h"
-
 #include "my_io_extender.h"
 
-#include <FastLED.h>
-#include "my_led_strip.h"
 
 #include <Arduino.h>
 #include <JQ6500_Serial.h>
@@ -40,6 +40,7 @@
 #define debugln(x)
 #endif
 
+bool reset_servo = false;
 String menu_text = "_";
 
 uint32_t score_counter = 0;
@@ -53,8 +54,9 @@ void next_player(){
   nr_balls_left = NR_BALLS;
   do_servo(0, 0);
   score_counter = 0;
-  reset_lefthit();
+  reset_left_hit();
   showScore();
+  show_text_on_screen(get_top_scores());
 }
 
 void save_tilt_state()
@@ -79,22 +81,12 @@ void setup(){
   next_player();
 }
 
-bool left1hit = false;
-bool left2hit = false;
-bool left3hit = false;
-
-void reset_lefthit(){
-    left1hit = false;
-    left2hit = false;
-    left3hit = false;
-}
-
-long keep_matrix_millies = 0;
+long keep_matrix_millis = 0;
 
 void showScore(){
-  score_onleds(left1hit, left2hit, left3hit);
+  // score_onleds(left1hit, left2hit, left3hit);
 
-  if (millis() > keep_matrix_millies){
+  if (millis() > keep_matrix_millis){
     String screen_text = current_player_name;
     while (screen_text.length() < 10) screen_text += " ";
     screen_text += String(score_counter);
@@ -105,12 +97,15 @@ void showScore(){
 
 }
 
-long cannon_millies;
+long cannon_millis;
+int effect;
+long start_millis;
+long duration;
 
 void loop(){
   int switch_nr = io_extender_check_switches();
   if (switch_nr == 15){  // BALL ON DECK
-    long speed = millis() - cannon_millies;
+    long speed = millis() - cannon_millis;
     debug("speed : ");
     debugln(speed);
     Play_mp3_file(KOEKOEK_KLOK);
@@ -118,7 +113,7 @@ void loop(){
 
     String speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
     disp_8x8_matrix.print(speed_text.c_str());
-    keep_matrix_millies = millis() + 10000;
+    keep_matrix_millis = millis() + 10000;
 
     light_show(2825);
   }
@@ -128,7 +123,7 @@ void loop(){
     light_show(1600);
   }
   if (switch_nr == 3){  // CANNON 
-    cannon_millies = millis();
+    cannon_millis = millis();
     Play_mp3_file(CANNON_SHOT);
     do_servo(0, 60);
     score_counter += 100;
@@ -148,7 +143,7 @@ void loop(){
   }  
   if (switch_nr == 10){  //red button
     Play_mp3_file(GUN_SHOT);
-    reset_lefthit();
+    reset_left_hit();
     do_servo(0, 0);
     score_counter = 0;
     show_text_on_screen(get_top_scores());
@@ -159,39 +154,52 @@ void loop(){
   }
   if (switch_nr == 11){  //left side button 1
     left1hit = true;
+    left1blink_until = millis() + 2000;
     Play_mp3_file(PRRRR);
-    score_onleds(left1hit, left2hit, left3hit);
-    blink_leds(left1hit, false, false, 2000);
     score_counter += 5;
+    effect = SPARKLING;
+    start_millis = millis();
+    duration = 2000;
   }
   if (switch_nr == 12){  //left side button 2
     left2hit = true;
     Play_mp3_file(HIGH_PING);
-    score_onleds(left1hit, left2hit, left3hit);
-    blink_leds(false, left2hit, false, 1400);
+    left2blink_until = millis() + 2000;
     score_counter += 5;
+    effect = FADE_IN_OUT;
+    start_millis = millis();
+    duration = 2000;
   }
   if (switch_nr == 13){  //left side button 3
     left3hit = true;
     Play_mp3_file(OLD_TELEPHONE_RING);
-    score_onleds(left1hit, left2hit, left3hit);
-    blink_leds(false, false, left3hit, 5000);
+    left3blink_until = millis() + 2000;
     score_counter += 5;
   }
   if (switch_nr == 1){ // ROTARY SENSOR
     Play_mp3_file(Y1_KORT_PR);
-    light_show(100);
+    effect = RUN_AROUND;
+    start_millis = millis();
+    duration = 1000;
+    // light_show(100);
     score_counter += 4;
   }  
 
   if (left1hit & left2hit & left3hit){
-    Play_mp3_file(SUPER_GOOD);
-    score_onleds(left1hit, left2hit, left3hit);
-    score_counter += 100;
-    blink_leds(left1hit, left2hit, left3hit, 2000);
-    reset_lefthit();
-    do_servo(0, 0);
+    if (!reset_servo) { // prevent double counting of points
+      score_counter += 100;
+      delay(4); // do some delay before sendig next mp3 command
+      Play_mp3_file(SUPER_GOOD);
+    }
+    reset_servo =  true;// prevent double counting of points
   }
+  else{
+    if (reset_servo & (!left1hit | !left2hit | !left3hit)){
+      do_servo(0, 0);
+      reset_servo = false;
+    }
+  }
+
 
   if (tilt){ // tilt contact
     Play_mp3_file(TOE_TOKKK);
@@ -213,7 +221,14 @@ void loop(){
     do_menu();
     show_text_on_screen(get_top_scores());
   }
-  delay(2);
+
+  // pattern_on_ledstrip(SCROLING_RAINBOW);
+  // pattern_on_ledstrip(RAINBOW);
+  pattern_on_ledstrip(effect, start_millis, duration);
+  score_onleds();
+  FastLED.show();
+
+  delay(4);
 
 }
 
