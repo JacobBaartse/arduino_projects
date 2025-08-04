@@ -8,6 +8,18 @@
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
 
+#define CFG_PIN0 A0
+#define CFG_PIN1 A1
+#define CFG_PIN2 A2
+#define CFG_PIN3 A3
+// #define CFG_PIN4 6
+// #define CFG_PIN5 7
+// #define CFG_PIN6 8
+// #define CFG_PIN7 9
+
+#define BUTTON_PIN1 2
+#define BUTTON_PIN2 3
+
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
@@ -15,6 +27,7 @@ RF24Network network(radio); // Include the radio in the network
 
 uint16_t detectornode = 00; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
+uint8_t radiolevel = RF24_PA_MIN;
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
 
@@ -34,15 +47,32 @@ void setup() {
   Serial.begin(115200);
 
   // multiple PINs for reading the config
-  // pinMode(SW_PIN, INPUT_PULLUP);
-  // pinMode(SW_PIN1, INPUT_PULLUP);
-  // pinMode(SW_PIN2, INPUT_PULLUP);
+  pinMode(CFG_PIN0, INPUT_PULLUP);
+  pinMode(CFG_PIN1, INPUT_PULLUP);
+  pinMode(CFG_PIN2, INPUT_PULLUP);
+  pinMode(CFG_PIN3, INPUT_PULLUP);
+  // pinMode(CFG_PIN4, INPUT_PULLUP);
+  // pinMode(CFG_PIN5, INPUT_PULLUP);
+  // pinMode(CFG_PIN6, INPUT_PULLUP);
+  // pinMode(CFG_PIN7, INPUT_PULLUP);
 
-  // digitalRead(SW_PIN);
+  // PINs for sensor inputs
+  pinMode(BUTTON_PIN1, INPUT_PULLUP);
+  pinMode(BUTTON_PIN2, INPUT_PULLUP);
 
-  // radioChannel = depending on settings
-  // PA level can be depending on settings
 
+  if (digitalRead(CFG_PIN0) == LOW){ // PIN active
+    //detectornode = 2;
+  }
+  if (digitalRead(CFG_PIN1) == LOW){ // PIN active
+    //detectornode = detectornode + 2;
+  }
+  if (digitalRead(CFG_PIN2) == LOW){ // PIN active
+    radiolevel = 1;
+  }
+  if (digitalRead(CFG_PIN3) == LOW){ // PIN active
+    radiolevel = radiolevel + 2;
+  }
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
@@ -55,14 +85,26 @@ void setup() {
     Serial.println(F("Radio hardware error."));
     while (true) delay(1000);
   }
-  radio.setPALevel(RF24_PA_MIN, 0);
+  // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
+  //radio.setPALevel(RF24_PA_MIN, 0);
+  radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, basenode);
+  Serial.print(F("radioChannel: "));
+  Serial.print(radioChannel);
+  Serial.print(F(", level: "));
+  Serial.println(radiolevel);
+
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN1), buttonPress1, FALLING); // trigger when button1 pressed
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress2, FALLING); // trigger when button2 pressed
 }
  
-unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
 uint16_t detectorscount = 0;
+bool pressBUTTON1 = false;
+bool pressBUTTON2 = false;
+bool activeBUTTON1 = false;
+bool activeBUTTON2 = false;
 
 void trackDetections(unsigned long currentmillis){
   static unsigned long activationTime = 0;
@@ -178,7 +220,18 @@ void loop() {
   //************************ sensors ****************//
 
   // snode is nodereceived, if > 0
-  newdata = (snode > 0);
+  newdata = (snode > 0); // received a message from a detector
+
+  if (pressBUTTON1){
+    activeBUTTON1 = true;
+    newdata = true;
+    pressBUTTON1 = false;
+  }  
+  if (pressBUTTON2){
+    activeBUTTON2 = true;
+    newdata = true;
+    pressBUTTON2 = false;
+  }  
 
   //************************ sensors ****************//
 
@@ -187,4 +240,20 @@ void loop() {
   // possible to send ack to detector node
   //transmitRFnetwork(newdata, snode, currentmilli);
 
+}
+
+void buttonPress1(){
+  if (!activeBUTTON1){
+    pressBUTTON1 = true;
+    Serial.print(F("Button press 1: "));
+    Serial.println(millis());
+  }
+}
+
+void buttonPress2(){
+  if (!activeBUTTON2){
+    pressBUTTON2 = true;
+    Serial.print(F("Button press 2: "));
+    Serial.println(millis());
+  }
 }

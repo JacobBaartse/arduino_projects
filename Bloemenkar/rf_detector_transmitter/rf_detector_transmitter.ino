@@ -1,5 +1,5 @@
 /*
- * RF-Nano, headers, USB-C with joystick connected, using RF24network library
+ * RF-Nano, headers, USB-C, using RF24network library
  */
 
 #include <RF24Network.h>
@@ -18,7 +18,7 @@
 // #define CFG_PIN7 9
 
 #define PIR_PIN 4
-#define BUTTON_PIN 5
+#define BUTTON_PIN 2
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -27,6 +27,7 @@ RF24Network network(radio); // Include the radio in the network
 
 uint16_t detectornode = 01; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
+uint8_t radiolevel = RF24_PA_MIN;
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
 
@@ -53,21 +54,23 @@ void setup() {
   // pinMode(CFG_PIN5, INPUT_PULLUP);
   // pinMode(CFG_PIN6, INPUT_PULLUP);
   // pinMode(CFG_PIN7, INPUT_PULLUP);
+
+  // PINs for sensor inputs
   pinMode(PIR_PIN, INPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-    detectornode++;
+    detectornode = 2;
   }
   if (digitalRead(CFG_PIN1) == LOW){ // PIN active
     detectornode = detectornode + 2;
   }
   if (digitalRead(CFG_PIN2) == LOW){ // PIN active
-
+    radiolevel = 1;
   }
   if (digitalRead(CFG_PIN3) == LOW){ // PIN active
-
+    radiolevel = radiolevel + 2;
   }
 
   // if (digitalRead(CFG_PIN4) == LOW){ // PIN active
@@ -83,14 +86,11 @@ void setup() {
 
   // }
 
-  // detectornode = depending on settings
-  // radioChannel = depending on settings
-  // PA level can be depending on settings
-
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
+  // detectornode = depending on settings
   Serial.print(F("Detectornode: "));
   Serial.println(detectornode);
   Serial.flush(); 
@@ -100,16 +100,24 @@ void setup() {
     Serial.println(F("Radio hardware error."));
     while (true) delay(1000);
   }
-  radio.setPALevel(RF24_PA_MIN, 0);
+  // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
+  //radio.setPALevel(RF24_PA_MIN, 0);
+  radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, detectornode);
+  Serial.print(F("radioChannel: "));
+  Serial.print(radioChannel);
+  Serial.print(F(", level: "));
+  Serial.println(radiolevel);
+
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonPress, FALLING); // trigger when button is pressed
 }
 
-unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
 uint8_t detectionValue = 0;
 bool activePIR = false;
 bool activeBUTTON = false;
+bool pressBUTTON = false;
 
 
 //===== Receiving =====//
@@ -141,8 +149,8 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static uint8_t failcount = 0;
   bool w_ok;
 
-  // Every 15 seconds, or on new data
-  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 15000)){
+  // Every 10 seconds, or on new data
+  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 10000)){
     sendingTimer = currentRFmilli;
 
     detector_payload Txdata;
@@ -169,10 +177,7 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     }
     Serial.print(F("Message send ")); 
     if (w_ok){
-      // bValue = 0; 
-      // sw1Value = 0;
-      // sw2Value = 0;
-      // fresh = false;
+      fresh = false;
       failcount = 0;
     }    
     else{
@@ -185,12 +190,6 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
 
     if (failcount > 10){
       fresh = false; // do not send a lot of messages continously
-    }
-
-    if(!fresh){ // clear buttons status always after 5 seconds
-      // bValue = 0; 
-      // sw1Value = 0;
-      // sw2Value = 0;
     }
   }
 
@@ -212,9 +211,21 @@ void loop() {
     activePIR = true;
     newdata = true;
   }
+  if (pressBUTTON){
+    activeBUTTON = true;
+    newdata = true;
+    pressBUTTON = false;
+  }  
 
   //************************ sensors ****************//
 
   newdata = transmitRFnetwork(newdata, currentmilli);
+}
 
+void buttonPress(){
+  if (!activeBUTTON){
+    pressBUTTON = true;
+    Serial.print(F("Button press: "));
+    Serial.println(millis());
+  }
 }
