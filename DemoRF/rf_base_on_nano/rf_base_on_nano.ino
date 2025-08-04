@@ -17,6 +17,9 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define SERVOMIN   90 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  490 // This is the 'maximum' pulse length count (out of 4096)
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
+#define POS_MIN   0 
+#define POS_HALF 90 
+#define POS_MAX 180 
 
 #define radioChannel 102
 
@@ -25,9 +28,9 @@ RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
+uint16_t joynode = 00; // address for the receiving message
 
 unsigned long const keywordvalM = 0xfeedbeef; 
-unsigned long const keywordvalS = 0xbeeffeed; 
 unsigned long const keywordvalJ = 0xbcdffeda;
 
 struct joystick_payload{
@@ -80,6 +83,8 @@ void setup() {
 
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
+unsigned long object1time = 0;
+unsigned long object2time = 0;
 
 // data for servo's (pulse length)
 uint16_t x1value = 0;
@@ -99,13 +104,100 @@ uint8_t sw2value;
 
 //
 
+// /*
+//  * angleToPulse(int ang)
+//  * gets angle in degree and returns the pulse width
+//  * also prints the value on seial monitor
+//  * written by Ahmad Nejrabi for Robojax, Robojax.com
+//  */
+// int angleToPulse(int ang){
+//    int pulse = map(ang,0, 180, SERVOMIN,SERVOMAX);// map angle of 0 to 180 to Servo min and Servo max 
+//    Serial.print("Angle: ");Serial.print(ang);
+//    Serial.print(" pulse: ");Serial.println(pulse);
+//    return pulse;
+// }
+
+void driveServo(uint8_t servonum, uint8_t pos){
+  uint16_t pulselen = map(pos, 0, 180, SERVOMIN, SERVOMAX);
+  // uint16_t pulselen2 = angleToPulse(pos);
+  // Serial.print(F("Pulse: "));
+  // Serial.print(pulselen);
+  // Serial.print(F(", "));
+  // Serial.println(pulselen2);
+  pwm.setPWM(servonum, 0, pulselen);
+}
+
+void pauseServo(uint8_t servonum){ // check what this exactly does, does it turn the power off?
+  Serial.print(F("pauseServo: "));
+  Serial.println(servonum);
+  pwm.setPWM(servonum, 0, 0);
+}
+
+uint8_t memPos[][2] = {
+  { 90, 90 }, // not used
+  { 90, 90 }, // item 1
+  { 90, 90 }, // item 2
+}; 
+
 void driveobject(uint8_t itemnumber){
-  if (itemnumber == 1){
+  uint8_t posx = memPos[itemnumber][0];
+  uint8_t posy = memPos[itemnumber][1];
+  bool fresh = false;
 
+  // translate x and y values from network to pos values for servo's
+  uint8_t posx1 = map(xmvalue, 0, 255, POS_HALF, POS_MIN);
+  uint8_t posx2 = map(xpvalue, 0, 255, POS_HALF, POS_MAX);
+  uint8_t posy1 = map(ymvalue, 0, 255, POS_HALF, POS_MIN);
+  uint8_t posy2 = map(ypvalue, 0, 255, POS_HALF, POS_MAX);
+
+  // for X if rotating left
+  if (posx < POS_HALF){
+    posx = posx1;
   }
-  if (itemnumber == 2){
+  // for X if rotating right
+  else {
+    posx = posx2;
+  }
+  // for Y if low
+  if (posy < POS_HALF){
+    posy = posy1;
+  }
+  // for Y if high
+  else {
+    posy = posy2;
+  }
 
-  } 
+  if (fresh ||(posx != memPos[itemnumber][0])||(posy != memPos[itemnumber][1])){
+    Serial.print(F("Pos X: "));
+    Serial.print(posx);
+    Serial.print(F(", pos Y: "));
+    Serial.println(posy);
+
+    memPos[itemnumber][0] = posx;
+    memPos[itemnumber][1] = posy;
+
+    if (itemnumber == 1){
+      driveServo(0, posx); // x coordination
+      driveServo(1, posy); // y coordination
+    }
+    if (itemnumber == 2){
+      driveServo(2, posx); // x coordination
+      driveServo(3, posy); // y coordination
+    } 
+  }
+}
+
+void checkobjectdrive(unsigned long curtime){
+  if ((unsigned long)(curtime - object1time) > 5000){
+    pauseServo(0);
+    pauseServo(1);
+    object1time = curtime;
+  }
+  if ((unsigned long)(curtime - object2time) > 5000){
+    pauseServo(2);
+    pauseServo(3);
+    object2time = curtime;
+  }
 }
 
 void interpretdata(bool fresh, unsigned long curtime){
@@ -118,22 +210,20 @@ void interpretdata(bool fresh, unsigned long curtime){
       itemtomove  = 1;
     if (sw2value > 10)
       itemtomove  = 2;
-    // if (itemtomove == 1){
-
-    // }
-    // if (itemtomove == 2){
-
-    // }
-    receivedtime = curtime;
+    if (itemtomove == 1){
+      object1time = curtime; 
+    }
+    if (itemtomove == 2){
+      object2time = curtime; 
+    }
   }
   if (itemtomove > 0){
     driveobject(itemtomove);
   }
-
 }
 
 //===== Receiving =====//
-bool receiveRFnetwork(){
+bool receiveRFnetwork(unsigned long currentRFmilli){
   bool mreceived = false;
 
   // Check for incoming data details
@@ -147,6 +237,7 @@ bool receiveRFnetwork(){
         joystick_payload payload;
         network.read(header, &payload, sizeof(payload));
         Serial.print(F("Received from Joystick nodeId: "));
+        joynode = header.from_node;
         Serial.print(header.from_node);
         Serial.print(F(", timing: "));
         Serial.println(payload.timing);
@@ -161,6 +252,14 @@ bool receiveRFnetwork(){
           jbvalue = payload.bvalue;
           sw1value = payload.sw1value;
           sw2value = payload.sw2value;
+          Serial.print(F("xmvalue: "));
+          Serial.print(xmvalue);
+          Serial.print(F(", xpvalue: "));
+          Serial.print(xpvalue);
+          Serial.print(F(", ymvalue: "));
+          Serial.print(ymvalue);
+          Serial.print(F(", ypvalue: "));
+          Serial.println(ypvalue);
 
           // end of joystick message collection      
           mreceived = true;
@@ -179,24 +278,25 @@ bool receiveRFnetwork(){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh){
+void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
 
   // Every 5 seconds, or on new data
-  unsigned long currentRFmilli = millis();
   //if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
-  if (fresh){
+  if (fresh)
+    if ((unsigned long)(currentRFmilli - sendingTimer) > 5000){
+
     sendingTimer = currentRFmilli;
 
     network_payload Txdata;
-    Txdata.keyword = keywordvalS;
+    Txdata.keyword = keywordvalM;
     Txdata.timing = currentRFmilli;
     Txdata.counter = counter++;
 
-    RF24NetworkHeader header0(node00, 'S'); // address where the data is going
+    RF24NetworkHeader header0(joynode, 'M'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
       failcount++;
@@ -218,33 +318,26 @@ void transmitRFnetwork(bool fresh){
   }
 }
 
-bool driveServo(uint8_t servonum, uint16_t pulselen){
-
-  pwm.setPWM(servonum, 0, pulselen);
-
-}
-
 bool newdata = false;
 bool ack = false;
 
 void loop() {
 
-
   network.update();
 
   currentmilli = millis();
 
-  newdata = receiveRFnetwork();
-
-  interpretdata(newdata, currentmilli);
+  newdata = receiveRFnetwork(currentmilli);
 
   //************************ sensors/actuators ****************//
 
   // depending on received data, driveServo() (one or more commands)
-
+  interpretdata(newdata, currentmilli);
 
   //************************ sensors/actuators ****************//
 
-  transmitRFnetwork(ack);
+  checkobjectdrive(currentmilli);
+
+  transmitRFnetwork(ack, currentmilli);
 
 }
