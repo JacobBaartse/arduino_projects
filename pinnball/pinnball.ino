@@ -29,6 +29,7 @@
 
 #define NR_BALLS 4
 #define TILT_PIN 3
+#define SKIP_CONTACT_BOUNCE 25
 
 #define DEBUG 0
 
@@ -64,6 +65,13 @@ void save_tilt_state()
   tilt = true;
 }
 
+
+long cannon_millis;
+int effect;
+long start_millis;
+long duration;
+
+
 void setup(){
   Serial.begin(115200);
   setup_8x8matrix();
@@ -72,9 +80,10 @@ void setup(){
   setup_servo();
   ledstrip_setup();
   setup_mp3_player();
-  // Play_mp3_file(INTRO_MELODY);
-  // light_show(20000);
-  show_leds_rainbow();
+  Play_mp3_file(INTRO_MELODY);
+  effect = SCROLING_RAINBOW;
+  start_millis = millis();
+  duration = 20000;
   show_text_on_screen(get_top_scores());
   pinMode(TILT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(TILT_PIN), save_tilt_state, FALLING);
@@ -97,30 +106,30 @@ void showScore(){
 
 }
 
-long cannon_millis;
-int effect;
-long start_millis;
-long duration;
-
 void loop(){
   int switch_nr = io_extender_check_switches();
-  if (switch_nr == 15){  // BALL ON DECK
+  if (switch_nr == 15){  // BALL in the top left corner
     long speed = millis() - cannon_millis;
     debug("speed : ");
     debugln(speed);
     Play_mp3_file(KOEKOEK_KLOK);
+    delay(SKIP_CONTACT_BOUNCE);
+    effect = CANNON_SHOT_LEDS;
+    start_millis = millis();
+    duration = 1000;
+    
     if (speed < 400) score_counter += (400 - speed);
-
     String speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
     disp_8x8_matrix.print(speed_text.c_str());
     keep_matrix_millis = millis() + 10000;
-
-    light_show(2825);
   }
   if (switch_nr == 2){  // ramp down
+    delay(SKIP_CONTACT_BOUNCE);
     Play_mp3_file(DO_RE_MI);
     score_counter += 100;
-    light_show(1600);
+    effect = SCROLING_RAINBOW;
+    start_millis = millis();
+    duration = 1600;
   }
   if (switch_nr == 3){  // CANNON 
     cannon_millis = millis();
@@ -131,17 +140,24 @@ void loop(){
   if (switch_nr == 4){
     nr_balls_left --;
     showScore();
-    Play_mp3_file(JAMMER);  // BALL OUT
+
     if (nr_balls_left == 0){
+      Play_mp3_file(HIGH_ANOTHERONE);  //all BALLs OUT
+      Play_mp3_file(LOW_ANOTHERONE);
+      Play_mp3_file(HIGH_ANOTHERONE);
+      Play_mp3_file(LOW_ANOTHERONE);
+      
       store_score(score_counter);
       blink_all_leds(5000);
       next_player();
     }
     else{
-      light_show(4000);
+      Play_mp3_file(JAMMER);  // BALL OUT
+      blink_all_leds_blue_red(5000);
     }
   }  
   if (switch_nr == 10){  //red button
+    delay(SKIP_CONTACT_BOUNCE);
     Play_mp3_file(GUN_SHOT);
     reset_left_hit();
     do_servo(0, 0);
@@ -149,10 +165,12 @@ void loop(){
     show_text_on_screen(get_top_scores());
   }  
   if (switch_nr == 9){  //green button
+    delay(SKIP_CONTACT_BOUNCE);
     next_player();
     // Play_mp3_file(KLIK_KLAK);
   }
   if (switch_nr == 11){  //left side button 1
+    delay(SKIP_CONTACT_BOUNCE);
     left1hit = true;
     left1blink_until = millis() + 2000;
     Play_mp3_file(PRRRR);
@@ -162,6 +180,7 @@ void loop(){
     duration = 2000;
   }
   if (switch_nr == 12){  //left side button 2
+    delay(SKIP_CONTACT_BOUNCE);
     left2hit = true;
     Play_mp3_file(HIGH_PING);
     left2blink_until = millis() + 2000;
@@ -171,24 +190,26 @@ void loop(){
     duration = 2000;
   }
   if (switch_nr == 13){  //left side button 3
+    delay(SKIP_CONTACT_BOUNCE);
     left3hit = true;
     Play_mp3_file(OLD_TELEPHONE_RING);
     left3blink_until = millis() + 2000;
     score_counter += 5;
+    effect = SCROLING_RAINBOW;
+    start_millis = millis();
+    duration = 4000;
   }
   if (switch_nr == 1){ // ROTARY SENSOR
     Play_mp3_file(Y1_KORT_PR);
     effect = RUN_AROUND;
     start_millis = millis();
     duration = 1000;
-    // light_show(100);
     score_counter += 4;
   }  
 
   if (left1hit & left2hit & left3hit){
     if (!reset_servo) { // prevent double counting of points
       score_counter += 100;
-      delay(4); // do some delay before sendig next mp3 command
       Play_mp3_file(SUPER_GOOD);
     }
     reset_servo =  true;// prevent double counting of points
@@ -202,7 +223,11 @@ void loop(){
 
 
   if (tilt){ // tilt contact
-    Play_mp3_file(TOE_TOKKK);
+    delay(SKIP_CONTACT_BOUNCE);
+    Play_mp3_file(HIGH_ANOTHERONE);
+    Play_mp3_file(LOW_ANOTHERONE);
+    Play_mp3_file(HIGH_ANOTHERONE);
+    Play_mp3_file(LOW_ANOTHERONE);
     disp_8x8_matrix.print(tilt_text);
     blink_all_leds(5000);
     next_player();
@@ -213,17 +238,16 @@ void loop(){
     debug("switch number: ");
     debugln(switch_nr);
     showScore();
-    if (switch_nr == 10) show_leds_rainbow();
+
   }
 
   if (switch_nr == 17)
   {
+    delay(SKIP_CONTACT_BOUNCE);
     do_menu();
     show_text_on_screen(get_top_scores());
   }
 
-  // pattern_on_ledstrip(SCROLING_RAINBOW);
-  // pattern_on_ledstrip(RAINBOW);
   pattern_on_ledstrip(effect, start_millis, duration);
   score_onleds();
   FastLED.show();

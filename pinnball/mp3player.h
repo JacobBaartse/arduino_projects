@@ -72,6 +72,7 @@ void Play_mp3_file(byte songNumber) {
   byte command[] = {0x7E, 0x04, 0x03, 0x00, songNumber+1, 0xEF};
   Serial1.write(command, sizeof(command));
   // mp3.playFileByIndexNumber(songNumber+1);  
+  delay(4); // do some delay before sendig next mp3 command
 }
 
 void sendCommand(byte command[], int length) {
