@@ -210,6 +210,7 @@ void loop(){
   if (left1hit & left2hit & left3hit){
     if (!reset_servo) { // prevent double counting of points
       score_counter += 100;
+      nr_balls_left++;
       Play_mp3_file(SUPER_GOOD);
     }
     reset_servo =  true;// prevent double counting of points
