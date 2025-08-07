@@ -20,9 +20,10 @@
 // #define CFG_PIN6 8
 // #define CFG_PIN7 9
 
-#define PIR_PIN 4
 #define BUTTON_PIN 2
 #define BUTTON_PIN2 3
+
+#define PIR_PIN 4
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -88,12 +89,12 @@ void loop() {
   Serial.print(F("PIR_PIN: "));  
   Serial.println(digitalRead(PIR_PIN)); 
 
-  Serial.print(F("BUTTON_PIN: "));  
+  Serial.print(F("BUTTON_PIN 1: "));  
   Serial.println(pressBUTTON);
   pressBUTTON = false;  
-  Serial.print(F("BUTTON_PIN: "));  
-  Serial.println(pressBUTTON);
-  pressBUTTON = false;  
+  Serial.print(F("BUTTON_PIN 2: "));  
+  Serial.println(pressBUTTON2);
+  pressBUTTON2 = false;  
 }
 
 void buttonPress(){

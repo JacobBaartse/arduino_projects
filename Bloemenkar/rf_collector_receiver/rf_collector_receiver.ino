@@ -17,6 +17,9 @@
 // #define CFG_PIN6 8
 // #define CFG_PIN7 9
 
+/* one button on the collector to disable the alarm(s) as a local acknowledge that the detection is noticed
+ * another button to enable the alarming (when a fresh detection is arriving)
+ */
 #define BUTTON_PIN1 2
 #define BUTTON_PIN2 3
 
@@ -30,7 +33,6 @@ const uint16_t basenode = 00; // Address of the home/host/controller node in Oct
 uint8_t radiolevel = RF24_PA_MIN;
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
-
 
 struct detector_payload{
   uint32_t keyword;
@@ -59,7 +61,6 @@ void setup() {
   // PINs for sensor inputs
   pinMode(BUTTON_PIN1, INPUT_PULLUP);
   pinMode(BUTTON_PIN2, INPUT_PULLUP);
-
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
     //detectornode = 2;
@@ -106,9 +107,9 @@ bool pressBUTTON2 = false;
 bool activeBUTTON1 = false;
 bool activeBUTTON2 = false;
 
-void trackDetections(unsigned long currentmillis){
+void trackDetectionsAndButtons(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
-  static uint16_t detectamount = 0;
+  static bool alarming = false;
 
   if (detectorscount > 0){
     // activate LED and sound
@@ -116,6 +117,14 @@ void trackDetections(unsigned long currentmillis){
   }
   else {
     // turn off LED and sound
+
+  }
+
+  if (alarming){ // show LED and sound (buzzer)
+    if (!activeBUTTON1){ // button 1 means alarm acknowledged, do not buzz
+
+    }
+    // activate alarm LED
 
   }
 }
@@ -152,14 +161,15 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmilli){
+bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
 
   // Every 5 seconds, or on new data
-  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
+  //if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
+  if (fresh){
     sendingTimer = currentRFmilli;
 
     detector_payload Txdata;
@@ -182,7 +192,7 @@ void transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     // Serial.print(F(", sw2value: "));
     // Serial.println(Txdata.sw2value);
 
-    RF24NetworkHeader header0(node_id, 'D'); // address where the data is going
+    RF24NetworkHeader header0(node_id, 'B'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
       delay(50);
@@ -190,10 +200,7 @@ void transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     }
     Serial.print(F("Message send ")); 
     if (w_ok){
-      // bValue = 0; 
-      // sw1Value = 0;
-      // sw2Value = 0;
-      // fresh = false;
+      fresh = false;
       failcount = 0;
     }    
     else{
@@ -203,11 +210,15 @@ void transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     Serial.print(Txdata.count);
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
+
+    if (failcount > 2){
+      fresh = false; // do not send a lot of messages continously
+    }
   }
 
+  return fresh;
 }
 
-uint16_t snode = 00;
 
 void loop() {
 
@@ -215,12 +226,13 @@ void loop() {
 
   currentmilli = millis();
 
-  snode = receiveRFnetwork(currentmilli);
+  detectornode = receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
 
-  // snode is nodereceived, if > 0
-  newdata = (snode > 0); // received a message from a detector
+  // detectionnode is nodereceived, if > 0
+  if (detectornode > 0)
+    newdata = true; // received a message from a detector
 
   if (pressBUTTON1){
     activeBUTTON1 = true;
@@ -235,10 +247,10 @@ void loop() {
 
   //************************ sensors ****************//
 
-  trackDetections(currentmilli);
+  trackDetectionsAndButtons(currentmilli);
 
-  // possible to send ack to detector node
-  //transmitRFnetwork(newdata, snode, currentmilli);
+  // possible to send acknowledge to the detector node
+  //newdata = transmitRFnetwork(newdata, detectionnode, currentmilli);
 
 }
 
