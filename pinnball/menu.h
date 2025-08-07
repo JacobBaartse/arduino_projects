@@ -64,7 +64,7 @@ void store_score(uint32_t score_counter){
   UserObject l_readObject;
   EEPROM.get(idx_current_player, l_readObject);  
   if (score_counter > readObject.score){
-    readObject.score = score_counter;
+    l_readObject.score = score_counter;
     EEPROM.put(idx_current_player, l_readObject);
   }
 }
