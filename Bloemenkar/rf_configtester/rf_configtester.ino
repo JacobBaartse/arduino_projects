@@ -22,6 +22,7 @@
 
 #define PIR_PIN 4
 #define BUTTON_PIN 2
+#define BUTTON_PIN2 3
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -31,6 +32,7 @@ RF24Network network(radio); // Include the radio in the network
 uint16_t detectornode = 05; // configtester node id
 
 bool pressBUTTON = false;
+bool pressBUTTON2 = false;
 
 void setup() {
   Serial.begin(115200);
@@ -46,6 +48,7 @@ void setup() {
   // pinMode(CFG_PIN7, INPUT_PULLUP);
   pinMode(PIR_PIN, INPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN2, INPUT_PULLUP);
 
   Serial.println(F(" ***** >< *****"));  
   Serial.println(__FILE__);
@@ -63,6 +66,7 @@ void setup() {
   network.begin(radioChannel, detectornode);
 
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonPress, FALLING); // trigger when button is pressed
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress2, FALLING); // trigger when button is pressed
 }
  
 
@@ -87,11 +91,19 @@ void loop() {
   Serial.print(F("BUTTON_PIN: "));  
   Serial.println(pressBUTTON);
   pressBUTTON = false;  
-
+  Serial.print(F("BUTTON_PIN: "));  
+  Serial.println(pressBUTTON);
+  pressBUTTON = false;  
 }
 
 void buttonPress(){
   pressBUTTON = true;
-  Serial.print(F("Button press: "));
+  Serial.print(F("Button press 1: "));
+  Serial.println(millis());
+}
+
+void buttonPress2(){
+  pressBUTTON2 = true;
+  Serial.print(F("Button press 2: "));
   Serial.println(millis());
 }
