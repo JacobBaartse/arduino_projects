@@ -16,7 +16,7 @@
 // Importeer de toonhoogstes van de noten
 #include "pitches.h"
 
-// stel de variable "buzzerPin" op pin 12
+// stel de variable "buzzerPin" op pin 9
 int buzzPin = 9;       
 int volumePin = A0;      
 
@@ -32,6 +32,11 @@ int noteDurations[] = {
 
 void setup(void) {
   Serial.begin(115200);
+  Serial.println(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
+
   pinMode(buzzPin, OUTPUT);         // stel de buzzerPin in als uitvoer
   pinMode(volumePin, OUTPUT);         // stel de volumePin in als uitvoer
 }

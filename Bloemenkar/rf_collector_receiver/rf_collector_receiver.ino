@@ -23,6 +23,8 @@
 #define BUTTON_PIN1 2
 #define BUTTON_PIN2 3
 
+#define BUZZER_PIN 6
+
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(10, 9); // nRF24L01 (CE, CSN)
@@ -31,6 +33,7 @@ RF24Network network(radio); // Include the radio in the network
 uint16_t detectornode = 00; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
 uint8_t radiolevel = RF24_PA_MIN;
+uint16_t buzzertone = 2500;
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
 
@@ -62,11 +65,13 @@ void setup() {
   pinMode(BUTTON_PIN1, INPUT_PULLUP);
   pinMode(BUTTON_PIN2, INPUT_PULLUP);
 
+  pinMode(BUZZER_PIN, OUTPUT); // Set buzzer pin as an output
+
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-    //detectornode = 2;
+    buzzertone = 1000;
   }
   if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-    //detectornode = detectornode + 2;
+    buzzertone = 4000;
   }
   if (digitalRead(CFG_PIN2) == LOW){ // PIN active
     radiolevel = 1;
@@ -107,21 +112,33 @@ bool pressBUTTON2 = false;
 bool activeBUTTON1 = false;
 bool activeBUTTON2 = false;
 
+void drivebuzzer(bool buzzerstatus){
+  if (buzzerstatus){
+    tone(BUZZER_PIN, buzzertone);
+  }
+  else {
+    noTone(BUZZER_PIN); 
+  }
+}
+
 void trackDetectionsAndButtons(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
   static bool alarming = false;
 
   if (detectorscount > 0){
     // activate LED and sound
-
+    drivebuzzer(true);
+    
   }
   else {
     // turn off LED and sound
+    drivebuzzer(false);
 
   }
 
   if (alarming){ // show LED and sound (buzzer)
     if (!activeBUTTON1){ // button 1 means alarm acknowledged, do not buzz
+      drivebuzzer(false);
 
     }
     // activate alarm LED

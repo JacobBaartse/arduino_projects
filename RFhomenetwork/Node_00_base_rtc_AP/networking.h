@@ -199,11 +199,12 @@ RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t base_node = 00;   // Address of this node in Octal format (04, 031, etc.)
-const uint16_t rtc_node = 02;
-const uint16_t shed_node = 01;
-const uint16_t spoorstra_node = 011; // connect via shed_node
+const uint16_t rtc_node = 05;
+const uint16_t shed_node = 03;
+const uint16_t spoorstra_node = 013; // connect via shed_node
 const uint16_t kitchen_node = 02;
 const uint16_t keypad_node = 012; // connect via kitchen_node
+const uint16_t joystick_node = 022; // connect via kitchen_node
 
 void setupRFnetwork(){
   SPI.begin();
