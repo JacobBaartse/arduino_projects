@@ -109,7 +109,7 @@ void setup(void) {
   }
 
   // set the data rate
-  uint8_t dataRate = 0; // set some default
+  //uint8_t dataRate = 0; // set some default
 
   // Serial.print(F("Select your Data Rate. "));
   // Serial.print(F("Enter '1' for 1 Mbps, '2' for 2 Mbps, '3' for 250 kbps. "));
@@ -118,16 +118,16 @@ void setup(void) {
   //   // wait for user input
   // }
   // dataRate = Serial.parseInt();
-  if (dataRate == 50) {
-    Serial.println(F("Using 2 Mbps."));
-    radio.setDataRate(RF24_2MBPS);
-  } else if (dataRate == 51) {
-    Serial.println(F("Using 250 kbps."));
-    radio.setDataRate(RF24_250KBPS);
-  } else {
+  // if (dataRate == 50) {
+  //   Serial.println(F("Using 2 Mbps."));
+  //   radio.setDataRate(RF24_2MBPS);
+  // } else if (dataRate == 51) {
+  //   Serial.println(F("Using 250 kbps."));
+  //   radio.setDataRate(RF24_250KBPS);
+  // } else {
     Serial.println(F("Using 1 Mbps."));
     radio.setDataRate(RF24_1MBPS);
-  }
+  //}
   // Serial.println(F("***Enter a channel number to emit a constant carrier wave."));
   // Serial.println(F("***Enter a negative number to switch back to scanner mode."));
 

@@ -28,10 +28,12 @@ RF24 radio(10, 9); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
-uint16_t joynode = 00; // address for the receiving message
+uint16_t joynode = 00; // address for the receiving message from joystick
+uint16_t keynode = 00; // address for the receiving message from keypad
 
 unsigned long const keywordvalM = 0xfeedbeef; 
 unsigned long const keywordvalJ = 0xbcdffeda;
+unsigned long const keywordvalK = 0xbeeffeed; 
 
 struct joystick_payload{
   uint32_t keyword;
@@ -57,6 +59,21 @@ struct network_payload {
   unsigned long data3;
 };
 
+struct keypad_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint32_t count;
+  char keys[11];
+};
+
+const uint8_t maxkeys = 10;
+char keytracking[11]; // 10 characters + room for the null terminator
+
+void clearkeypadcache(){
+  for (int i=0;i<=maxkeys;i++){
+    keytracking[i] = 0; // place null character
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -79,6 +96,8 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, node00);
+
+  clearkeypadcache();
 }
 
 unsigned long receiveTimer = 0;
@@ -266,6 +285,31 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
         }
         else{
           Serial.println(F("Wrong Joystick keyword")); 
+        }
+        break;
+      // Display the incoming millis() values from sensor nodes
+      case 'K': 
+        keypad_payload kpayload;
+        network.read(header, &kpayload, sizeof(kpayload));
+        Serial.print(F("Received from Keypad nodeId: "));
+        keynode = header.from_node;
+        Serial.print(header.from_node);
+        Serial.print(F(", timing: "));
+        Serial.println(kpayload.timing);
+        if (kpayload.keyword == keywordvalK) {
+        // message received from keypad
+        Serial.print(F("Key(s): '"));        
+        for (int i=0;i<=maxkeys;i++){
+          keytracking[i] = kpayload.keys[i];
+          if (keytracking[i] > 0){
+            Serial.print(keytracking[i]);        
+          }
+        }
+        Serial.println(F("'"));        
+
+        }
+        else{
+          Serial.println(F("Wrong Keypad keyword")); 
         }
         break;
       default: 
