@@ -207,16 +207,16 @@ void driveobject(uint8_t itemnumber){
 }
 
 void checkobjectdrive(unsigned long curtime){
-  if ((unsigned long)(curtime - object1time) > 5000){
-    pauseServo(0);
-    pauseServo(1);
-    object1time = curtime;
-  }
-  if ((unsigned long)(curtime - object2time) > 5000){
-    pauseServo(2);
-    pauseServo(3);
-    object2time = curtime;
-  }
+  // if ((unsigned long)(curtime - object1time) > 5000){
+  //   pauseServo(0);
+  //   pauseServo(1);
+  //   object1time = curtime;
+  // }
+  // if ((unsigned long)(curtime - object2time) > 5000){
+  //   pauseServo(2);
+  //   pauseServo(3);
+  //   object2time = curtime;
+  // }
 }
 
 void interpretdata(bool fresh, unsigned long curtime){
@@ -271,6 +271,15 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
           jbvalue = payload.bvalue;
           sw1value = payload.sw1value;
           sw2value = payload.sw2value;
+          if (jbvalue > 0){
+            Serial.print(F("Button J, "));
+          }
+          if (sw1value > 0){
+            Serial.print(F("Button 1, "));
+          }
+          if (sw2value > 0){
+            Serial.print(F("Button 2, "));
+          }
           Serial.print(F("xmvalue: "));
           Serial.print(xmvalue);
           Serial.print(F(", xpvalue: "));
