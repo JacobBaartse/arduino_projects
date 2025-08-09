@@ -70,7 +70,7 @@ long cannon_millis;
 int effect;
 long start_millis;
 long duration;
-
+bool intro_melody=true;
 
 void setup(){
   Serial.begin(115200);
@@ -108,6 +108,14 @@ void showScore(){
 
 void loop(){
   int switch_nr = io_extender_check_switches();
+  if (switch_nr > 0){
+    if (intro_melody){
+      duration = 0;
+      reset_mp3();
+      intro_melody = false;
+      delay(100);
+    } 
+  }
   if (switch_nr == 15){  // BALL in the top left corner
     long speed = millis() - cannon_millis;
     debug("speed : ");
@@ -162,6 +170,7 @@ void loop(){
     reset_left_hit();
     do_servo(0, 0);
     score_counter = 0;
+    nr_balls_left = NR_BALLS;
     show_text_on_screen(get_top_scores());
   }  
   if (switch_nr == 9){  //green button

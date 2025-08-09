@@ -142,6 +142,7 @@ String onScreenKeyboard_get_string(bool shift, String value, String label) {
     bool dowhile = true;
     while (dowhile){
       p1 = get_touch();
+      delay(200);
       debug("x = ");
       debug(p1.x);
       debug(", y = ");
@@ -166,6 +167,7 @@ String onScreenKeyboard_get_string(bool shift, String value, String label) {
         } 
         else{
           debugln("ok");
+          tft.fillScreen(ILI9341_BLACK);
           return input;
         }
       } 
@@ -178,10 +180,16 @@ String onScreenKeyboard_get_string(bool shift, String value, String label) {
   }
 }
 
+String prev_text = "";
 void show_text_on_screen(String text){
-  tft.fillScreen(ILI9341_BLACK);
+  tft.setTextColor(ILI9341_BLACK);  
+  tft.setCursor(0,20);
+  tft.write(prev_text.c_str());  
+
+  tft.setTextColor(ILI9341_WHITE);  
   tft.setCursor(0,20);
   tft.write(text.c_str());  
+  prev_text = text;
 }
 
 void show_text_on_screen_time(String text, long duration){
@@ -192,6 +200,7 @@ void show_text_on_screen_time(String text, long duration){
 
 int show_menu_on_screen(String menu_text){
   show_text_on_screen(menu_text);  
+  delay(300);
   p1 = get_touch();
   debug("x = ");
   debug(p1.x);
