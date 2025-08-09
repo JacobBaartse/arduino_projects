@@ -17,7 +17,8 @@
 // #define CFG_PIN6 8
 // #define CFG_PIN7 9
 
-#define BUTTON_PIN 2
+#define BUTTON_PIN1 2
+#define BUTTON_PIN2 3
 
 #define PIR_PIN 4
 
@@ -57,7 +58,8 @@ void setup() {
   // pinMode(CFG_PIN7, INPUT_PULLUP);
 
   // PINs for sensor inputs
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN1, INPUT_PULLUP);
+  pinMode(BUTTON_PIN2, INPUT_PULLUP);
   pinMode(PIR_PIN, INPUT);
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
@@ -97,7 +99,8 @@ void setup() {
   Serial.print(F(", level: "));
   Serial.println(radiolevel);
 
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonPress, FALLING); // trigger when button is pressed
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN1), buttonPress, FALLING); // trigger when button is pressed
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress, FALLING); // trigger when button is pressed
 }
 
 unsigned long currentmilli = 0;
