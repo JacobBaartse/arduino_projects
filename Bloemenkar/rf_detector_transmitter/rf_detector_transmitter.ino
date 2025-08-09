@@ -17,8 +17,9 @@
 // #define CFG_PIN6 8
 // #define CFG_PIN7 9
 
-#define PIR_PIN 4
 #define BUTTON_PIN 2
+
+#define PIR_PIN 4
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -56,9 +57,8 @@ void setup() {
   // pinMode(CFG_PIN7, INPUT_PULLUP);
 
   // PINs for sensor inputs
-  pinMode(PIR_PIN, INPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-
+  pinMode(PIR_PIN, INPUT);
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
     detectornode = 2;
@@ -72,19 +72,6 @@ void setup() {
   if (digitalRead(CFG_PIN3) == LOW){ // PIN active
     radiolevel = radiolevel + 2;
   }
-
-  // if (digitalRead(CFG_PIN4) == LOW){ // PIN active
-
-  // }
-  // if (digitalRead(CFG_PIN5) == LOW){ // PIN active
-
-  // }
-  // if (digitalRead(CFG_PIN6) == LOW){ // PIN active
-
-  // }
-  // if (digitalRead(CFG_PIN7) == LOW){ // PIN active
-
-  // }
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
@@ -115,10 +102,49 @@ void setup() {
 
 unsigned long currentmilli = 0;
 uint8_t detectionValue = 0;
+uint8_t sw1Value = 0;
+uint8_t sw2Value = 0;
 bool activePIR = false;
 bool activeBUTTON = false;
 bool pressBUTTON = false;
 
+
+void trackDetectionAndButton(unsigned long currentDetectMillis){
+  static unsigned long activationTime = 0;
+  static bool alarming = false;
+
+  if (alarming){
+    if ((unsigned long)(currentDetectMillis - activationTime) > 60000){ // 60 seconds no new detection
+      activePIR = false;
+      activeBUTTON = false;
+      detectionValue = 0;
+      sw1Value = 0;
+      sw2Value = 0;
+      Serial.print(F("Reset detections "));
+      Serial.println(currentDetectMillis);
+      alarming = false;
+    }
+  }
+  else {
+    if (activePIR){
+      sw1Value = 0x5a;
+      Serial.print(F("PIR detection "));
+      Serial.println(currentDetectMillis);
+      alarming = true;
+    }
+    if (activeBUTTON){
+      sw2Value = 0xa5;
+      activationTime = currentDetectMillis;
+      Serial.print(F("BUTTON detection "));
+      Serial.println(currentDetectMillis);
+      alarming = true;
+    }
+    if (alarming){
+      activationTime = currentDetectMillis;
+      detectionValue = 0xff;
+    }
+  }
+}
 
 //===== Receiving =====//
 void receiveRFnetwork(unsigned long currentRFmilli){
@@ -134,6 +160,9 @@ void receiveRFnetwork(unsigned long currentRFmilli){
     }
     if (Rxdata.keyword == keywordvalD){
       Serial.println(F("new data received"));
+
+      // in case a message is received, with specific data, the detector could be 'reset'
+
 
     }
     else{
@@ -158,16 +187,16 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
     Txdata.dvalue = detectionValue;
-    // Txdata.sw1value = sw1Value;
-    // Txdata.sw2value = sw2Value;
+    Txdata.sw1value = sw1Value;
+    Txdata.sw2value = sw2Value;
 
     Serial.print(F("Message: "));
     Serial.print(F(" dvalue: "));
     Serial.print(Txdata.dvalue);
-    // Serial.print(F(", sw1value: "));
-    // Serial.print(Txdata.sw1value);        
-    // Serial.print(F(", sw2value: "));
-    // Serial.println(Txdata.sw2value);
+    Serial.print(F(", sw1value (PIR): "));
+    Serial.print(Txdata.sw1value);        
+    Serial.print(F(", sw2value (BUTTON): "));
+    Serial.println(Txdata.sw2value);
 
     RF24NetworkHeader header0(basenode, 'D'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
@@ -188,7 +217,7 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
 
-    if (failcount > 10){
+    if (failcount > 4){
       fresh = false; // do not send a lot of messages continously
     }
   }
@@ -207,9 +236,11 @@ void loop() {
 
   //************************ sensors ****************//
 
-  if (digitalRead(PIR_PIN) == LOW){
-    activePIR = true;
-    newdata = true;
+  if (!activePIR){
+    if (digitalRead(PIR_PIN) == LOW){
+      activePIR = true;
+      newdata = true;
+    }
   }
   if (pressBUTTON){
     activeBUTTON = true;
@@ -218,6 +249,8 @@ void loop() {
   }  
 
   //************************ sensors ****************//
+
+  trackDetectionAndButton(currentmilli);
 
   newdata = transmitRFnetwork(newdata, currentmilli);
 }
