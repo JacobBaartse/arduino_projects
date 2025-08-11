@@ -29,7 +29,7 @@
 
 #define NR_BALLS 4
 #define TILT_PIN 3
-#define SKIP_CONTACT_BOUNCE 25
+#define SKIP_CONTACT_BOUNCE 100
 
 #define DEBUG 0
 
@@ -93,8 +93,6 @@ void setup(){
 long keep_matrix_millis = 0;
 
 void showScore(){
-  // score_onleds(left1hit, left2hit, left3hit);
-
   if (millis() > keep_matrix_millis){
     String screen_text = current_player_name;
     while (screen_text.length() < 10) screen_text += " ";
@@ -103,7 +101,6 @@ void showScore(){
     screen_text += String("   Balls: ") + String(nr_balls_left);
     disp_8x8_matrix.print(screen_text.c_str());
   }
-
 }
 
 void loop(){
@@ -121,7 +118,6 @@ void loop(){
     debug("speed : ");
     debugln(speed);
     Play_mp3_file(KOEKOEK_KLOK);
-    delay(SKIP_CONTACT_BOUNCE);
     effect = CANNON_SHOT_LEDS;
     start_millis = millis();
     duration = 1000;
@@ -132,7 +128,6 @@ void loop(){
     keep_matrix_millis = millis() + 10000;
   }
   if (switch_nr == 2){  // ramp down
-    delay(SKIP_CONTACT_BOUNCE);
     Play_mp3_file(DO_RE_MI);
     score_counter += 100;
     effect = SCROLING_RAINBOW;
@@ -165,7 +160,6 @@ void loop(){
     }
   }  
   if (switch_nr == 10){  //red button
-    delay(SKIP_CONTACT_BOUNCE);
     Play_mp3_file(GUN_SHOT);
     reset_left_hit();
     do_servo(0, 0);
@@ -174,12 +168,10 @@ void loop(){
     show_text_on_screen(get_top_scores());
   }  
   if (switch_nr == 9){  //green button
-    delay(SKIP_CONTACT_BOUNCE);
     next_player();
     // Play_mp3_file(KLIK_KLAK);
   }
   if (switch_nr == 11){  //left side button 1
-    delay(SKIP_CONTACT_BOUNCE);
     left1hit = true;
     left1blink_until = millis() + 2000;
     Play_mp3_file(PRRRR);
@@ -189,7 +181,6 @@ void loop(){
     duration = 2000;
   }
   if (switch_nr == 12){  //left side button 2
-    delay(SKIP_CONTACT_BOUNCE);
     left2hit = true;
     Play_mp3_file(HIGH_PING);
     left2blink_until = millis() + 2000;
@@ -199,15 +190,55 @@ void loop(){
     duration = 2000;
   }
   if (switch_nr == 13){  //left side button 3
-    delay(SKIP_CONTACT_BOUNCE);
     left3hit = true;
     Play_mp3_file(OLD_TELEPHONE_RING);
     left3blink_until = millis() + 2000;
     score_counter += 5;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
-    duration = 4000;
+    duration = 2000;
   }
+  
+  if (switch_nr == 7){  //right side button Joker
+    // left2hit = true;
+    Play_mp3_file(TADI_TADIADI);
+    nr_balls_left++;
+    left2blink_until = millis() + 2000;
+    score_counter += 50;
+    effect = FADE_IN_OUT;
+    start_millis = millis();
+    duration = 2000;
+  }
+
+  if (switch_nr == 8){   //right side button klaver 10
+    // left1hit = true;
+    left1blink_until = millis() + 2000;
+    Play_mp3_file(PAARD);
+    score_counter += 5;
+    effect = SPARKLING;
+    start_millis = millis();
+    duration = 2000;
+  }
+  if (switch_nr == 5){  //right side button klaver 9
+    // left3hit = true;
+    Play_mp3_file(KREKEL);
+    left3blink_until = millis() + 2000;
+    score_counter += 5;
+    effect = SCROLING_RAINBOW;
+    start_millis = millis();
+    duration = 2000;
+  }
+    if (switch_nr == 6){  //right side button klaver 8
+    // left3hit = true;
+    Play_mp3_file(KLONGNGNG);
+    left3blink_until = millis() + 2000;
+    score_counter += 5;
+    effect = SCROLING_RAINBOW;
+    start_millis = millis();
+    duration = 2000;
+  }
+  
+
   if (switch_nr == 1){ // ROTARY SENSOR
     Play_mp3_file(Y1_KORT_PR);
     effect = RUN_AROUND;
@@ -253,7 +284,6 @@ void loop(){
 
   if (switch_nr == 17)
   {
-    delay(SKIP_CONTACT_BOUNCE);
     do_menu();
     show_text_on_screen(get_top_scores());
   }

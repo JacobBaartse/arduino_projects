@@ -88,6 +88,16 @@ long left2blink_until = 0;
 long left3blink_until = 0;
 long leftblinkall_until = 0;
 
+bool right1hit = false;
+bool right2hit = false;
+bool right3hit = false;
+bool right4hit = false;
+long right1blink_until = 0;
+long right2blink_until = 0;
+long right3blink_until = 0;
+long right4blink_until = 0;
+long rightblinkall_until = 0;
+
 void leds_on(int led1, int led2, CRGB color){
     leds[led1] = color;  
     leds[led2] = color;

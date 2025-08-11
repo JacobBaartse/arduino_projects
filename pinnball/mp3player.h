@@ -16,48 +16,60 @@
 // Arduino Pin TX d1 is connected to one end of a  1k resistor, 
 // the other end of the 1k resistor is connected to RX of the JQ6500
 // If your Arduino is 3v3 powered, you can omit the 1k series resistor
+
+#define DEBUG 0
+
+#if DEBUG == 1
+#define debug(x) Serial.print(x)
+#define debugln(x) Serial.println(x)
+#else
+#define debug(x)
+#define debugln(x)
+#endif
+
+
 JQ6500_Serial mp3(Serial1);  // for arduino R4 , R4 wifi Serial1 has to be used. while connected to d0, d1
 
 // int num_files = 0;
 // int i=0;
 
-const int CANNON_SHOT = 0;
-const int DO_RE_MI = 1;
-const int FIEEEW = 2;
-const int GUN_SHOT = 3;
-const int HARP_TRIANGEL = 4;
-const int HART_SLAG = 5;
-const int HIGH_ANOTHERONE = 6;
-const int HIGH_PING = 7;
-const int INTRO_MELODY = 8;
-const int JAMMER = 9;
-const int JUICHEN = 10;
-const int KIP = 11;
-const int KLIK_KLAK = 12;
-const int KLOK_TIKKEN = 13;
-const int KLONGNGNG = 14;
-const int KOEKOEK_KLOK = 15;
-const int KREKEL = 16;
-const int LOW_ANOTHERONE = 17;
-const int OLD_TELEPHONE_RING = 18;
-const int P_OEIJJ = 19;
-const int PAARD = 20;
-const int POING_5X = 21;
-const int POINOININ = 22;
-const int PRRRR = 23;
-const int SUPER_GOOD = 24;
-const int SUPER_SCORE = 25;
-const int TADI_TADIADI = 26;
-const int TATA_TSJING = 27;
-const int TIE_WIEWIE = 28;
-const int TING_TING_TING = 29;
-const int TOE_OE_3X = 30;
-const int TOE_TOKKK = 31;
-const int TONG_TING_HIGH = 32;
-const int TRRRRR = 33;
-const int WOOOWOWOW = 34;
-const int XILOFOON_UP = 35;
-const int Y1_KORT_PR = 36;
+#define  CANNON_SHOT 0
+#define  DO_RE_MI 1
+#define  FIEEEW 2
+#define  GUN_SHOT 3
+#define  HARP_TRIANGEL 4
+#define  HART_SLAG 5
+#define  HIGH_ANOTHERONE 6
+#define  HIGH_PING 7
+#define  INTRO_MELODY 8
+#define  JAMMER 9
+#define  JUICHEN 10
+#define  KIP 11
+#define  KLIK_KLAK 12
+#define  KLOK_TIKKEN 13
+#define  KLONGNGNG 14
+#define  KOEKOEK_KLOK 15
+#define  KREKEL 16
+#define  LOW_ANOTHERONE 17
+#define  OLD_TELEPHONE_RING 18
+#define  P_OEIJJ 19
+#define  PAARD 20
+#define  POING_5X 21
+#define  POINOININ 22
+#define  PRRRR 23
+#define  SUPER_GOOD 24
+#define  SUPER_SCORE 25
+#define  TADI_TADIADI 26
+#define  TATA_TSJING 27
+#define  TIE_WIEWIE 28
+#define  TING_TING_TING 29
+#define  TOE_OE_3X 30
+#define  TOE_TOKKK 31
+#define  TONG_TING_HIGH 32
+#define  TRRRRR 33
+#define  WOOOWOWOW 34
+#define  XILOFOON_UP 35
+#define  Y1_KORT_PR 36
 
 
 void setup_mp3_player() {
@@ -69,25 +81,32 @@ void setup_mp3_player() {
 }
 
 void Play_mp3_file(byte songNumber) {
+  debug("play mp3 file");
+  debugln(songNumber);
   byte command[] = {0x7E, 0x04, 0x03, 0x00, songNumber+1, 0xEF};
   Serial1.write(command, sizeof(command));
   // mp3.playFileByIndexNumber(songNumber+1);  
+  delay(50); // do some delay before sendig next mp3 command
 }
 
 void sendCommand(byte command[], int length) {
+  debug("mp3 send command");
   while (Serial1.available()) Serial1.read();
   Serial1.write(command, length);
-  delay(4); // do some delay before sendig next mp3 command
+  delay(50); // do some delay before sendig next mp3 command
 }
 
 void reset_mp3(){
+  debug("mp3 reset");
   byte command[] = {0x7E, 0x02, 0x0C, 0xEF};
   sendCommand(command, sizeof(command));
 }
 
 void playTrack( byte b){
+  debug("mp3 play track");
   byte command[] = {0x7E, 0x04, 0x03, 0x00, b+1, 0xEF};
   Serial1.write(command, sizeof(command));
+  delay(50); // do some delay before sendig next mp3 command
   // int count = 0;
   // while (Serial1.available() == 0  && count < 2){
   //   count++;
@@ -98,3 +117,5 @@ void playTrack( byte b){
   // }
 }
 
+#undef debug
+#undef debugln

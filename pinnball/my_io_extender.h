@@ -36,6 +36,8 @@ uint8_t io_extender_check_switches()
   uint8_t pos = 0;
   if (pin4_val == 0)
   {
+    //delay for contact bounce
+    delay(100);
     uint16_t value = PCF_20.read16();
     value ^= xor_value;  // 1 for normaly open,  0 for normaly closed.
     debugln(value);
