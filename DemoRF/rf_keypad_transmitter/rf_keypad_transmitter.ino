@@ -154,7 +154,6 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     else{
       Serial.print(F("failed "));
       failcount++;
-      delay(50);
     }
     Serial.println(currentRFmilli);
   }
@@ -189,10 +188,12 @@ void loop() {
     }
   }
 
-  if (keyindex > 0)
+  if (keyindex > 0){ // give some time for inputting multiple characters/numbers
     newdata = currentmilli > keyingtime;
-  else 
-    newdata = keyindex > (maxkeys - 3);
+    if (!newdata) {
+      newdata = keyindex > (maxkeys - 3);
+    }
+  }
 
   //************************ sensors ****************//
 

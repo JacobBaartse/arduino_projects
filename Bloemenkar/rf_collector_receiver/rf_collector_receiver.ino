@@ -33,7 +33,6 @@ RF24Network network(radio); // Include the radio in the network
 uint16_t detectornode = 00; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
 uint8_t radiolevel = RF24_PA_MIN;
-uint16_t buzzertone = 2500;
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
 
@@ -67,12 +66,10 @@ void setup() {
 
   pinMode(BUZZER_PIN, OUTPUT); // Set buzzer pin as an output
 
-  if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-    buzzertone = 1000;
-  }
-  if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-    buzzertone = 4000;
-  }
+  // if (digitalRead(CFG_PIN0) == LOW){ // PIN active
+  // }
+  // if (digitalRead(CFG_PIN1) == LOW){ // PIN active
+  // }
   if (digitalRead(CFG_PIN2) == LOW){ // PIN active
     radiolevel = 1;
   }
@@ -113,7 +110,15 @@ bool activeBUTTON1 = false;
 bool activeBUTTON2 = false;
 
 void drivebuzzer(bool buzzerstatus){
+static uint16_t buzzertone = 2500;
+
   if (buzzerstatus){
+    if (digitalRead(CFG_PIN0) == LOW){ // PIN active
+      buzzertone = 1000;
+    }
+    if (digitalRead(CFG_PIN1) == LOW){ // PIN active
+      buzzertone = 4000;
+    }
     tone(BUZZER_PIN, buzzertone);
   }
   else {

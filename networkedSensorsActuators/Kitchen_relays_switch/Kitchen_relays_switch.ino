@@ -9,11 +9,8 @@
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
-  while (!Serial) {
-    // some boards need this because of native USB capability
-  }
   delay(1000);
-  Serial.println();
+  Serial.println(F(" ***** <> *****"));  
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);

@@ -20,7 +20,7 @@ void setup() {
   Serial.flush(); 
 
   while (!Serial)
-     delay(10);
+     delay(1000);
   Serial.println("\nI2C Scanner");
 
   WIRE.begin();

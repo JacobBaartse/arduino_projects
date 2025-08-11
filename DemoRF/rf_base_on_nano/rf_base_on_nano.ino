@@ -68,11 +68,13 @@ struct keypad_payload{
 
 const uint8_t maxkeys = 10;
 char keytracking[11]; // 10 characters + room for the null terminator
+//uint8_t keyindex = 0;
 
 void clearkeypadcache(){
   for (int i=0;i<=maxkeys;i++){
     keytracking[i] = 0; // place null character
   }
+  //keyindex = 0;
 }
 
 void setup() {
@@ -190,7 +192,9 @@ void driveobject(uint8_t itemnumber){
     Serial.print(F("Pos X: "));
     Serial.print(posx);
     Serial.print(F(", pos Y: "));
-    Serial.println(posy);
+    Serial.print(posy);
+    Serial.print(F(", object: "));
+    Serial.println(itemnumber);
 
     memPos[itemnumber][0] = posx;
     memPos[itemnumber][1] = posy;
@@ -198,25 +202,27 @@ void driveobject(uint8_t itemnumber){
     if (itemnumber == 1){
       driveServo(0, posx); // x coordination
       driveServo(1, posy); // y coordination
+      Serial.println(F("item 1"));
     }
     if (itemnumber == 2){
       driveServo(2, posx); // x coordination
       driveServo(3, posy); // y coordination
+      Serial.println(F("item 2"));
     } 
   }
 }
 
 void checkobjectdrive(unsigned long curtime){
-  if ((unsigned long)(curtime - object1time) > 5000){
-    pauseServo(0);
-    pauseServo(1);
-    object1time = curtime;
-  }
-  if ((unsigned long)(curtime - object2time) > 5000){
-    pauseServo(2);
-    pauseServo(3);
-    object2time = curtime;
-  }
+  // if ((unsigned long)(curtime - object1time) > 5000){
+  //   pauseServo(0);
+  //   pauseServo(1);
+  //   object1time = curtime;
+  // }
+  // if ((unsigned long)(curtime - object2time) > 5000){
+  //   pauseServo(2);
+  //   pauseServo(3);
+  //   object2time = curtime;
+  // }
 }
 
 void interpretdata(bool fresh, unsigned long curtime){
@@ -271,6 +277,23 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
           jbvalue = payload.bvalue;
           sw1value = payload.sw1value;
           sw2value = payload.sw2value;
+          Serial.print(F("Button "));
+          bool printbutton = false;
+          if (jbvalue > 0){
+            Serial.print(F("J, "));
+            printbutton = true;
+          }
+          if (sw1value > 0){
+            Serial.print(F("1, "));
+            printbutton = true;
+          }
+          if (sw2value > 0){
+            Serial.print(F("2, "));
+            printbutton = true;
+          }
+          if (!printbutton){
+            Serial.print(F("-, "));
+          }
           Serial.print(F("xmvalue: "));
           Serial.print(xmvalue);
           Serial.print(F(", xpvalue: "));
@@ -289,6 +312,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
         break;
       // Display the incoming millis() values from sensor nodes
       case 'K': 
+        bool keyfollowup = false;
         keypad_payload kpayload;
         network.read(header, &kpayload, sizeof(kpayload));
         Serial.print(F("Received from Keypad nodeId: "));
@@ -297,16 +321,25 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
         Serial.print(F(", timing: "));
         Serial.println(kpayload.timing);
         if (kpayload.keyword == keywordvalK) {
-        // message received from keypad
-        Serial.print(F("Key(s): '"));        
-        for (int i=0;i<=maxkeys;i++){
-          keytracking[i] = kpayload.keys[i];
-          if (keytracking[i] > 0){
-            Serial.print(keytracking[i]);        
+          // message received from keypad
+          Serial.print(F("Key(s): '"));        
+          for (int i=0;i<=maxkeys;i++){
+            keytracking[i] = kpayload.keys[i];
+            if (keytracking[i] > 0){
+              Serial.print(keytracking[i]); 
+              keyfollowup = true;       
+            }
           }
-        }
-        Serial.println(F("'"));        
+          Serial.println(F("'")); 
+          if (keyfollowup){
+            // process the received characters, interpret as commands etc.
 
+
+
+          }       
+
+          // end of keypad message collection      
+          mreceived = true;
         }
         else{
           Serial.println(F("Wrong Keypad keyword")); 

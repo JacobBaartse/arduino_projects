@@ -76,6 +76,7 @@ void switchlight(bool plightON, bool plightOFF){
 
 void setup() {
   Serial.begin(115200);
+  Serial.println(F(" ***** <> *****"));  
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
