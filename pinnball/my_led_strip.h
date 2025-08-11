@@ -116,6 +116,13 @@ void reset_left_hit(){
     left3hit = false;
 }
 
+void reset_right_hit(){
+    right1hit = false;
+    right2hit = false;
+    right3hit = false;
+    right4hit = false;
+}
+
 void score_onleds(){
     debugln("Show leds score");
     long now = millis();
@@ -136,7 +143,30 @@ void score_onleds(){
         {
             leftblinkall_until = now + 2000;
             reset_left_hit();
-        }
+        };
+
+    if ((right1hit & right1blink_until>now)| rightblinkall_until>now) blink(96, 97,  CRGB::Green);
+    else if (right1hit) leds_on(96, 97,  CRGB::Green);
+         else leds_on(96, 97,  CRGB::Black);
+
+    if ((right2hit & right2blink_until>now)| rightblinkall_until>now) blink(98, 99,  CRGB::Red);
+    else if (right2hit) leds_on(98, 99,  CRGB::Red);
+         else leds_on(98, 99,  CRGB::Black);
+
+    if ((right3hit & right3blink_until>now)| rightblinkall_until>now) blink(100, 101,  CRGB::Blue);
+    else if (right3hit) leds_on(100, 101,  CRGB::Blue);
+         else leds_on(100, 101,  CRGB::Black);
+
+    if ((right4hit & right4blink_until>now)| rightblinkall_until>now) blink(102, 103,  CRGB::Yellow);
+    else if (right4hit) leds_on(102, 103,  CRGB::Yellow);
+         else leds_on(102, 103,  CRGB::Black);
+
+    if (right1hit & right2hit & right3hit & right4hit)
+        if (right1blink_until<now & right2blink_until<now & right3blink_until<now & right4blink_until<now)
+        {
+            rightblinkall_until = now + 2000;
+            reset_right_hit();
+        };
 }
 
 void ledstrip_setup() {

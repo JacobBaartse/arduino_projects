@@ -42,6 +42,7 @@
 #endif
 
 bool reset_servo = false;
+bool reset_right_hits_done = false;
 String menu_text = "_";
 
 uint32_t score_counter = 0;
@@ -200,10 +201,10 @@ void loop(){
   }
   
   if (switch_nr == 7){  //right side button Joker
-    // left2hit = true;
+    right4hit = true;
     Play_mp3_file(TADI_TADIADI);
-    nr_balls_left++;
-    left2blink_until = millis() + 2000;
+    // nr_balls_left++;
+    right4blink_until = millis() + 2000;
     score_counter += 50;
     effect = FADE_IN_OUT;
     start_millis = millis();
@@ -211,8 +212,8 @@ void loop(){
   }
 
   if (switch_nr == 8){   //right side button klaver 10
-    // left1hit = true;
-    left1blink_until = millis() + 2000;
+    right3hit = true;
+    right3blink_until = millis() + 2000;
     Play_mp3_file(PAARD);
     score_counter += 5;
     effect = SPARKLING;
@@ -220,18 +221,18 @@ void loop(){
     duration = 2000;
   }
   if (switch_nr == 5){  //right side button klaver 9
-    // left3hit = true;
+    right2hit = true;
     Play_mp3_file(KREKEL);
-    left3blink_until = millis() + 2000;
+    right2blink_until = millis() + 2000;
     score_counter += 5;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
     duration = 2000;
   }
     if (switch_nr == 6){  //right side button klaver 8
-    // left3hit = true;
+    right1hit = true;
     Play_mp3_file(KLONGNGNG);
-    left3blink_until = millis() + 2000;
+    right1blink_until = millis() + 2000;
     score_counter += 5;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
@@ -259,6 +260,20 @@ void loop(){
     if (reset_servo & (!left1hit | !left2hit | !left3hit)){
       do_servo(0, 0);
       reset_servo = false;
+    }
+  }
+
+  if (right1hit & right2hit & right3hit & right4hit){
+    if (!reset_right_hits_done) { // prevent double counting of points
+      score_counter += 100;
+      nr_balls_left++;
+      Play_mp3_file(SUPER_GOOD);
+    }
+    reset_right_hits_done =  true;// prevent double counting of points
+  }
+  else{
+    if (reset_right_hits_done & (!right1hit |!right2hit |!right3hit |!right4hit)){
+      reset_right_hits_done = false;
     }
   }
 
