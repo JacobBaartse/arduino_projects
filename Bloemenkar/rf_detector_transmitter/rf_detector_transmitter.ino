@@ -77,7 +77,7 @@ void setup() {
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
-  Serial.print(F(", creation/build time: "));
+  Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
   // detectornode = depending on settings
   Serial.print(F("Detectornode: "));

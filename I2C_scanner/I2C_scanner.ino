@@ -14,8 +14,8 @@
 
 void setup() {
   Serial.begin(115200);
-  Serial.print(__FILE__);
-  Serial.print(F(",\ncreation/build time: "));
+  Serial.println(__FILE__);
+  Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
