@@ -12,13 +12,13 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 
 // our servo # 
-uint8_t servonum = 0;   // just test servo on output 0
+uint8_t servonum = 1;   // just test servo on output 0
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
   Serial.print(__FILE__);
-  Serial.print(F("\n, creation/build time: "));
+  Serial.print(F(",\ncreation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
