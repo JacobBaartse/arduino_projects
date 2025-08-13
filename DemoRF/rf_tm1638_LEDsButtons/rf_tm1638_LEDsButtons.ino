@@ -1,5 +1,5 @@
 /*
- * RF-Nano, base node for demo purposes
+ * RF-Nano, TM1638 for UI
 
    https://www.makerguides.com/connecting-arduino-uno-with-tm1638-7-segment-led-driver/
 
@@ -40,7 +40,6 @@ void setup() {
   Serial.begin(115200);
 
   tm.reset();
-  tm.test();
   
   Serial.println(__FILE__);
   Serial.print(F("creation/build time: "));
@@ -55,6 +54,8 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, tmnode);
+
+  tm.test();
 }
 
 uint8_t buttonsvalue = 0;
@@ -175,7 +176,7 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
 
   // Every 60 seconds, or on new data
   //if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 60000)){
-  if ((fresh)&&(buttonsvalue > 0)) {
+  if ((fresh)&&(buttonsvalue > 0)){ // only send buttons pressed (not when released)
     // if ((unsigned long)(currentRFmilli - sendingTimer) > 5000){
 
     sendingTimer = currentRFmilli;
@@ -210,22 +211,71 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   return fresh;
 }
 
+void buttonnumber(uint8_t pbuttonint){
+  static uint8_t buttonint = 11;
+
+  if (pbuttonint != buttonint){
+    tm.reset();
+    buttonint = pbuttonint;
+    //tm.displaySetBrightness(PULSE10_16);
+    uint8_t bitcheck = 1;
+    for (uint8_t i=1;i<9;i++){ // i is the SW number
+      uint8_t pos = 8 - i; // map(i, 1, 8, 7, 0);
+      if ((bitcheck & buttonint) > 0){
+        Serial.print(F("Button SW"));
+        Serial.println(i);
+        tm.displayVal(pos, i);
+      }
+      else {
+        //tm.displayDig(pos, 0);
+      }
+      //bitcheck *= 2; // shift the bit left
+      bitcheck <<= 1; // shift the bit left
+    }
+  }
+}
+
 bool handlebuttons(){
-  static uint8_t buttons = 0xff;
+  static uint8_t buttons = 0;
   bool change = false;
   
   buttonsvalue = tm.getButtons();
-  change = buttonsvalue != buttons;
-  if (change){
-    buttons = buttonsvalue;
-    tm.writeLeds(buttons);
-    Serial.print(F("Buttons "));
-    Serial.print(buttons);    
-    Serial.print(F(", "));
-    Serial.println(buttons, BIN);
+  if (buttonsvalue > 0){
+    //Serial.println(buttonsvalue);
+  
+    //change = (buttonsvalue & buttons) == 0; 
+    change = buttonsvalue != buttons;
+    if (change){
+      //buttons = buttons | buttonsvalue;
+      buttons = buttonsvalue;
+      buttonnumber(buttonsvalue);
+      tm.writeLeds(buttons);
+    }
   }
   return change;
 }
+
+// bool handledots(bool fresh, unsigned long currentdotmilli){
+//   static unsigned long dottime = 0;
+//   static uint8_t dotpulse = 4;
+  
+//   if (fresh){
+//     dotpulse = 4;
+//   }
+
+//   if ((unsigned long)(currentdotmilli - dottime) > 2000){
+//     dottime = currentdotmilli;
+
+//     //tm.displaySetBrightness(dotpulse);
+//     if (dotpulse > 0){
+//       dotpulse -= 1;
+//       Serial.print(F("dotpulse "));
+//       Serial.println(dotpulse); 
+//     }
+
+//     // pgfedcba
+//   }
+// }
 
 pulse_t pulse = PULSE1_16;
 const uint8_t text[] = {0x7c, 0x1c, 0x78, 0x78, 0x5c, 0x54};
@@ -249,6 +299,8 @@ void loop() {
   // }
 
   fresh = handlebuttons();
+
+  //handledots(fresh, currentmilli);
 
   // if (millis() - timer > 1000){
   //   timer = millis();
