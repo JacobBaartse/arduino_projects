@@ -19,8 +19,8 @@ void setup() {
   tm.reset();
   tm.test();
   
-  Serial.print(__FILE__);
-  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__FILE__);
+  Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush();    
 }
@@ -40,7 +40,7 @@ void loop() {
 
   if (millis() - timer > 1000){
     timer = millis();
-    Serial.print(F('Pulse: '));
+    Serial.print(F("Pulse: "));
     Serial.println(pulse);
     tm.displaySetBrightness(pulse);
     pulse = (pulse==PULSE1_16) ? PULSE14_16 : PULSE1_16;

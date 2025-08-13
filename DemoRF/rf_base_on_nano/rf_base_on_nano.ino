@@ -66,6 +66,14 @@ struct keypad_payload{
   char keys[11];
 };
 
+struct tm_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint32_t count;
+  uint8_t buttons;
+};
+
+
 const uint8_t maxkeys = 10;
 char keytracking[11]; // 10 characters + room for the null terminator
 //uint8_t keyindex = 0;
