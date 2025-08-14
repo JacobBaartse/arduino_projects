@@ -33,11 +33,16 @@ struct tm_payload{
   uint32_t keyword;
   uint32_t timing;
   uint32_t counter;
-  uint8_t buttons;
+  //uint8_t buttons;
+  bool SW[8];
 };
+
+bool button_list[8];
 
 void setup() {
   Serial.begin(115200);
+  for (uint8_t i=0;i<8;i++) // define no switches
+    button_list[i] = false;
 
   tm.reset();
   
@@ -185,7 +190,9 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Txdata.keyword = keywordvalT;
     Txdata.timing = currentRFmilli;
     Txdata.counter = counter++;
-    Txdata.buttons = buttonsvalue;
+    //Txdata.buttons = buttonsvalue;
+    for (uint8_t i=0;i<8;i++) // capture the switches
+      Txdata.SW[i] = button_list[i];
 
     RF24NetworkHeader header0(node00, 'T'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
@@ -225,8 +232,10 @@ void buttonnumber(uint8_t pbuttonint){
         Serial.print(F("Button SW"));
         Serial.println(i);
         tm.displayVal(pos, i);
+        button_list[i-1] = true;
       }
       else {
+        button_list[i-1] = false;
         //tm.displayDig(pos, 0);
       }
       //bitcheck *= 2; // shift the bit left

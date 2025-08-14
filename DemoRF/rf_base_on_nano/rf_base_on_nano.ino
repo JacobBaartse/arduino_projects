@@ -69,8 +69,9 @@ struct keypad_payload{
 struct tm_payload{
   uint32_t keyword;
   uint32_t timing;
-  uint32_t count;
-  uint8_t buttons;
+  uint32_t counter;
+  //uint8_t buttons;
+  bool SW[8];
 };
 
 
