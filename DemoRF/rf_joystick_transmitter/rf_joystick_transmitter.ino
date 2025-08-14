@@ -112,6 +112,23 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
   return b2val;
 }
 
+bool trackjoystick(uint8_t pxp, uint8_t pxn, uint8_t pyp, uint8_t pyn){
+  static uint8_t txp = 0;
+  static uint8_t txn = 0;
+  static uint8_t typ = 0;
+  static uint8_t tyn = 0;
+  
+  bool change = txp != pxp;
+  if (txn != pxn) change = true;
+  if (typ != pyp) change = true;
+  if (tyn != pyn) change = true;
+  txp = pxp;
+  txn = pxn;
+  typ = pyp;
+  tyn = pyn;
+  return change;
+}
+
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -143,6 +160,7 @@ void setup() {
  
 unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
+unsigned long detectiontiming = 0;
 
 //===== Receiving =====//
 void receiveRFnetwork(unsigned long currentRFmilli){
@@ -273,46 +291,51 @@ void loop() {
 
   //************************ sensors ****************//
 
-  xValue = analogRead(VRX_PIN);
-  yValue = analogRead(VRY_PIN);
+  if ((unsigned long)(detectiontiming - currentmilli) > 200)
+  {
+    detectiontiming = currentmilli;
+    xValue = analogRead(VRX_PIN);
+    yValue = analogRead(VRY_PIN);
 
-  if (xValue < RefxValue){
-    xnValue = map(xValue, 0, RefxValue, 255, 0);
-    xpValue = 0;
-  }
-  else {
-    xnValue = 0;
-    xpValue = map(xValue, RefxValue, 1023, 0, 255);
-  }
-  if (yValue > RefyValue){
-    ynValue = map(yValue, RefyValue, 1023, 0, 255);
-    ypValue = 0;
-  }
-  else {
-    ynValue = 0;
-    ypValue = map(yValue, 0, RefyValue, 255, 0);
-  }
+    if (xValue < RefxValue){
+      xnValue = map(xValue, 0, RefxValue, 255, 0);
+      xpValue = 0;
+    }
+    else {
+      xnValue = 0;
+      xpValue = map(xValue, RefxValue, 1023, 0, 255);
+    }
+    if (yValue > RefyValue){
+      ynValue = map(yValue, RefyValue, 1023, 0, 255);
+      ypValue = 0;
+    }
+    else {
+      ynValue = 0;
+      ypValue = map(yValue, 0, RefyValue, 255, 0);
+    }
 
-  if ((xpValue > 2)||(xnValue > 2)||(ypValue > 2)||(ynValue > 2)){ // small threshold for sending data
-    Serial.println(F("----"));  
-    Serial.print(F("Xr: "));
-    Serial.print(RefxValue);
-    Serial.print(F(", X: "));
-    Serial.print(xValue);
-    Serial.print(F(", Yr: "));
-    Serial.print(RefyValue);
-    Serial.print(F(", Y: "));
-    Serial.println(yValue);
+    //if ((xpValue > 2)||(xnValue > 2)||(ypValue > 2)||(ynValue > 2)){ // small threshold for sending data
+    newdata = trackjoystick(xpValue, xnValue, ypValue, ynValue);
+    if (newdata){
+      Serial.println(F("----"));  
+      Serial.print(F("Xr: "));
+      Serial.print(RefxValue);
+      Serial.print(F(", X: "));
+      Serial.print(xValue);
+      Serial.print(F(", Yr: "));
+      Serial.print(RefyValue);
+      Serial.print(F(", Y: "));
+      Serial.println(yValue);
 
-    Serial.print(F("Xn: "));
-    Serial.print(xnValue);
-    Serial.print(F(", Xp: "));
-    Serial.print(xpValue);
-    Serial.print(F(", Yn: "));
-    Serial.print(ynValue);
-    Serial.print(F(", Yp: "));
-    Serial.println(ypValue);    
-    newdata = true;
+      Serial.print(F("Xn: "));
+      Serial.print(xnValue);
+      Serial.print(F(", Xp: "));
+      Serial.print(xpValue);
+      Serial.print(F(", Yn: "));
+      Serial.print(ynValue);
+      Serial.print(F(", Yp: "));
+      Serial.println(ypValue);    
+    }
   }
 
   //************************ sensors ****************//

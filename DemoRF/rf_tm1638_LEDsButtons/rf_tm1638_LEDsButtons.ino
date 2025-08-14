@@ -38,6 +38,7 @@ struct tm_payload{
 };
 
 bool button_list[8];
+const uint8_t text[] = {0xff, 0x7c, 0x1c, 0x78, 0x78, 0x5c, 0x54, 0xff};
 
 void setup() {
   Serial.begin(115200);
@@ -61,6 +62,11 @@ void setup() {
   network.begin(radioChannel, tmnode);
 
   tm.test();
+  for (uint8_t i=0;i<sizeof(text);i++) {
+    tm.displayDig(7-i, text[i]);
+  }
+  delay(2000);
+  tm.reset();
 }
 
 uint8_t buttonsvalue = 0;
@@ -219,23 +225,21 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
 }
 
 void buttonnumber(uint8_t pbuttonint){
-  static uint8_t buttonint = 11;
+  static uint8_t buttonint = 255;
 
   if (pbuttonint != buttonint){
-    tm.reset();
     buttonint = pbuttonint;
-    //tm.displaySetBrightness(PULSE10_16);
     uint8_t bitcheck = 1;
-    for (uint8_t i=1;i<9;i++){ // i is the SW number
-      uint8_t pos = 8 - i; // map(i, 1, 8, 7, 0);
+    for (uint8_t i=0;i<8;i++){ // i+1 is the SW number
+      uint8_t pos = 7 - i;
       if ((bitcheck & buttonint) > 0){
+        tm.displayVal(pos, i+1);
         Serial.print(F("Button SW"));
-        Serial.println(i);
-        tm.displayVal(pos, i);
-        button_list[i-1] = true;
+        Serial.println(i+1);
+        button_list[i] = true;
       }
       else {
-        button_list[i-1] = false;
+        button_list[i] = false;
         //tm.displayDig(pos, 0);
       }
       //bitcheck *= 2; // shift the bit left
@@ -244,8 +248,11 @@ void buttonnumber(uint8_t pbuttonint){
   }
 }
 
-bool handlebuttons(){
+uint8_t pulsefrombuttons = 7;
+
+bool handlebuttons(uint8_t ppulse){
   static uint8_t buttons = 0;
+  static uint8_t dotpulse = 7;
   bool change = false;
   
   buttonsvalue = tm.getButtons();
@@ -255,45 +262,62 @@ bool handlebuttons(){
     //change = (buttonsvalue & buttons) == 0; 
     change = buttonsvalue != buttons;
     if (change){
+      dotpulse = 7;
       //buttons = buttons | buttonsvalue;
       buttons = buttonsvalue;
-      buttonnumber(buttonsvalue);
+      tm.reset();
+      tm.displaySetBrightness(dotpulse);
+      buttonnumber(buttons);
       tm.writeLeds(buttons);
     }
   }
+  else{
+    if (ppulse != dotpulse){
+      if (ppulse > dotpulse)
+        dotpulse = ppulse;
+      else
+        if (dotpulse > 0)
+          dotpulse -= 1;
+      tm.displaySetBrightness(dotpulse);
+      buttonnumber(buttons);
+      tm.writeLeds(buttons);
+    }
+  }
+
+  pulsefrombuttons = dotpulse;
   return change;
 }
 
-// bool handledots(bool fresh, unsigned long currentdotmilli){
-//   static unsigned long dottime = 0;
-//   static uint8_t dotpulse = 4;
-  
-//   if (fresh){
-//     dotpulse = 4;
-//   }
+bool handledots(uint8_t pdotpulse, unsigned long currentdotmilli){
+  static unsigned long dottime = 0;
+  static uint8_t dotpulse = 4;
 
-//   if ((unsigned long)(currentdotmilli - dottime) > 2000){
-//     dottime = currentdotmilli;
+  if (pdotpulse > dotpulse){
+      dottime = currentdotmilli;
+      dotpulse = pdotpulse;
+  }
+  else
+    if ((unsigned long)(currentdotmilli - dottime) > 2000){
+      dottime = currentdotmilli;
 
-//     //tm.displaySetBrightness(dotpulse);
-//     if (dotpulse > 0){
-//       dotpulse -= 1;
-//       Serial.print(F("dotpulse "));
-//       Serial.println(dotpulse); 
-//     }
-
-//     // pgfedcba
-//   }
-// }
+      if (dotpulse > 0){
+        dotpulse -= 1;
+        Serial.print(F("dotpulse "));
+        Serial.println(dotpulse); 
+      }
+      // pgfedcba // what is DP?
+    }
+  return dotpulse;
+}
 
 pulse_t pulse = PULSE1_16;
-const uint8_t text[] = {0x7c, 0x1c, 0x78, 0x78, 0x5c, 0x54};
 unsigned long timer = 0;
 
 
 
 unsigned long currentmilli = 0;
 bool fresh = false;
+uint8_t pulsefromdots = 7;
 
 void loop() {
 
@@ -303,13 +327,9 @@ void loop() {
 
   receiveRFnetwork(currentmilli);
 
-  // for (uint8_t i=0;i<sizeof(text);i++) {
-  //   tm.displayDig(7-i, text[i]);
-  // }
+  fresh = handlebuttons(pulsefromdots);
 
-  fresh = handlebuttons();
-
-  //handledots(fresh, currentmilli);
+  pulsefromdots = handledots(pulsefrombuttons, currentmilli);
 
   // if (millis() - timer > 1000){
   //   timer = millis();
