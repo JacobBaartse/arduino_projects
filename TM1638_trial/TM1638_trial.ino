@@ -6,10 +6,13 @@
 
 #include <TM1638.h>
 
-//choose digital pins compatibles with your board
-#define STB 4 // Strobe digital pin
-#define CLK 5 // clock digital pin
-#define DIO 6 // data digital pin
+// //choose digital pins compatibles with your board
+// #define STB 4 // Strobe digital pin
+// #define CLK 5 // clock digital pin
+// #define DIO 6 // data digital pin
+#define STB 5 // Strobe digital pin
+#define CLK 6 // clock digital pin
+#define DIO 7 // data digital pin
 
 TM1638 tm(CLK, DIO, STB);
 
