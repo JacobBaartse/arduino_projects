@@ -14,11 +14,6 @@
 #define SW_PIN1  4  // Arduino pin connected to button 1
 #define SW_PIN2  6  // Arduino pin connected to button 2
 
-uint8_t xnValue = 0; // To store value of the X axis to the left
-uint8_t ynValue = 0; // To store value of the Y axis to the bottom
-uint8_t xpValue = 0; // To store value of the X axis to the right
-uint8_t ypValue = 0; // To store value of the Y axis to the top
-
 uint16_t xValue = 0; // To store value of the X axis
 uint16_t yValue = 0; // To store value of the Y axis
 uint16_t RefxValue = 0; // To store startup value of the X axis
@@ -41,10 +36,10 @@ unsigned long const keywordvalJ = 0xbcdffeda;
 struct joystick_payload{
   uint32_t keyword;
   uint32_t timing;
-  uint8_t xmvalue;
-  uint8_t xpvalue;
-  uint8_t ymvalue;
-  uint8_t ypvalue;
+  uint16_t xrvalue;
+  uint16_t xvalue;
+  uint16_t yrvalue;
+  uint16_t yvalue;
   uint8_t count;
   uint8_t bvalue;
   uint8_t sw1value;
@@ -112,12 +107,69 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
   return b2val;
 }
 
+bool trackjoystick(uint16_t newx, uint16_t newy, bool change){
+  static uint8_t diffdetection = 8;
+  static uint8_t refdetection = 3;
+  static uint16_t memx = 0;
+  static uint16_t memy = 0;
+  
+  if (!change){
+    if (memx > newx){
+      if ((memx - newx) > diffdetection) change = true;
+    }
+    else {
+      if ((newx - memx) > diffdetection) change = true;
+    }
+    if (memy > newy){
+      if ((memy - newy) > diffdetection) change = true;
+    }
+    else {
+      if ((newy - memy) > diffdetection) change = true;
+    }
+  }
+  if (change){ // check if close to 'neutral'
+    if (RefxValue > newx){
+      if ((RefxValue - newx) < refdetection){ 
+        newx = RefxValue;
+      }
+    }
+    else {
+      if ((newx - RefxValue) < refdetection){ 
+        newx = RefxValue;
+      }
+    }
+    if (RefyValue > newy){
+      if ((RefyValue - newy) < refdetection){ 
+        newy = RefyValue;
+      }
+    }
+    else {
+      if ((newy - RefyValue) < refdetection){ 
+        newy = RefyValue;
+      }
+    }
+  }
+  if (change){
+    Serial.print(F("X: "));
+    Serial.print(memx);
+    Serial.print(F(", Y: "));
+    Serial.print(memy);
+    memx = newx;
+    memy = newy;
+    Serial.print(F(" --> X: "));
+    Serial.print(memx);
+    Serial.print(F(", Y: "));
+    Serial.println(memy);
+  }
+  return change;
+}
+
 void setup() {
   Serial.begin(115200);
   delay(1000);
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
-  Serial.print(F(", creation/build time: "));
+  Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
@@ -141,8 +193,8 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(SW_PIN), joyButton, FALLING); // trigger when joystick button pressed
 }
  
-unsigned long receiveTimer = 0;
 unsigned long currentmilli = 0;
+unsigned long detectiontiming = 0;
 
 //===== Receiving =====//
 void receiveRFnetwork(unsigned long currentRFmilli){
@@ -169,45 +221,32 @@ void receiveRFnetwork(unsigned long currentRFmilli){
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
+void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
 
-  // Every 5 seconds, or on new data
-  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
+  // Every 10 seconds, or on new data
+  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 10000)){
     sendingTimer = currentRFmilli;
 
     joystick_payload Txdata;
     Txdata.keyword = keywordvalJ;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
-    Txdata.xmvalue = xnValue;
-    Txdata.xpvalue = xpValue;    
-    Txdata.ymvalue = ynValue;
-    Txdata.ypvalue = ypValue;
+    Txdata.xrvalue = RefxValue;
+    Txdata.xvalue = xValue;
+    Txdata.yrvalue = RefyValue;
+    Txdata.yvalue = yValue;
     Txdata.bvalue = bValue;
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
-
     Serial.print(F("Data: "));
-    if (xnValue > 0){
-      Serial.print(F(" xnvalue: "));
-      Serial.print(Txdata.xmvalue);
-    }
-    if (xpValue > 0){
-      Serial.print(F(" xpvalue: "));
-      Serial.print(Txdata.xpvalue);
-    }
-    if (ynValue > 0){
-      Serial.print(F(" ynvalue: "));
-      Serial.print(Txdata.ymvalue);
-    }
-    if (ypValue > 0){
-      Serial.print(F(" ypvalue: "));
-      Serial.print(Txdata.ypvalue);
-    }    
+    Serial.print(F("xvalue: "));
+    Serial.print(Txdata.xvalue);
+    Serial.print(F(" yvalue: "));
+    Serial.print(Txdata.yvalue);
     if (bValue > 0){
       Serial.print(F(" bvalue: "));
       Serial.print(Txdata.bvalue);
@@ -245,25 +284,22 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
 
-    if (failcount > 10){
-      fresh = false; // do not send a lot of messages continously
-    }
+    // if (failcount > 10){
+    //   fresh = false; // do not send a lot of messages continously
+    // }
 
-    if(!fresh){ // clear buttons status always after 5 seconds
-      bValue = 0; 
-      sw1Value = 0;
-      sw2Value = 0;
-    }
+    // if(!fresh){ // clear buttons status always after 5 seconds
+    //   bValue = 0; 
+    //   sw1Value = 0;
+    //   sw2Value = 0;
+    // }
   }
 
-  return fresh;
+  //return fresh;
 }
 
 
 void loop() {
-
-  sw1Value = checkSwitchButton1(SW_PIN1);
-  sw2Value = checkSwitchButton2(SW_PIN2);
 
   network.update();
 
@@ -273,51 +309,68 @@ void loop() {
 
   //************************ sensors ****************//
 
-  xValue = analogRead(VRX_PIN);
-  yValue = analogRead(VRY_PIN);
+  // button functions set newdata if button freshly pressed
+  sw1Value = checkSwitchButton1(SW_PIN1);
+  sw2Value = checkSwitchButton2(SW_PIN2);
 
-  if (xValue < RefxValue){
-    xnValue = map(xValue, 0, RefxValue, 255, 0);
-    xpValue = 0;
-  }
-  else {
-    xnValue = 0;
-    xpValue = map(xValue, RefxValue, 1023, 0, 255);
-  }
-  if (yValue > RefyValue){
-    ynValue = map(yValue, RefyValue, 1023, 0, 255);
-    ypValue = 0;
-  }
-  else {
-    ynValue = 0;
-    ypValue = map(yValue, 0, RefyValue, 255, 0);
+  // when newdata from buttons or with regular intervals of ... ms
+  if ((newdata)||((unsigned long)(detectiontiming - currentmilli) > 250)) 
+  {
+    detectiontiming = currentmilli;  
+    xValue = analogRead(VRX_PIN);
+    yValue = analogRead(VRY_PIN);
+    newdata = trackjoystick(xValue, yValue, newdata);
   }
 
-  if ((xpValue > 2)||(xnValue > 2)||(ypValue > 2)||(ynValue > 2)){ // small threshold for sending data
-    Serial.println(F("----"));  
-    Serial.print(F("Xr: "));
-    Serial.print(RefxValue);
-    Serial.print(F(", X: "));
-    Serial.print(xValue);
-    Serial.print(F(", Yr: "));
-    Serial.print(RefyValue);
-    Serial.print(F(", Y: "));
-    Serial.println(yValue);
+  //   xValue = analogRead(VRX_PIN);
+  //   yValue = analogRead(VRY_PIN);
 
-    Serial.print(F("Xn: "));
-    Serial.print(xnValue);
-    Serial.print(F(", Xp: "));
-    Serial.print(xpValue);
-    Serial.print(F(", Yn: "));
-    Serial.print(ynValue);
-    Serial.print(F(", Yp: "));
-    Serial.println(ypValue);    
-    newdata = true;
-  }
+  //   if (xValue < RefxValue){
+  //     xnValue = map(xValue, 0, RefxValue, 255, 0);
+  //     xpValue = 0;
+  //   }
+  //   else {
+  //     xnValue = 0;
+  //     xpValue = map(xValue, RefxValue, 1023, 0, 255);
+  //   }
+  //   if (yValue > RefyValue){
+  //     ynValue = map(yValue, RefyValue, 1023, 0, 255);
+  //     ypValue = 0;
+  //   }
+  //   else {
+  //     ynValue = 0;
+  //     ypValue = map(yValue, 0, RefyValue, 255, 0);
+  //   }
+
+  //   //if ((xpValue > 2)||(xnValue > 2)||(ypValue > 2)||(ynValue > 2)){ // small threshold for sending data
+  //   newdata = trackjoystick(xpValue, xnValue, ypValue, ynValue);
+  //   if (newdata){
+  //     Serial.println(F("----"));  
+  //     Serial.print(F("Xr: "));
+  //     Serial.print(RefxValue);
+  //     Serial.print(F(", X: "));
+  //     Serial.print(xValue);
+  //     Serial.print(F(", Yr: "));
+  //     Serial.print(RefyValue);
+  //     Serial.print(F(", Y: "));
+  //     Serial.println(yValue);
+
+  //     Serial.print(F("Xn: "));
+  //     Serial.print(xnValue);
+  //     Serial.print(F(", Xp: "));
+  //     Serial.print(xpValue);
+  //     Serial.print(F(", Yn: "));
+  //     Serial.print(ynValue);
+  //     Serial.print(F(", Yp: "));
+  //     Serial.println(ypValue);    
+  //   }
+  // }
 
   //************************ sensors ****************//
 
-  newdata = transmitRFnetwork(newdata, currentmilli);
+  // newdata = transmitRFnetwork(newdata, currentmilli);
+  transmitRFnetwork(newdata, currentmilli);
+  newdata = false;
 
 }
 

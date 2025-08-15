@@ -9,7 +9,7 @@
 #define pinPIR1 7        // PIR pin connection
 #define pinPIR2 8        // PIR pin connection
 #define pinPressButton 2 // light off button
-#define pinLight1 4      // relays driver pin
+#define pinLight1 6      // relays driver pin
 #define pinLight2 5      // relays driver pin
 
 #define radioChannel 104
@@ -28,7 +28,7 @@ void setup() {
   delay(1000);
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
-  Serial.print(F(", creation/build time: "));
+  Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
