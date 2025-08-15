@@ -57,6 +57,7 @@ void next_player(){
   do_servo(0, 0);
   score_counter = 0;
   reset_left_hit();
+  reset_right_hit();
   showScore();
   show_text_on_screen(get_top_scores());
 }
@@ -111,7 +112,6 @@ void loop(){
       duration = 0;
       reset_mp3();
       intro_melody = false;
-      delay(100);
     } 
   }
   if (switch_nr == 15){  // BALL in the top left corner
@@ -163,6 +163,7 @@ void loop(){
   if (switch_nr == 10){  //red button
     Play_mp3_file(GUN_SHOT);
     reset_left_hit();
+    reset_right_hit();
     do_servo(0, 0);
     score_counter = 0;
     nr_balls_left = NR_BALLS;
@@ -307,7 +308,7 @@ void loop(){
   score_onleds();
   FastLED.show();
 
-  delay(4);
+  delay(2);
 
 }
 

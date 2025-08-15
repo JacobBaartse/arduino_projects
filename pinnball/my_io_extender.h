@@ -36,8 +36,7 @@ uint8_t io_extender_check_switches()
   uint8_t pos = 0;
   if (pin4_val == 0)
   {
-    //delay for contact bounce
-    delay(100);
+
     uint16_t value = PCF_20.read16();
     value ^= xor_value;  // 1 for normaly open,  0 for normaly closed.
     debugln(value);
@@ -53,6 +52,9 @@ uint8_t io_extender_check_switches()
     debug("button pushed: ");
     debugln(pos);
     if (pos == 1) xor_value ^= 0b0000000000000001; // prevent spinner to give points to next player keep track of last value of spinner
+    
+    //delay for contact bounce
+    delay(100);
   }
   return pos;
 }
