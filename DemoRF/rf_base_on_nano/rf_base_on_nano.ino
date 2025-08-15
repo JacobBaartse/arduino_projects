@@ -38,10 +38,10 @@ unsigned long const keywordvalK = 0xbeeffeed;
 struct joystick_payload{
   uint32_t keyword;
   uint32_t timing;
-  uint8_t xmvalue;
-  uint8_t xpvalue;
-  uint8_t ymvalue;
-  uint8_t ypvalue;
+  uint16_t xrvalue;
+  uint16_t xvalue;
+  uint16_t yrvalue;
+  uint16_t yvalue;
   uint8_t count;
   uint8_t bvalue;
   uint8_t sw1value;
@@ -99,10 +99,10 @@ uint16_t x2value = 0;
 uint16_t y2value = 0;
 
 // data from remote control (joystick)
-uint8_t xmvalue;
-uint8_t xpvalue;
-uint8_t ymvalue;
-uint8_t ypvalue;
+uint16_t xvalue;
+uint16_t xrvalue;
+uint16_t yvalue;
+uint16_t yrvalue;
 uint8_t mcount;
 uint8_t jbvalue;
 uint8_t sw1value;
@@ -204,32 +204,39 @@ void driveobject(uint8_t itemnumber, unsigned long movetime){
   uint8_t posy = memPos[itemnumber][1];
   bool fresh = false;
 
-  bool xleft = xmvalue > 30;
-  bool xright = xpvalue > 30;
-  bool ydown = ymvalue > 10;
-  bool yup = ypvalue > 10;
+  posx = map(xvalue, 0, (xrvalue * 2), 0, 180);
+  posy = map(yvalue, 0, (yrvalue * 2), 0, 180);
+// uint16_t xvalue;
+// uint16_t xrvalue;
+// uint16_t yvalue;
+// uint16_t yrvalue;
 
-  if (xleft){
-    if (posx > 0)
-      posx = 88;
-  }
-  else if (xright){
-    if (posx < 180)
-      posx = 92;
-  }
-  else posx = 90;
+//   bool xleft = xmvalue > 30;
+//   bool xright = xpvalue > 30;
+//   bool ydown = ymvalue > 10;
+//   bool yup = ypvalue > 10;
 
-  if ((unsigned long)(movetime - movingTimer) > 200){
-    movingTimer = movetime;
-    if (yup){
-      if (posy < 180)
-        posy += 1;
-    }
-    if (ydown){
-      if (posy > 0)
-        posy -= 1;
-    }
-  }
+//   if (xleft){
+//     if (posx > 0)
+//       posx = 88;
+//   }
+//   else if (xright){
+//     if (posx < 180)
+//       posx = 92;
+//   }
+//   else posx = 90;
+
+//   if ((unsigned long)(movetime - movingTimer) > 200){
+//     movingTimer = movetime;
+//     if (yup){
+//       if (posy < 180)
+//         posy += 1;
+//     }
+//     if (ydown){
+//       if (posy > 0)
+//         posy -= 1;
+//     }
+//   }
 
   if (fresh ||(posx != memPos[itemnumber][0])||(posy != memPos[itemnumber][1])){
     Serial.print(F("Pos X: "));
@@ -274,10 +281,12 @@ void interpretdata(bool fresh, unsigned long curtime){
   static uint8_t itemtomove = 0;
 
   if (fresh){ // new data received
+    if (jbvalue > 10)
+      itemtomove = 0;
     if (sw1value > 10)
-      itemtomove  = 1;
+      itemtomove = 1;
     if (sw2value > 10)
-      itemtomove  = 2;
+      itemtomove = 2;
     if (itemtomove == 1){
       object1time = curtime; 
     }
@@ -313,10 +322,11 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
           // message received from joystick 
           mcount = payload.count;
 
-          xmvalue = payload.xmvalue;
-          ymvalue = payload.ymvalue;
-          xpvalue = payload.xpvalue;
-          ypvalue = payload.ypvalue;
+          xvalue = payload.xvalue;
+          xrvalue = payload.xrvalue;
+          yvalue = payload.yvalue;
+          yrvalue = payload.yrvalue;
+
           jbvalue = payload.bvalue;
           sw1value = payload.sw1value;
           sw2value = payload.sw2value;
