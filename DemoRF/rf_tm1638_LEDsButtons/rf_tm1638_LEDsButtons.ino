@@ -107,7 +107,6 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
               Serial.println(rf_payload.TXT[i]);
             }
           }
-          delay(500);
           // end of ack message collection      
           mreceived = true;
         }
