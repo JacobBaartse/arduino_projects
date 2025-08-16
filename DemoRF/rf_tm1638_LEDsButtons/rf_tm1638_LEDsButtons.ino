@@ -75,6 +75,7 @@ void setup() {
   }
   delay(2000);
   tm.reset();
+  tm.displaySetBrightness(1);
 }
 
 uint8_t buttonsvalue = 0;
@@ -98,13 +99,15 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
         Serial.println(rf_payload.timing);
         if (rf_payload.keyword == keywordvalT) {
           // message/response/ack received from base
-
           tm.writeLeds(rf_payload.leds);
-
-          for (uint8_t i=0;i<7;i++) {
-            tm.displayDig(7-i, rf_payload.TXT[i]);
+          Serial.println(rf_payload.leds);
+          for (uint8_t i=0;i<8;i++) {
+            if (rf_payload.TXT[i] > 0){
+              tm.displayDig(7-i, rf_payload.TXT[i]);
+              Serial.println(rf_payload.TXT[i]);
+            }
           }
-
+          delay(500);
           // end of ack message collection      
           mreceived = true;
         }
@@ -208,8 +211,8 @@ bool handlebuttons(uint8_t ppulse){
       dotpulse = 7;
       //buttons = buttons | buttonsvalue;
       buttons = buttonsvalue;
-      tm.reset();
-      tm.displaySetBrightness(dotpulse);
+      //tm.reset();
+      //tm.displaySetBrightness(dotpulse);
       buttonnumber(buttons);
       //tm.writeLeds(buttons);
     }
@@ -221,7 +224,7 @@ bool handlebuttons(uint8_t ppulse){
       else
         if (dotpulse > 0)
           dotpulse -= 1;
-      tm.displaySetBrightness(dotpulse);
+      //tm.displaySetBrightness(dotpulse);
       buttonnumber(buttons);
       //tm.writeLeds(buttons);
     }
@@ -255,8 +258,6 @@ bool handledots(uint8_t pdotpulse, unsigned long currentdotmilli){
 
 pulse_t pulse = PULSE1_16;
 unsigned long timer = 0;
-
-
 
 unsigned long currentmilli = 0;
 bool fresh = false;
