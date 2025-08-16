@@ -312,14 +312,16 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
         if (tpayload.keyword == keywordvalT) {
           // message received from TM1638
      
+          Serial.print(F("Button(s): "));        
+          Serial.println(tpayload.buttons);        
           Serial.print(F("Button(s): '"));        
           for (int i=0;i<8;i++){
             if (tpayload.SW[i]){
-              Serial.print(i); 
+              Serial.print(i+1); 
               buttonfollowup = true; 
               acktxtvalues[i] = 0xff;      
             }
-            else acktxtvalues[i] = 0x00;      
+            else acktxtvalues[i] = 64;      
           }
           Serial.println(F("'")); 
           if (buttonfollowup){
@@ -367,18 +369,22 @@ void transmitRFnetwork(bool pnew, unsigned long currentRFmilli){
       // ack for TM1638
       case 'T': 
         destnode = tmnode;
-        tm_ack_payload Txdata;
+        //tm_ack_payload Txdata;
         Txdata.keyword = keywordvalT;
         Txdata.leds = ackbuttonvalue;
         for (int i=0;i<8;i++){
           Txdata.TXT[i] = acktxtvalues[i];
+          Serial.print(F("TXT["));
+          Serial.print(i);
+          Serial.print(F("] "));
+          Serial.println(Txdata.TXT[i]);
           acktxtvalues[i] = 0x00;
         }
 
         break;
       default: 
         Serial.print(F("No ACK for header.type: "));
-        Serial.println(RFacktype);
+        Serial.println((char) RFacktype);
     }
 
     if (destnode > 0){
