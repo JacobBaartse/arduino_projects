@@ -33,8 +33,16 @@ struct tm_payload{
   uint32_t keyword;
   uint32_t timing;
   uint32_t counter;
-  //uint8_t buttons;
+  uint8_t buttons;
   bool SW[8];
+};
+
+struct tm_ack_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint32_t counter;
+  uint8_t leds;
+  uint8_t TXT[8];
 };
 
 bool button_list[8];
@@ -81,94 +89,29 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
     network.peek(header);
   
     switch(header.type) {
-      // Display the incoming millis() values from sensor nodes
-      // case 'J': 
-      //   joystick_payload payload;
-      //   network.read(header, &payload, sizeof(payload));
-      //   Serial.print(F("Received from Joystick nodeId: "));
-      //   joynode = header.from_node;
-      //   Serial.print(header.from_node);
-      //   Serial.print(F(", timing: "));
-      //   Serial.println(payload.timing);
-      //   if (payload.keyword == keywordvalJ) {
-      //     // message received from joystick 
-      //     mcount = payload.count;
+      case 'T': 
+        tm_ack_payload rf_payload;
+        network.read(header, &rf_payload, sizeof(rf_payload));
+        Serial.print(F("Received from base nodeId: "));
+        Serial.print(header.from_node);
+        Serial.print(F(", timing: "));
+        Serial.println(rf_payload.timing);
+        if (rf_payload.keyword == keywordvalT) {
+          // message/response/ack received from base
 
-      //     xmvalue = payload.xmvalue;
-      //     ymvalue = payload.ymvalue;
-      //     xpvalue = payload.xpvalue;
-      //     ypvalue = payload.ypvalue;
-      //     jbvalue = payload.bvalue;
-      //     sw1value = payload.sw1value;
-      //     sw2value = payload.sw2value;
-      //     Serial.print(F("Button "));
-      //     bool printbutton = false;
-      //     if (jbvalue > 0){
-      //       Serial.print(F("J, "));
-      //       printbutton = true;
-      //     }
-      //     if (sw1value > 0){
-      //       Serial.print(F("1, "));
-      //       printbutton = true;
-      //     }
-      //     if (sw2value > 0){
-      //       Serial.print(F("2, "));
-      //       printbutton = true;
-      //     }
-      //     if (!printbutton){
-      //       Serial.print(F("-, "));
-      //     }
-      //     Serial.print(F("xmvalue: "));
-      //     Serial.print(xmvalue);
-      //     Serial.print(F(", xpvalue: "));
-      //     Serial.print(xpvalue);
-      //     Serial.print(F(", ymvalue: "));
-      //     Serial.print(ymvalue);
-      //     Serial.print(F(", ypvalue: "));
-      //     Serial.println(ypvalue);
+          tm.writeLeds(rf_payload.leds);
 
-      //     // end of joystick message collection      
-      //     mreceived = true;
-      //   }
-      //   else{
-      //     Serial.println(F("Wrong Joystick keyword")); 
-      //   }
-      //   break;
-      // // Display the incoming millis() values from sensor nodes
-      // case 'K': 
-      //   bool keyfollowup = false;
-      //   keypad_payload kpayload;
-      //   network.read(header, &kpayload, sizeof(kpayload));
-      //   Serial.print(F("Received from Keypad nodeId: "));
-      //   keynode = header.from_node;
-      //   Serial.print(header.from_node);
-      //   Serial.print(F(", timing: "));
-      //   Serial.println(kpayload.timing);
-      //   if (kpayload.keyword == keywordvalK) {
-      //     // message received from keypad
-      //     Serial.print(F("Key(s): '"));        
-      //     for (int i=0;i<=maxkeys;i++){
-      //       keytracking[i] = kpayload.keys[i];
-      //       if (keytracking[i] > 0){
-      //         Serial.print(keytracking[i]); 
-      //         keyfollowup = true;       
-      //       }
-      //     }
-      //     Serial.println(F("'")); 
-      //     if (keyfollowup){
-      //       // process the received characters, interpret as commands etc.
+          for (uint8_t i=0;i<7;i++) {
+            tm.displayDig(7-i, rf_payload.TXT[i]);
+          }
 
-
-
-      //     }       
-
-      //     // end of keypad message collection      
-      //     mreceived = true;
-      //   }
-      //   else{
-      //     Serial.println(F("Wrong Keypad keyword")); 
-      //   }
-      //   break;
+          // end of ack message collection      
+          mreceived = true;
+        }
+        else{
+          Serial.println(F("Wrong T keyword")); 
+        }
+        break;
       default: 
         network.read(header, 0, 0);
         Serial.print(F("TBD header.type: "));
@@ -196,7 +139,7 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Txdata.keyword = keywordvalT;
     Txdata.timing = currentRFmilli;
     Txdata.counter = counter++;
-    //Txdata.buttons = buttonsvalue;
+    Txdata.buttons = buttonsvalue;
     for (uint8_t i=0;i<8;i++) // capture the switches
       Txdata.SW[i] = button_list[i];
 
@@ -233,7 +176,7 @@ void buttonnumber(uint8_t pbuttonint){
     for (uint8_t i=0;i<8;i++){ // i+1 is the SW number
       uint8_t pos = 7 - i;
       if ((bitcheck & buttonint) > 0){
-        tm.displayVal(pos, i+1);
+        //tm.displayVal(pos, i+1);
         Serial.print(F("Button SW"));
         Serial.println(i+1);
         button_list[i] = true;
@@ -268,7 +211,7 @@ bool handlebuttons(uint8_t ppulse){
       tm.reset();
       tm.displaySetBrightness(dotpulse);
       buttonnumber(buttons);
-      tm.writeLeds(buttons);
+      //tm.writeLeds(buttons);
     }
   }
   else{
@@ -280,7 +223,7 @@ bool handlebuttons(uint8_t ppulse){
           dotpulse -= 1;
       tm.displaySetBrightness(dotpulse);
       buttonnumber(buttons);
-      tm.writeLeds(buttons);
+      //tm.writeLeds(buttons);
     }
   }
 
@@ -305,7 +248,7 @@ bool handledots(uint8_t pdotpulse, unsigned long currentdotmilli){
         Serial.print(F("dotpulse "));
         Serial.println(dotpulse); 
       }
-      // pgfedcba // what is DP?
+      // pgfedcba // what is the DP?
     }
   return dotpulse;
 }

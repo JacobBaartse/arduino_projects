@@ -108,7 +108,7 @@ uint8_t checkSwitchButton2(uint8_t DigPin){
 }
 
 bool trackjoystick(uint16_t newx, uint16_t newy, bool change){
-  static uint8_t diffdetection = 8;
+  static uint8_t diffdetection = 5;
   static uint8_t refdetection = 3;
   static uint16_t memx = 0;
   static uint16_t memy = 0;
