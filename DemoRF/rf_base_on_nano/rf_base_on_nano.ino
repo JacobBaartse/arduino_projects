@@ -203,12 +203,19 @@ void interpretdata(bool fresh, unsigned long curtime){
   static uint8_t itemtomove = 0;
 
   if (fresh){ // new data received
-    if (jbvalue > 10)
+    if (jbvalue > 10){
       itemtomove = 0;
-    if (sw1value > 10)
+      driveServo(0, memPos[1][2]); 
+      driveServo(2, memPos[2][2]); 
+    }
+    if (sw1value > 10){
       itemtomove = 1;
-    if (sw2value > 10)
+      driveServo(2, memPos[2][2]); 
+    }
+    if (sw2value > 10){
       itemtomove = 2;
+      driveServo(0, memPos[1][2]); 
+    }
     if (itemtomove == 1){
       object1time = curtime; 
     }
