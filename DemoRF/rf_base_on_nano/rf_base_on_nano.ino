@@ -30,10 +30,12 @@ RF24Network network(radio); // Include the radio in the network
 const uint16_t node00 = 00; // Address of the home/host/controller node in Octal format
 uint16_t joynode = 00; // address for the receiving message from joystick
 uint16_t keynode = 00; // address for the receiving message from keypad
+uint16_t tmnode = 00; // address for the receiving message from TM1638
 
 unsigned long const keywordvalM = 0xfeedbeef; 
 unsigned long const keywordvalJ = 0xbcdffeda;
 unsigned long const keywordvalK = 0xbeeffeed; 
+unsigned long const keywordvalT = 0x12345678; 
 
 struct joystick_payload{
   uint32_t keyword;
@@ -70,10 +72,17 @@ struct tm_payload{
   uint32_t keyword;
   uint32_t timing;
   uint32_t counter;
-  //uint8_t buttons;
+  uint8_t buttons;
   bool SW[8];
 };
 
+struct tm_ack_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint32_t counter;
+  uint8_t leds;
+  uint8_t TXT[8];
+};
 
 const uint8_t maxkeys = 10;
 char keytracking[11]; // 10 characters + room for the null terminator
@@ -85,6 +94,10 @@ void clearkeypadcache(){
   }
   //keyindex = 0;
 }
+
+// TM1638
+uint8_t ackbuttonvalue = 0;
+uint8_t acktxtvalues[8];
 
 
 unsigned long receiveTimer = 0;
@@ -133,110 +146,32 @@ void driveServo(uint8_t servonum, uint8_t pos){
   pwm.setPWM(servonum, 0, pulselen);
 }
 
-// void pauseServo(uint8_t servonum){ // check what this exactly does, does it turn the power off?
-//   Serial.print(F("pauseServo: "));
-//   Serial.println(servonum);
-//   pwm.setPWM(servonum, 0, 0);
-// }
-
-uint8_t memPos[][2] = {
-  { 90, 90 }, // not used
-  { 90, 90 }, // item 1
-  { 90, 90 }, // item 2
+uint8_t memPos[][3] = {
+  // x, y, x neutral pos (has to be tuned)
+  { 90, 90, 90 }, // not used
+  { 90, 90, 90 }, // item 1
+  { 90, 90, 90 }, // item 2
 }; 
-
-
-// void driveobject(uint8_t itemnumber){
-//   uint8_t posx = memPos[itemnumber][0];
-//   uint8_t posy = memPos[itemnumber][1];
-//   bool fresh = false;
-
-//   // translate x and y values from network to pos values for servo's
-//   uint8_t posx1 = map(xmvalue, 0, 255, POS_HALF, POS_MIN);
-//   uint8_t posx2 = map(xpvalue, 0, 255, POS_HALF, POS_MAX);
-//   uint8_t posy1 = map(ymvalue, 0, 255, POS_HALF, POS_MIN);
-//   uint8_t posy2 = map(ypvalue, 0, 255, POS_HALF, POS_MAX);
-
-//   // for X if rotating left
-//   if (posx < POS_HALF){
-//     posx = posx1;
-//   }
-//   // for X if rotating right
-//   else {
-//     posx = posx2;
-//   }
-//   // for Y if low
-//   if (posy < POS_HALF){
-//     posy = posy1;
-//   }
-//   // for Y if high
-//   else {
-//     posy = posy2;
-//   }
-
-//   if (fresh ||(posx != memPos[itemnumber][0])||(posy != memPos[itemnumber][1])){
-//     Serial.print(F("Pos X: "));
-//     Serial.print(posx);
-//     Serial.print(F(", pos Y: "));
-//     Serial.print(posy);
-//     Serial.print(F(", object: "));
-//     Serial.println(itemnumber);
-
-//     memPos[itemnumber][0] = posx;
-//     memPos[itemnumber][1] = posy;
-
-//     if (itemnumber == 1){
-//       driveServo(0, posx); // x coordination
-//       driveServo(1, posy); // y coordination
-//       Serial.println(F("item 1"));
-//     }
-//     if (itemnumber == 2){
-//       driveServo(2, posx); // x coordination
-//       driveServo(3, posy); // y coordination
-//       Serial.println(F("item 2"));
-//     } 
-//   }
-// }
 
 void driveobject(uint8_t itemnumber, unsigned long movetime){
   static unsigned long movingTimer = 0;
   uint8_t posx = memPos[itemnumber][0];
   uint8_t posy = memPos[itemnumber][1];
+  uint8_t refx = memPos[itemnumber][2];
   bool fresh = false;
 
-  posx = map(xvalue, 0, (xrvalue * 2), 0, 180);
+  // for x is a 360 rotating servo, speed should be restricted
+  // posx = map(xvalue, 0, (xrvalue * 2), 0, 180);
+  if (xvalue < xrvalue){ // turning left
+    posx = map(xvalue, 0, xrvalue, (refx - 10), refx); // pos range reduced to 10 (from 90)
+  }
+  else if (xvalue > xrvalue){ // turning right
+    posx = map(xvalue, xrvalue, 1023, refx, (refx + 10)); // pos range reduced to 10 (from 90)
+  }
+  else posx = refx; // neutral, not moving
+
+  // foy, directly map joystick to position
   posy = map(yvalue, 0, (yrvalue * 2), 0, 180);
-// uint16_t xvalue;
-// uint16_t xrvalue;
-// uint16_t yvalue;
-// uint16_t yrvalue;
-
-//   bool xleft = xmvalue > 30;
-//   bool xright = xpvalue > 30;
-//   bool ydown = ymvalue > 10;
-//   bool yup = ypvalue > 10;
-
-//   if (xleft){
-//     if (posx > 0)
-//       posx = 88;
-//   }
-//   else if (xright){
-//     if (posx < 180)
-//       posx = 92;
-//   }
-//   else posx = 90;
-
-//   if ((unsigned long)(movetime - movingTimer) > 200){
-//     movingTimer = movetime;
-//     if (yup){
-//       if (posy < 180)
-//         posy += 1;
-//     }
-//     if (ydown){
-//       if (posy > 0)
-//         posy -= 1;
-//     }
-//   }
 
   if (fresh ||(posx != memPos[itemnumber][0])||(posy != memPos[itemnumber][1])){
     Serial.print(F("Pos X: "));
@@ -262,31 +197,25 @@ void driveobject(uint8_t itemnumber, unsigned long movetime){
   }
 }
 
-void checkobjectdrive(unsigned long curtime){
-  // if ((unsigned long)(curtime - object1time) > 5000){
-  //   pauseServo(0);
-  //   pauseServo(1);
-  //   object1time = curtime;
-  // }
-  // if ((unsigned long)(curtime - object2time) > 5000){
-  //   pauseServo(2);
-  //   pauseServo(3);
-  //   object2time = curtime;
-  // }
-}
-
 void interpretdata(bool fresh, unsigned long curtime){
   // remember the data
   static unsigned long receivedtime = 0;
   static uint8_t itemtomove = 0;
 
   if (fresh){ // new data received
-    if (jbvalue > 10)
+    if (jbvalue > 10){
       itemtomove = 0;
-    if (sw1value > 10)
+      driveServo(0, memPos[1][2]); 
+      driveServo(2, memPos[2][2]); 
+    }
+    if (sw1value > 10){
       itemtomove = 1;
-    if (sw2value > 10)
+      driveServo(2, memPos[2][2]); 
+    }
+    if (sw2value > 10){
       itemtomove = 2;
+      driveServo(0, memPos[1][2]); 
+    }
     if (itemtomove == 1){
       object1time = curtime; 
     }
@@ -299,9 +228,12 @@ void interpretdata(bool fresh, unsigned long curtime){
   }
 }
 
+unsigned char RFacktype = '0';
+
 //===== Receiving =====//
 bool receiveRFnetwork(unsigned long currentRFmilli){
   uint8_t mreceived = 0;
+  RFacktype = '0';
 
   // Check for incoming data details
   while (network.available()) {
@@ -309,7 +241,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
     network.peek(header);
   
     switch(header.type) {
-      // Display the incoming millis() values from sensor nodes
+      // Handle Joystick input
       case 'J': 
         joystick_payload payload;
         network.read(header, &payload, sizeof(payload));
@@ -330,31 +262,6 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
           jbvalue = payload.bvalue;
           sw1value = payload.sw1value;
           sw2value = payload.sw2value;
-          // //Serial.print(F("Button "));
-          // bool printbutton = false;
-          // if (jbvalue > 0){
-          //   Serial.print(F("J, "));
-          //   printbutton = true;
-          // }
-          // if (sw1value > 0){
-          //   Serial.print(F("1, "));
-          //   printbutton = true;
-          // }
-          // if (sw2value > 0){
-          //   Serial.print(F("2, "));
-          //   printbutton = true;
-          // }
-          // if (!printbutton){
-          //   Serial.print(F("-, "));
-          // }
-          // Serial.print(F("xmvalue: "));
-          // Serial.print(xmvalue);
-          // Serial.print(F(", xpvalue: "));
-          // Serial.print(xpvalue);
-          // Serial.print(F(", ymvalue: "));
-          // Serial.print(ymvalue);
-          // Serial.print(F(", ypvalue: "));
-          // Serial.println(ypvalue);
 
           // end of joystick message collection      
           mreceived += 1;
@@ -363,39 +270,78 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
           Serial.println(F("Wrong Joystick keyword")); 
         }
         break;
-      // Display the incoming millis() values from sensor nodes
-      case 'K': 
-        bool keyfollowup = false;
-        keypad_payload kpayload;
-        network.read(header, &kpayload, sizeof(kpayload));
-        Serial.print(F("Received from Keypad nodeId: "));
-        keynode = header.from_node;
+      // Handle Keypad input
+      // case 'K': 
+      //   bool keyfollowup = false;
+      //   keypad_payload kpayload;
+      //   network.read(header, &kpayload, sizeof(kpayload));
+      //   Serial.print(F("Received from Keypad nodeId: "));
+      //   keynode = header.from_node;
+      //   Serial.print(header.from_node);
+      //   Serial.print(F(", timing: "));
+      //   Serial.println(kpayload.timing);
+      //   if (kpayload.keyword == keywordvalK) {
+      //     // message received from keypad
+      //     Serial.print(F("Key(s): '"));        
+      //     for (int i=0;i<=maxkeys;i++){
+      //       keytracking[i] = kpayload.keys[i];
+      //       if (keytracking[i] > 0){
+      //         Serial.print(keytracking[i]); 
+      //         keyfollowup = true;       
+      //       }
+      //     }
+      //     Serial.println(F("'")); 
+      //     if (keyfollowup){
+      //       // process the received characters, interpret as commands etc.
+
+
+
+      //     }       
+
+      //     // end of keypad message collection      
+      //     mreceived += 1;
+      //   }
+      //   else{
+      //     Serial.println(F("Wrong Keypad keyword")); 
+      //   }
+      //   break;
+      // Handle TM1638 input
+      case 'T': 
+        RFacktype = header.type; // send an acknowledge (the received data)
+        bool buttonfollowup = false;
+        tm_payload tpayload;
+        network.read(header, &tpayload, sizeof(tpayload));
+        Serial.print(F("Received from TM1638 nodeId: "));
+        tmnode = header.from_node;
         Serial.print(header.from_node);
         Serial.print(F(", timing: "));
-        Serial.println(kpayload.timing);
-        if (kpayload.keyword == keywordvalK) {
-          // message received from keypad
-          Serial.print(F("Key(s): '"));        
-          for (int i=0;i<=maxkeys;i++){
-            keytracking[i] = kpayload.keys[i];
-            if (keytracking[i] > 0){
-              Serial.print(keytracking[i]); 
-              keyfollowup = true;       
+        Serial.println(tpayload.timing);
+        if (tpayload.keyword == keywordvalT) {
+          // message received from TM1638
+     
+          Serial.print(F("Button(s): "));        
+          Serial.println(tpayload.buttons);        
+          Serial.print(F("Button(s): '"));        
+          for (int i=0;i<8;i++){
+            if (tpayload.SW[i]){
+              Serial.print(i+1); 
+              buttonfollowup = true; 
+              acktxtvalues[i] = 0xff;      
             }
+            else acktxtvalues[i] = 64;      
           }
           Serial.println(F("'")); 
-          if (keyfollowup){
-            // process the received characters, interpret as commands etc.
+          if (buttonfollowup){
+            ackbuttonvalue = tpayload.buttons;
+            // process the received button presses, interpret as commands etc.
 
-
-
-          }       
+          }
 
           // end of keypad message collection      
           mreceived += 1;
         }
         else{
-          Serial.println(F("Wrong Keypad keyword")); 
+          Serial.println(F("Wrong T keyword")); 
         }
         break;
       default: 
@@ -414,44 +360,64 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
+void transmitRFnetwork(bool pnew, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
+  uint16_t destnode = 00;
+  tm_ack_payload Txdata;
 
-  // Every 5 seconds, or on new data
-  //if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
-  if (fresh)
-    if ((unsigned long)(currentRFmilli - sendingTimer) > 5000){
+  // When acknowledge requested expected
+  if (RFacktype != '0'){
+    // sendingTimer = currentRFmilli;
 
-    sendingTimer = currentRFmilli;
+    switch(RFacktype) {
+      // ack for TM1638
+      case 'T': 
+        destnode = tmnode;
+        //tm_ack_payload Txdata;
+        Txdata.keyword = keywordvalT;
+        Txdata.leds = ackbuttonvalue;
+        for (int i=0;i<8;i++){
+          Txdata.TXT[i] = acktxtvalues[i];
+          Serial.print(F("TXT["));
+          Serial.print(i);
+          Serial.print(F("] "));
+          Serial.println(Txdata.TXT[i]);
+          acktxtvalues[i] = 0x00;
+        }
 
-    network_payload Txdata;
-    Txdata.keyword = keywordvalM;
-    Txdata.timing = currentRFmilli;
-    Txdata.counter = counter++;
-
-    RF24NetworkHeader header0(joynode, 'M'); // address where the data is going
-    w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-    if (!w_ok){ // retry
-      failcount++;
-      delay(50);
-      w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
+        break;
+      default: 
+        Serial.print(F("No ACK for header.type: "));
+        Serial.println((char) RFacktype);
     }
-    Serial.print(F("Message send ")); 
-    if (w_ok){
-      failcount = 0;
-    }    
-    else{
-      Serial.print(F("failed "));
-      failcount++;
+
+    if (destnode > 0){
+      Txdata.timing = currentRFmilli;
+      Txdata.counter = counter++;
+      RF24NetworkHeader header0(destnode, RFacktype); // address where the data is going
+      w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
+      if (!w_ok){ // retry
+        failcount++;
+        delay(50);
+        w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
+      }
+      Serial.print(F("Message send ")); 
+      if (w_ok){
+        failcount = 0;
+      }    
+      else{
+        Serial.print(F("failed "));
+        failcount++;
+      }
     }
     Serial.print(Txdata.counter);
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
-
   }
+  RFacktype = '0';
 }
 
 void setup() {
@@ -479,14 +445,13 @@ void setup() {
   clearkeypadcache();
 
   // set servo's in some kind of start position
-  driveServo(0, memPos[1][0]);
-  driveServo(1, memPos[1][1]);
-  driveServo(2, memPos[2][0]);
-  driveServo(3, memPos[2][1]);
+  driveServo(0, memPos[1][0]); // 1 X
+  driveServo(1, memPos[1][1]); // 1 Y
+  driveServo(2, memPos[2][0]); // 2 X
+  driveServo(3, memPos[2][1]); // 2 Y
 }
 
 bool newdata = false;
-bool ack = false;
 
 void loop() {
 
@@ -503,8 +468,6 @@ void loop() {
 
   //************************ sensors/actuators ****************//
 
-  checkobjectdrive(currentmilli);
-
-  transmitRFnetwork(ack, currentmilli);
+  transmitRFnetwork(newdata, currentmilli);
 
 }

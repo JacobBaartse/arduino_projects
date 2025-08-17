@@ -6,11 +6,9 @@
 #include "RF24.h"
 #include <SPI.h>
 
-#define pinPIR1 7        // PIR pin connection
-#define pinPIR2 8        // PIR pin connection
-#define pinPressButton 2 // light off button
-#define pinLight1 6      // relays driver pin
-#define pinLight2 5      // relays driver pin
+#include "sensors.h"
+#include "drivers.h"
+
 
 #define radioChannel 104
 
@@ -25,18 +23,15 @@ unsigned long const keywordvalM = 0xfeedbeef;
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+
+  setupsensors();
+  setupdrivers();
+
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
   Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
-
-  pinMode(pinPIR1, INPUT);
-  pinMode(pinPIR2, INPUT);
-  pinMode(pinPressButton, INPUT_PULLUP);
-  pinMode(pinLight1, OUTPUT);
-  pinMode(pinLight2, OUTPUT);
 
   SPI.begin();
   if (!radio.begin()){
@@ -62,15 +57,13 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
     switch(header.type) {
       // Display the incoming millis() values from sensor nodes
       case 'Y': 
-        //joystick_payload payload;
 
         mreceived = true;
         break;
       // Display the incoming millis() values from sensor nodes
       case 'Z': 
-        //keypad_payload kpayload;
     
-          mreceived = true;
+        mreceived = true;
 
         break;
       default: 
@@ -133,43 +126,45 @@ bool ButtonActive = false;
 
 void loop() {
 
-  network.update();
+  //network.update();
 
   currentmilli = millis();
 
-  newdata = receiveRFnetwork(currentmilli);
+  //newdata = receiveRFnetwork(currentmilli);
 
   //************************ sensors/actuators ****************//
 
-  if (!activePIR){
-    if (digitalRead(pinPIR1) == LOW){
-      activePIR = true;
-      newdata = true;
-    }
-  }
-  if (!activePIR){
-    if (digitalRead(pinPIR2) == LOW){
-      activePIR = true;
-      newdata = true;
-    }
-  }
-  if (ButtonPressed){
-    ButtonActive = true;
-    newdata = true;
-    ButtonPressed = false;
-  } 
+  checkSensors(currentmilli);
+
+  // if (!activePIR){
+  //   if (digitalRead(pinPIR1) == LOW){
+  //     activePIR = true;
+  //     newdata = true;
+  //   }
+  // }
+  // if (!activePIR){
+  //   if (digitalRead(pinPIR2) == LOW){
+  //     activePIR = true;
+  //     newdata = true;
+  //   }
+  // }
+  // if (ButtonPressed){
+  //   ButtonActive = true;
+  //   newdata = true;
+  //   ButtonPressed = false;
+  // } 
 
   //************************ sensors/actuators ****************//
 
-  if (ButtonActive){ // turn off relays/light(s)
-    if (!activePIR){ // no detections
-      // turn off the relays
+  // if (ButtonActive){ // turn off relays/light(s)
+  //   if (!activePIR){ // no detections
+  //     // turn off the relays
 
-      ButtonActive = false;
-    }
-  }
+  //     ButtonActive = false;
+  //   }
+  // }
 
-  transmitRFnetwork(ack, currentmilli);
+  //transmitRFnetwork(ack, currentmilli);
 
 }
 
