@@ -16,9 +16,10 @@ void ts_setup() {
 }
 
 
-TS_Point get_touch() {
+TS_Point get_touch(bool blocked = true) {
   while (ts.touched() == false){
     // wait for touched
+    if (!blocked) break;
     delay(2);
   }
   

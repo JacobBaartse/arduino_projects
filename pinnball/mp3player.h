@@ -75,7 +75,7 @@ JQ6500_Serial mp3(Serial1);  // for arduino R4 , R4 wifi Serial1 has to be used.
 void setup_mp3_player() {
   Serial1.begin(9600);
   mp3.reset();
-  mp3.setVolume(30);
+  mp3.setVolume(15);
   mp3.setLoopMode(MP3_LOOP_NONE);
   // num_files = mp3.countFiles(MP3_SRC_BUILTIN);
 }

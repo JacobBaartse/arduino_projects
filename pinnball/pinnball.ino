@@ -308,8 +308,21 @@ void loop(){
   score_onleds();
   FastLED.show();
 
+  TS_Point p = get_touch(false); // non blocking
+  static byte prev_volume_level = 15;
+  if (p.x>0)
+  {
+    byte volume_level = (byte) (p.x/115);
+    if (volume_level>30) volume_level = 30;
+      if (volume_level != prev_volume_level){
+        mp3.setVolume(volume_level);
+        delay(10);
+        Play_mp3_file(Y1_KORT_PR);
+        prev_volume_level = volume_level;
+      }
+  }
   delay(2);
-
+    
 }
 
 #undef debug
