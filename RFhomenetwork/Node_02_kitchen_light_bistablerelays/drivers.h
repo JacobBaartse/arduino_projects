@@ -10,24 +10,82 @@ void setupdrivers(){
   pinMode(pinLightS, OUTPUT);
   pinMode(pinLightR, OUTPUT);
 
+  digitalWrite(pinLightS, HIGH);
+  digitalWrite(pinLightR, HIGH);
+
 }
 
 uint8_t relaysstate = 0;
 
-void setLight(bool LightOn){
-  // if (LightOn){
-  //   digitalWrite(pinLight1, HIGH);
-  //   digitalWrite(pinLight2, HIGH);
-  //   relaysstate = 0xf0;
-  // }
-  // else {
-  //   digitalWrite(pinLight1, LOW);
-  //   digitalWrite(pinLight2, LOW);
-  //   relaysstate = 0x0f;
-  // }
+bool lightOn(){
+  return (relaysstate == 0x0f);
 }
 
-bool getLight(){
-  if (relaysstate == 0xf0) return true;
-  return false;
+void setLight(uint8_t Light){
+  static uint16_t aoncount = 0;
+  bool lStatus = lightOn();
+
+  if (Light > 0){
+    if (lStatus){
+      Serial.print(F("Already ON "));
+      aoncount += 1;
+      Serial.print(aoncount);
+    }
+    else {
+      digitalWrite(pinLightS, LOW);
+      delay(500);
+      Serial.println(F("Going ON"));
+      digitalWrite(pinLightS, HIGH);
+      relaysstate = 0x0f;
+      aoncount = 0;
+    }
+  }
+  else {
+    if (!lStatus){
+      Serial.println(F("Already OFF"));
+    }
+    else {
+      digitalWrite(pinLightR, LOW);
+      delay(500);
+      Serial.println(F("Going OFF"));
+      digitalWrite(pinLightR, HIGH);
+      relaysstate = 0xf0;
+    }
+  }
+}
+
+void driveRelays(uint8_t dstatus, unsigned long currentDrivermilli){
+  static unsigned long drivertime = 0;
+  static uint8_t driverstatus = 0;
+  static bool relaysstatus = false;
+
+  if ((unsigned long)(currentDrivermilli - drivertime) > 10000){
+    drivertime = currentDrivermilli;
+    if ((driverstatus & 0xf0) > 0){ // button pressed
+      ButtonActive = false;
+      //Serial.println(F("BUTTON reset"));
+      setLight(0);
+    }
+  }
+  
+  if (driverstatus != dstatus){
+    if ((dstatus & 0xf0) > 0){ // button pressed
+      //Serial.println(F("BUTTON"));
+      drivertime = currentDrivermilli;
+    }
+    if ((dstatus & 0x0f) > 0){ // PIR detected
+      //Serial.println("PIR");
+      setLight(dstatus);
+    }
+    // if (dstatus > 0){
+    //   Serial.print(currentDrivermilli);
+    //   Serial.print(F(" dstatus "));
+    //   Serial.print(dstatus, HEX);
+    //   Serial.print(F(" "));
+    //   Serial.println(dstatus, BIN);
+    // }
+
+    driverstatus = dstatus;
+  }
+
 }

@@ -117,61 +117,26 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
 }
 
 unsigned long currentmilli = 0;
+uint8_t sensorstatus = 0;
 
 bool newdata = false;
-bool ack = false;
-bool activePIR = false;
-bool ButtonPressed = false;
-bool ButtonActive = false;
 
 void loop() {
 
-  //network.update();
+  network.update();
 
   currentmilli = millis();
 
-  //newdata = receiveRFnetwork(currentmilli);
+  newdata = receiveRFnetwork(currentmilli);
 
   //************************ sensors/actuators ****************//
 
-  checkSensors(currentmilli);
+  sensorstatus = checkSensors(currentmilli);
 
-  // if (!activePIR){
-  //   if (digitalRead(pinPIR1) == LOW){
-  //     activePIR = true;
-  //     newdata = true;
-  //   }
-  // }
-  // if (!activePIR){
-  //   if (digitalRead(pinPIR2) == LOW){
-  //     activePIR = true;
-  //     newdata = true;
-  //   }
-  // }
-  // if (ButtonPressed){
-  //   ButtonActive = true;
-  //   newdata = true;
-  //   ButtonPressed = false;
-  // } 
+  driveRelays(sensorstatus, currentmilli);
 
   //************************ sensors/actuators ****************//
-
-  // if (ButtonActive){ // turn off relays/light(s)
-  //   if (!activePIR){ // no detections
-  //     // turn off the relays
-
-  //     ButtonActive = false;
-  //   }
-  // }
 
   //transmitRFnetwork(ack, currentmilli);
 
-}
-
-void buttonPress(){
-  if (!ButtonActive){
-    ButtonPressed = true;
-    Serial.print(F("Button press: "));
-    Serial.println(millis());
-  }
 }
