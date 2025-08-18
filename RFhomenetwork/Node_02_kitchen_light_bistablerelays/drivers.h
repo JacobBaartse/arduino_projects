@@ -21,7 +21,8 @@ bool lightOn(){
   return (relaysstate == 0x0f);
 }
 
-void setLight(uint8_t Light){
+void setLight(uint8_t Light, unsigned long Lightmilli){
+  static unsigned long LightTime = 0;
   static uint16_t aoncount = 0;
   bool lStatus = lightOn();
 
@@ -30,6 +31,10 @@ void setLight(uint8_t Light){
       Serial.print(F("Already ON "));
       aoncount += 1;
       Serial.print(aoncount);
+      Serial.print(F(" for "));
+      unsigned long timedur = (Lightmilli - LightTime) / 1000;
+      Serial.print(timedur);
+      Serial.println(F(" seconds"));
     }
     else {
       digitalWrite(pinLightS, LOW);
@@ -38,6 +43,7 @@ void setLight(uint8_t Light){
       digitalWrite(pinLightS, HIGH);
       relaysstate = 0x0f;
       aoncount = 0;
+      LightTime = Lightmilli;
     }
   }
   else {
@@ -64,7 +70,7 @@ void driveRelays(uint8_t dstatus, unsigned long currentDrivermilli){
     if ((driverstatus & 0xf0) > 0){ // button pressed
       ButtonActive = false;
       //Serial.println(F("BUTTON reset"));
-      setLight(0);
+      setLight(0, currentDrivermilli);
     }
   }
   
@@ -75,7 +81,7 @@ void driveRelays(uint8_t dstatus, unsigned long currentDrivermilli){
     }
     if ((dstatus & 0x0f) > 0){ // PIR detected
       //Serial.println("PIR");
-      setLight(dstatus);
+      setLight(dstatus, currentDrivermilli);
     }
     // if (dstatus > 0){
     //   Serial.print(currentDrivermilli);
