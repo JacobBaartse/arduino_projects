@@ -110,14 +110,14 @@ bool activeBUTTON1 = false;
 bool activeBUTTON2 = false;
 
 void drivebuzzer(bool buzzerstatus){
-static uint16_t buzzertone = 2500;
+static uint16_t buzzertone = 2000;
 
   if (buzzerstatus){
     if (digitalRead(CFG_PIN0) == LOW){ // PIN active
       buzzertone = 1000;
     }
     if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-      buzzertone = 4000;
+      buzzertone += 2000;
     }
     tone(BUZZER_PIN, buzzertone);
   }

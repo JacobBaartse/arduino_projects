@@ -240,7 +240,7 @@ void loop() {
   //************************ sensors ****************//
 
   if (!activePIR){
-    if (digitalRead(PIR_PIN) == LOW){
+    if (digitalRead(PIR_PIN) == HIGH){
       activePIR = true;
       newdata = true;
     }
