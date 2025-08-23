@@ -153,6 +153,8 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
 
 //===== Receiving =====//
 uint16_t receiveRFnetwork(unsigned long currentRFmilli){
+  static unsigned long receivingingTime = 0;
+  unsigned long diffTime = 0;
   uint16_t nodereceived = 00;
 
   while (network.available()){ // Is there any incoming data?
@@ -166,14 +168,23 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
     }
     nodereceived = header.from_node;
     if (Rxdata.keyword == keywordvalD){
-      Serial.println(F("new data received"));
+      diffTime = (unsigned long)((currentRFmilli - receivingingTime));
+      receivingingTime = currentRFmilli;
+      Serial.print(F("new data received, time diff: "));
+      Serial.print(diffTime);
+      Serial.print(F(", dvalue: "));
+      Serial.print(Rxdata.dvalue);
+      Serial.print(F(", sw1 (PIR): "));
+      Serial.print(Rxdata.sw1value);
+      Serial.print(F(", sw2 (BUTTON): "));
+      Serial.println(Rxdata.sw2value);
 
       if (detectorscount < 0xff00)
         detectorscount += Rxdata.dvalue;
       Serial.print(F("detectorscount: "));
       Serial.print(detectorscount);
       Serial.print(F(", timing: "));
-      Serial.print(currentRFmilli);
+      Serial.println(currentRFmilli);
     }
     else{
       Serial.println(F("Keyword failure"));
