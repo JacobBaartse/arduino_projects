@@ -22,7 +22,8 @@
 #define BUTTON_PIN1 2
 #define BUTTON_PIN2 3
 
-#define PIR_PIN A5
+#define PIR_PIN1 A5
+#define PIR_PIN2 A7
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -62,7 +63,8 @@ void setup() {
   // PINs for sensor inputs
   pinMode(BUTTON_PIN1, INPUT_PULLUP);
   pinMode(BUTTON_PIN2, INPUT_PULLUP);
-  pinMode(PIR_PIN, INPUT);
+  pinMode(PIR_PIN1, INPUT);
+  pinMode(PIR_PIN2, INPUT);
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
     detectornode = 2;
@@ -231,10 +233,13 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   return fresh;
 }
 
-uint8_t remPIR = 3;
-uint8_t curPIR = 3;
+uint8_t remPIR1 = 3;
+uint8_t curPIR1 = 3;
+uint8_t remPIR2 = 3;
+uint8_t curPIR2 = 3;
 unsigned long difPIR = 3;
-unsigned long difPIRtime = 0;
+unsigned long difPIRtime1 = 0;
+unsigned long difPIRtime2 = 0;
 
 void loop() {
 
@@ -246,16 +251,27 @@ void loop() {
 
   //************************ sensors ****************//
 
-  curPIR = digitalRead(PIR_PIN);
-  if (curPIR != remPIR){
-    difPIR = (unsigned long)(currentmilli - difPIRtime);
+  curPIR1 = digitalRead(PIR_PIN1);
+  curPIR2 = digitalRead(PIR_PIN2);
+  if (curPIR1 != remPIR1){
+    difPIR = (unsigned long)(currentmilli - difPIRtime1);
     Serial.print(currentmilli);
-    Serial.print(F(" PIR change "));
+    Serial.print(F(" PIR 1 change "));
     Serial.print(difPIR);
     Serial.print(F(" to "));
-    Serial.println(curPIR);
-    remPIR = curPIR;
-    difPIRtime = currentmilli;
+    Serial.println(curPIR1);
+    remPIR1 = curPIR1;
+    difPIRtime1 = currentmilli;
+  }
+  if (curPIR2 != remPIR2){
+    difPIR = (unsigned long)(currentmilli - difPIRtime2);
+    Serial.print(currentmilli);
+    Serial.print(F(" PIR 2 change "));
+    Serial.print(difPIR);
+    Serial.print(F(" to "));
+    Serial.println(curPIR2);
+    remPIR2 = curPIR2;
+    difPIRtime2 = currentmilli;
   }
   // if (!activePIR){
   //   if (curPIR == HIGH){
