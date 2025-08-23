@@ -90,6 +90,7 @@ void setup() {
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
   //radio.setPALevel(RF24_PA_MIN, 0);
+  radiolevel = RF24_PA_LOW;
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, basenode);
@@ -128,7 +129,15 @@ static uint16_t buzzertone = 2000;
 
 void trackDetectionsAndButtons(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
+  static unsigned long reportingTime = 0;
   static bool alarming = false;
+
+  // at least print for debugging something to know the software is still running
+  if ((unsigned long)(currentDetectMillis - reportingTime) > 60000){
+    Serial.print(F("Running detection tracking: "));
+    Serial.println(currentDetectMillis);
+    reportingTime = currentDetectMillis;
+  }
 
   if (detectorscount > 0){
     // activate LED and sound

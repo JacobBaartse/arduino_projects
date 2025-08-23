@@ -93,6 +93,7 @@ void setup() {
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
   //radio.setPALevel(RF24_PA_MIN, 0);
+  radiolevel = RF24_PA_LOW;
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, detectornode);
