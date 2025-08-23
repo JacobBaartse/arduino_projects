@@ -196,8 +196,8 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
 
-    Serial.print(F("Message: "));
-    Serial.print(F(" dvalue: "));
+    Serial.print(F("Message dvalue: "));
+    //Serial.print(F(" dvalue: "));
     Serial.print(Txdata.dvalue);
     Serial.print(F(", sw1value (PIR): "));
     Serial.print(Txdata.sw1value);        
@@ -231,34 +231,49 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   return fresh;
 }
 
+uint8_t remPIR = 3;
+uint8_t curPIR = 3;
+unsigned long difPIR = 3;
+unsigned long difPIRtime = 0;
 
 void loop() {
 
-  network.update();
+  //network.update();
 
   currentmilli = millis();
 
-  receiveRFnetwork(currentmilli);
+  //receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
 
-  if (!activePIR){
-    if (digitalRead(PIR_PIN) == HIGH){
-      activePIR = true;
-      newdata = true;
-    }
+  curPIR = digitalRead(PIR_PIN);
+  if (curPIR != remPIR){
+    difPIR = (unsigned long)(currentmilli - difPIRtime);
+    Serial.print(currentmilli);
+    Serial.print(F(" PIR change "));
+    Serial.print(difPIR);
+    Serial.print(F(" to "));
+    Serial.println(curPIR);
+    remPIR = curPIR;
+    difPIRtime = currentmilli;
   }
-  if (pressBUTTON){
-    activeBUTTON = true;
-    newdata = true;
-    pressBUTTON = false;
-  }  
+  // if (!activePIR){
+  //   if (curPIR == HIGH){
+  //     activePIR = true;
+  //     newdata = true;
+  //   }
+  // }
+  // if (pressBUTTON){
+  //   activeBUTTON = true;
+  //   newdata = true;
+  //   pressBUTTON = false;
+  // }  
 
   //************************ sensors ****************//
 
-  trackDetectionAndButton(currentmilli);
+  //trackDetectionAndButton(currentmilli);
 
-  newdata = transmitRFnetwork(newdata, currentmilli);
+  //newdata = transmitRFnetwork(newdata, currentmilli);
 }
 
 void buttonPress(){
