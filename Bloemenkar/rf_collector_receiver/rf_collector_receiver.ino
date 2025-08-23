@@ -127,17 +127,12 @@ static uint16_t buzzertone = 2000;
   }
 }
 
+unsigned long reportingTime = 0;
+
 void trackDetectionsAndButtons(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
-  static unsigned long reportingTime = 0;
+  static uint8_t reportingdog = 0;
   static bool alarming = false;
-
-  // at least print for debugging something to know the software is still running
-  if ((unsigned long)(currentDetectMillis - reportingTime) > 60000){
-    Serial.print(F("Running detection tracking: "));
-    Serial.println(currentDetectMillis);
-    reportingTime = currentDetectMillis;
-  }
 
   if (detectorscount > 0){
     // activate LED and sound
@@ -158,11 +153,26 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
     // activate alarm LED
 
   }
+
+  // if nothing happened
+  if (false){
+    // at least print for debugging something to know the software is still running
+    if ((unsigned long)(currentDetectMillis - reportingTime) > 60000){
+      Serial.print(F("Running detection tracking: "));
+      Serial.println(currentDetectMillis);
+      reportingTime = currentDetectMillis;
+      reportingdog += 1;
+    }
+  }
+  else{
+    reportingdog = 0;
+  }
+
 }
 
 //===== Receiving =====//
 uint16_t receiveRFnetwork(unsigned long currentRFmilli){
-  static unsigned long receivingingTime = 0;
+  static unsigned long receivingTime = 0;
   unsigned long diffTime = 0;
   uint16_t nodereceived = 00;
 
@@ -177,8 +187,9 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
     }
     nodereceived = header.from_node;
     if (Rxdata.keyword == keywordvalD){
-      diffTime = (unsigned long)((currentRFmilli - receivingingTime));
-      receivingingTime = currentRFmilli;
+      diffTime = (unsigned long)((currentRFmilli - receivingTime));
+      receivingTime = currentRFmilli;
+      reportingTime = currentRFmilli;
       Serial.print(F("new data received, time diff: "));
       Serial.print(diffTime);
       Serial.print(F(", dvalue: "));
