@@ -23,6 +23,7 @@ bool lightOn(){
 
 void setLight(uint8_t Light, unsigned long Lightmilli){
   static unsigned long LightTime = 0;
+  static unsigned long LightOnTime = 0;
   static uint16_t aoncount = 0;
   bool lStatus = lightOn();
 
@@ -33,8 +34,12 @@ void setLight(uint8_t Light, unsigned long Lightmilli){
       Serial.print(aoncount);
       Serial.print(F(" for "));
       unsigned long timedur = (Lightmilli - LightTime) / 1000;
+      unsigned long timediff = (Lightmilli - LightOnTime) / 1000;
       Serial.print(timedur);
+      Serial.print(F(" seconds, diff: "));
+      Serial.print(timediff);
       Serial.println(F(" seconds"));
+      LightOnTime = Lightmilli;
     }
     else {
       digitalWrite(pinLightS, LOW);
@@ -44,6 +49,7 @@ void setLight(uint8_t Light, unsigned long Lightmilli){
       relaysstate = 0x0f;
       aoncount = 0;
       LightTime = Lightmilli;
+      LightOnTime = Lightmilli;
     }
   }
   else {
