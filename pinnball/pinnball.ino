@@ -46,6 +46,7 @@ bool reset_right_hits_done = false;
 String menu_text = "_";
 
 uint32_t score_counter = 0;
+uint32_t prev_score_counter = 0;
 int nr_balls_left = NR_BALLS;
 String current_player_name = "";
 bool tilt = false;
@@ -56,6 +57,7 @@ void next_player(){
   nr_balls_left = NR_BALLS;
   do_servo(0, 0);
   score_counter = 0;
+  prev_score_counter = 0;
   reset_left_hit();
   reset_right_hit();
   showScore();
@@ -142,8 +144,13 @@ void loop(){
     score_counter += 100;
   }  
   if (switch_nr == 4){
-    nr_balls_left --;
+    if (score_counter > 0){
+      if (score_counter > prev_score_counter){
+        nr_balls_left --;
+      }
+    }
     showScore();
+    prev_score_counter = score_counter;
 
     if (nr_balls_left == 0){
       Play_mp3_file(HIGH_ANOTHERONE);  //all BALLs OUT
@@ -166,6 +173,7 @@ void loop(){
     reset_right_hit();
     do_servo(0, 0);
     score_counter = 0;
+    prev_score_counter = 0;
     nr_balls_left = NR_BALLS;
     show_text_on_screen(get_top_scores());
   }  
