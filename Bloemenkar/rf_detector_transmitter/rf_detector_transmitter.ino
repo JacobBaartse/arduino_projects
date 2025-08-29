@@ -46,6 +46,7 @@ struct detector_payload{
 };
 
 bool newdata = false;
+bool debug = false;
 
 void setup() {
   Serial.begin(115200);
@@ -146,6 +147,7 @@ void trackDetectionAndButton(unsigned long currentDetectMillis){
       Serial.println(currentDetectMillis);
       alarming = true;
     }
+    debug = alarming;
     if (alarming){
       activationTime = currentDetectMillis;
       detectionValue = 0xff;
@@ -193,7 +195,7 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
       detectionValue = 0xff;
       sw1Value = 0xff;
       sw2Value = 0xff;
-      Serial.print(F("PING "));
+      if (debug) Serial.print(F("PING "));
       pingTimer = currentRFmilli;
     }
   }
@@ -209,13 +211,13 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
 
-    Serial.print(F("Message dvalue: "));
+    if (debug) Serial.print(F("Message dvalue: "));
     //Serial.print(F(" dvalue: "));
-    Serial.print(Txdata.dvalue);
-    Serial.print(F(", sw1value (PIR): "));
-    Serial.print(Txdata.sw1value);        
-    Serial.print(F(", sw2value (BUTTON): "));
-    Serial.println(Txdata.sw2value);
+    if (debug) Serial.print(Txdata.dvalue);
+    if (debug) Serial.print(F(", sw1value (PIR): "));
+    if (debug) Serial.print(Txdata.sw1value);        
+    if (debug) Serial.print(F(", sw2value (BUTTON): "));
+    if (debug) Serial.println(Txdata.sw2value);
 
     RF24NetworkHeader header0(basenode, 'D'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
@@ -223,18 +225,18 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
       delay(50);
       w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     }
-    Serial.print(F("Message send ")); 
+    if (debug) Serial.print(F("Message send ")); 
     if (w_ok){
       fresh = false;
       failcount = 0;
     }    
     else{
-      Serial.print(F("failed "));
+      if (debug) Serial.print(F("failed "));
       failcount++;
     }
-    Serial.print(Txdata.count);
-    Serial.print(F(", "));
-    Serial.println(currentRFmilli);
+    if (debug) Serial.print(Txdata.count);
+    if (debug) Serial.print(F(", "));
+    if (debug) Serial.println(currentRFmilli);
 
     if (failcount > 4){
       fresh = false; // do not send a lot of messages continously
