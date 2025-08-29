@@ -21,5 +21,11 @@ Werking:
 Bij een detectie of druk op de knop op een kastje uit 1 gaat er een signaal naar 2
 Er komt een melding met buzzer en LED.
 De buzzer kan onderdrukt/uitgezet worden door een druk op knop 1, de LED blijft wel aan.
-Na een druk op knop 2 wordt het systeem weer aan (buzzer en LED uit, detectors aan). 
+Na een druk op knop 2 wordt het monitoring systeem weer actief (buzzer en LED uit, detectors aan). 
 In geval van nieuwe detectie gaat de buzzer en LED weer aan.
+
+
+De detectie met 1 PIR geeft af en toe een valse melding.
+De detectie met 2 PIR sensors (SR602) geeft af en toe een valse melding, vaak ook gelijktijdig.
+
+Oplossing om te onderzoeken: PIR sensor (SR602) in combinatie met ultrasone afstandsmeting (HC-SR04) via I2C.

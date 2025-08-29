@@ -11,7 +11,7 @@
 #define CFG_PIN0 A0
 #define CFG_PIN1 A1
 #define CFG_PIN2 A2
-#define CFG_PIN3 A3
+#define CFG_PIN3 A4
 // #define CFG_PIN4 6
 // #define CFG_PIN5 7
 // #define CFG_PIN6 8
@@ -23,7 +23,7 @@
 #define BUTTON_PIN2 3
 
 #define PIR_PIN1 A5
-#define PIR_PIN2 A7
+#define PIR_PIN2 A3
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -116,7 +116,6 @@ bool activePIR = false;
 bool activeBUTTON = false;
 bool pressBUTTON = false;
 
-
 void trackDetectionAndButton(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
   static bool alarming = false;
@@ -155,7 +154,7 @@ void trackDetectionAndButton(unsigned long currentDetectMillis){
 }
 
 //===== Receiving =====//
-void receiveRFnetwork(unsigned long currentRFmilli){
+bool receiveRFnetwork(unsigned long currentRFmilli){
 
   while (network.available()){ // Is there any incoming data?
     RF24NetworkHeader header;
@@ -169,7 +168,7 @@ void receiveRFnetwork(unsigned long currentRFmilli){
     if (Rxdata.keyword == keywordvalD){
       Serial.println(F("new data received"));
 
-      // in case a message is received, with specific data, the detector could be 'reset'
+      // in case a message is received, with specific data, the detector could be 'reset' (for example)
 
 
     }
@@ -180,12 +179,24 @@ void receiveRFnetwork(unsigned long currentRFmilli){
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
+bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
   static unsigned long sendingTimer = 0;
+  static unsigned long pingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
+  bool fresh = pfresh;
 
+  if (pping){
+    if ((unsigned long)(currentRFmilli - pingTimer) > 25000){
+      fresh = true; // directly send message
+      detectionValue = 0xff;
+      sw1Value = 0xff;
+      sw2Value = 0xff;
+      Serial.print(F("PING "));
+      pingTimer = currentRFmilli;
+    }
+  }
   // Every 60 seconds, or on new data
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 60000)){
     sendingTimer = currentRFmilli;
@@ -229,7 +240,9 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
       fresh = false; // do not send a lot of messages continously
     }
   }
-
+  if (pping){
+    fresh = false; // 
+  }
   return fresh;
 }
 
@@ -240,6 +253,8 @@ uint8_t curPIR2 = 3;
 unsigned long difPIR = 3;
 unsigned long difPIRtime1 = 0;
 unsigned long difPIRtime2 = 0;
+unsigned long collectorpresenttime = 0;
+bool collectorpresent = false;
 
 void loop() {
 
@@ -247,7 +262,10 @@ void loop() {
 
   currentmilli = millis();
 
-  //receiveRFnetwork(currentmilli);
+  collectorpresent = receiveRFnetwork(currentmilli);
+  if (collectorpresent){
+    collectorpresenttime = currentmilli + 60000;
+  }
 
   //************************ sensors ****************//
 
@@ -273,23 +291,32 @@ void loop() {
     remPIR2 = curPIR2;
     difPIRtime2 = currentmilli;
   }
-  // if (!activePIR){
-  //   if (curPIR == HIGH){
-  //     activePIR = true;
-  //     newdata = true;
-  //   }
-  // }
-  // if (pressBUTTON){
-  //   activeBUTTON = true;
-  //   newdata = true;
-  //   pressBUTTON = false;
-  // }  
+  if (!activePIR){
+    if (curPIR1 == HIGH){
+      activePIR = true;
+      newdata = true;
+    }
+    if (curPIR2 == HIGH){
+      activePIR = true;
+      newdata = true;
+    }
+  }
+  if (pressBUTTON){
+    activeBUTTON = true;
+    newdata = true;
+    pressBUTTON = false;
+  }  
 
   //************************ sensors ****************//
 
   //trackDetectionAndButton(currentmilli);
-
-  //newdata = transmitRFnetwork(newdata, currentmilli);
+  
+  if (currentmilli < collectorpresenttime){ // for a certain amount of time after the base node was 'heared'
+    newdata = transmitRFnetwork(newdata, currentmilli, false);
+  }
+  else{ // ping for base node
+    newdata = transmitRFnetwork(newdata, currentmilli, true);
+  }
 }
 
 void buttonPress(){
