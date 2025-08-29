@@ -1,0 +1,25 @@
+Voor de PIR detector zijn er bij aansluiting via USB veel valse detecties.
+Wel detectie terwijl dat niet zou moeten.
+Een losse voeding of batterij zou al beter zijn tegen spikes vanuit andere apparatuur.
+
+In dit project worden de detectors gevoed uit een batterij,
+dus dat is dan ook hoe de PIR aansluiting getest moet worden.
+
+In principe is het systeem:
+
+1a. detector en knop in batterij (9V) gevoed kastje, met RF24 interface.
+1b.
+.
+.
+.
+1z. detector en knop in batterij (9V) gevoed kastje, met RF24 interface.
+
+2 buzzer, LEDs, knoppen in batterij (9V) gevoed kastje, met RF24 interface, als collector receiver centrale.
+
+
+Werking:
+Bij een detectie of druk op de knop op een kastje uit 1 gaat er een signaal naar 2
+Er komt een melding met buzzer en LED.
+De buzzer kan onderdrukt/uitgezet worden door een druk op knop 1, de LED blijft wel aan.
+Na een druk op knop 2 wordt het systeem weer aan (buzzer en LED uit, detectors aan). 
+In geval van nieuwe detectie gaat de buzzer en LED weer aan.

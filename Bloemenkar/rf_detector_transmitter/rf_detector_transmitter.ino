@@ -17,10 +17,13 @@
 // #define CFG_PIN6 8
 // #define CFG_PIN7 9
 
+/* one button or two buttons can be connected to trigger human presence
+ */
 #define BUTTON_PIN1 2
 #define BUTTON_PIN2 3
 
-#define PIR_PIN 4
+#define PIR_PIN1 A5
+#define PIR_PIN2 A7
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -60,7 +63,8 @@ void setup() {
   // PINs for sensor inputs
   pinMode(BUTTON_PIN1, INPUT_PULLUP);
   pinMode(BUTTON_PIN2, INPUT_PULLUP);
-  pinMode(PIR_PIN, INPUT);
+  pinMode(PIR_PIN1, INPUT);
+  pinMode(PIR_PIN2, INPUT);
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
     detectornode = 2;
@@ -91,6 +95,7 @@ void setup() {
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
   //radio.setPALevel(RF24_PA_MIN, 0);
+  radiolevel = RF24_PA_LOW;
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, detectornode);
@@ -130,13 +135,13 @@ void trackDetectionAndButton(unsigned long currentDetectMillis){
   }
   else {
     if (activePIR){
-      sw1Value = 0x5a;
+      sw1Value = 0xa5;
       Serial.print(F("PIR detection "));
       Serial.println(currentDetectMillis);
       alarming = true;
     }
     if (activeBUTTON){
-      sw2Value = 0xa5;
+      sw2Value = 0x5a;
       activationTime = currentDetectMillis;
       Serial.print(F("BUTTON detection "));
       Serial.println(currentDetectMillis);
@@ -181,8 +186,8 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static uint8_t failcount = 0;
   bool w_ok;
 
-  // Every 10 seconds, or on new data
-  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 10000)){
+  // Every 60 seconds, or on new data
+  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 60000)){
     sendingTimer = currentRFmilli;
 
     detector_payload Txdata;
@@ -193,8 +198,8 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
 
-    Serial.print(F("Message: "));
-    Serial.print(F(" dvalue: "));
+    Serial.print(F("Message dvalue: "));
+    //Serial.print(F(" dvalue: "));
     Serial.print(Txdata.dvalue);
     Serial.print(F(", sw1value (PIR): "));
     Serial.print(Txdata.sw1value);        
@@ -228,34 +233,63 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   return fresh;
 }
 
+uint8_t remPIR1 = 3;
+uint8_t curPIR1 = 3;
+uint8_t remPIR2 = 3;
+uint8_t curPIR2 = 3;
+unsigned long difPIR = 3;
+unsigned long difPIRtime1 = 0;
+unsigned long difPIRtime2 = 0;
 
 void loop() {
 
-  network.update();
+  //network.update();
 
   currentmilli = millis();
 
-  receiveRFnetwork(currentmilli);
+  //receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
 
-  if (!activePIR){
-    if (digitalRead(PIR_PIN) == LOW){
-      activePIR = true;
-      newdata = true;
-    }
+  curPIR1 = digitalRead(PIR_PIN1);
+  curPIR2 = digitalRead(PIR_PIN2);
+  if (curPIR1 != remPIR1){
+    difPIR = (unsigned long)(currentmilli - difPIRtime1);
+    Serial.print(currentmilli);
+    Serial.print(F(" PIR 1 change "));
+    Serial.print(difPIR);
+    Serial.print(F(" to "));
+    Serial.println(curPIR1);
+    remPIR1 = curPIR1;
+    difPIRtime1 = currentmilli;
   }
-  if (pressBUTTON){
-    activeBUTTON = true;
-    newdata = true;
-    pressBUTTON = false;
-  }  
+  if (curPIR2 != remPIR2){
+    difPIR = (unsigned long)(currentmilli - difPIRtime2);
+    Serial.print(currentmilli);
+    Serial.print(F(" PIR 2 change "));
+    Serial.print(difPIR);
+    Serial.print(F(" to "));
+    Serial.println(curPIR2);
+    remPIR2 = curPIR2;
+    difPIRtime2 = currentmilli;
+  }
+  // if (!activePIR){
+  //   if (curPIR == HIGH){
+  //     activePIR = true;
+  //     newdata = true;
+  //   }
+  // }
+  // if (pressBUTTON){
+  //   activeBUTTON = true;
+  //   newdata = true;
+  //   pressBUTTON = false;
+  // }  
 
   //************************ sensors ****************//
 
-  trackDetectionAndButton(currentmilli);
+  //trackDetectionAndButton(currentmilli);
 
-  newdata = transmitRFnetwork(newdata, currentmilli);
+  //newdata = transmitRFnetwork(newdata, currentmilli);
 }
 
 void buttonPress(){

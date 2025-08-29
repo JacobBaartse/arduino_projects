@@ -90,6 +90,7 @@ void setup() {
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
   //radio.setPALevel(RF24_PA_MIN, 0);
+  radiolevel = RF24_PA_LOW;
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, basenode);
@@ -110,14 +111,14 @@ bool activeBUTTON1 = false;
 bool activeBUTTON2 = false;
 
 void drivebuzzer(bool buzzerstatus){
-static uint16_t buzzertone = 2500;
+static uint16_t buzzertone = 2000;
 
   if (buzzerstatus){
     if (digitalRead(CFG_PIN0) == LOW){ // PIN active
       buzzertone = 1000;
     }
     if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-      buzzertone = 4000;
+      buzzertone += 2000;
     }
     tone(BUZZER_PIN, buzzertone);
   }
@@ -126,8 +127,11 @@ static uint16_t buzzertone = 2500;
   }
 }
 
+unsigned long reportingTime = 0;
+
 void trackDetectionsAndButtons(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
+  static uint8_t reportingdog = 0;
   static bool alarming = false;
 
   if (detectorscount > 0){
@@ -149,10 +153,27 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
     // activate alarm LED
 
   }
+
+  // if nothing happened
+  if (false){
+    // at least print for debugging something to know the software is still running
+    if ((unsigned long)(currentDetectMillis - reportingTime) > 60000){
+      Serial.print(F("Running detection tracking: "));
+      Serial.println(currentDetectMillis);
+      reportingTime = currentDetectMillis;
+      reportingdog += 1;
+    }
+  }
+  else{
+    reportingdog = 0;
+  }
+
 }
 
 //===== Receiving =====//
 uint16_t receiveRFnetwork(unsigned long currentRFmilli){
+  static unsigned long receivingTime = 0;
+  unsigned long diffTime = 0;
   uint16_t nodereceived = 00;
 
   while (network.available()){ // Is there any incoming data?
@@ -166,14 +187,24 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
     }
     nodereceived = header.from_node;
     if (Rxdata.keyword == keywordvalD){
-      Serial.println(F("new data received"));
+      diffTime = (unsigned long)((currentRFmilli - receivingTime));
+      receivingTime = currentRFmilli;
+      reportingTime = currentRFmilli;
+      Serial.print(F("new data received, time diff: "));
+      Serial.print(diffTime);
+      Serial.print(F(", dvalue: "));
+      Serial.print(Rxdata.dvalue);
+      Serial.print(F(", sw1 (PIR): "));
+      Serial.print(Rxdata.sw1value);
+      Serial.print(F(", sw2 (BUTTON): "));
+      Serial.println(Rxdata.sw2value);
 
       if (detectorscount < 0xff00)
         detectorscount += Rxdata.dvalue;
       Serial.print(F("detectorscount: "));
       Serial.print(detectorscount);
       Serial.print(F(", timing: "));
-      Serial.print(currentRFmilli);
+      Serial.println(currentRFmilli);
     }
     else{
       Serial.println(F("Keyword failure"));
