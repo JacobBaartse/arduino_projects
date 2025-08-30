@@ -5,6 +5,7 @@
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
+#include "distance.h"
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
 
@@ -12,6 +13,8 @@
 #define CFG_PIN1 A1
 #define CFG_PIN2 A2
 #define CFG_PIN3 A4
+
+// maybe a few pins for config of the distance threshold
 // #define CFG_PIN4 6
 // #define CFG_PIN5 7
 // #define CFG_PIN6 8
@@ -22,7 +25,8 @@
 #define BUTTON_PIN1 2
 #define BUTTON_PIN2 3
 
-#define PIR_PIN1 A5
+#define PIR_PIN1 7
+//#define PIR_PIN1 A5
 #define PIR_PIN2 A3
 
 
@@ -46,7 +50,7 @@ struct detector_payload{
 };
 
 bool newdata = false;
-bool debug = false;
+bool debug = true;
 
 void setup() {
   Serial.begin(115200);
@@ -104,6 +108,8 @@ void setup() {
   Serial.print(radioChannel);
   Serial.print(F(", level: "));
   Serial.println(radiolevel);
+
+  setupDistance();
 
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN1), buttonPress, FALLING); // trigger when button is pressed
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress, FALLING); // trigger when button is pressed
@@ -164,7 +170,9 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
     network.read(header, &Rxdata, sizeof(Rxdata)); // Read the incoming data
     if ((header.from_node != basenode)||(header.type != 'B')) {
       Serial.print(F("received unexpected message, from_node: "));
-      Serial.println(header.from_node);
+      Serial.print(header.from_node);
+      Serial.print(F(", type: "));
+      Serial.println(header.type);
       break;
     }
     if (Rxdata.keyword == keywordvalD){
@@ -257,6 +265,8 @@ unsigned long difPIRtime1 = 0;
 unsigned long difPIRtime2 = 0;
 unsigned long collectorpresenttime = 0;
 bool collectorpresent = false;
+bool PIRconfirmed = false;
+uint16_t objectdistance = 0;
 
 void loop() {
 
@@ -296,6 +306,7 @@ void loop() {
   if (!activePIR){
     if (curPIR1 == HIGH){
       activePIR = true;
+      //startDistance(currentmilli);
       newdata = true;
     }
     if (curPIR2 == HIGH){
@@ -308,6 +319,16 @@ void loop() {
     newdata = true;
     pressBUTTON = false;
   }  
+  if ((activePIR)&&(!PIRconfirmed))
+  //if (activePIR)
+    startDistance(currentmilli);
+  if (distanceinprogress){
+    objectdistance = readDistance(currentmilli);
+    if (objectdistance < 0xffff){
+      distanceinprogress = false;
+      PIRconfirmed = objectdistance < 20; // smaller than 100 cm
+    }
+  }
 
   //************************ sensors ****************//
 
