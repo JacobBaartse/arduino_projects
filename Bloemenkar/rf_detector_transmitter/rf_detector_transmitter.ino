@@ -162,14 +162,14 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
     RF24NetworkHeader header;
     detector_payload Rxdata;
     network.read(header, &Rxdata, sizeof(Rxdata)); // Read the incoming data
-    if (header.from_node != basenode) {
+    if ((header.from_node != basenode)||(header.type != 'B')) {
       Serial.print(F("received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
     }
     if (Rxdata.keyword == keywordvalD){
-      Serial.println(F("new data received"));
-
+      Serial.print(F("new data received from base/collector "));
+      Serial.println(currentRFmilli);
       // in case a message is received, with specific data, the detector could be 'reset' (for example)
 
 
@@ -195,7 +195,7 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
       detectionValue = 0xff;
       sw1Value = 0xff;
       sw2Value = 0xff;
-      if (debug) Serial.print(F("PING "));
+      if (debug) Serial.print(F(" PING "));
       pingTimer = currentRFmilli;
     }
   }
@@ -260,7 +260,7 @@ bool collectorpresent = false;
 
 void loop() {
 
-  //network.update();
+  network.update();
 
   currentmilli = millis();
 
@@ -313,12 +313,13 @@ void loop() {
 
   //trackDetectionAndButton(currentmilli);
   
-  if (currentmilli < collectorpresenttime){ // for a certain amount of time after the base node was 'heared'
-    newdata = transmitRFnetwork(newdata, currentmilli, false);
-  }
-  else{ // ping for base node
-    newdata = transmitRFnetwork(newdata, currentmilli, true);
-  }
+  newdata = transmitRFnetwork(newdata, currentmilli, (currentmilli < collectorpresenttime));
+  // if (currentmilli < collectorpresenttime){ // for a certain amount of time after the base node was 'heared'
+  //   newdata = transmitRFnetwork(newdata, currentmilli, false);
+  // }
+  // else{ // ping for base node
+  //   newdata = transmitRFnetwork(newdata, currentmilli, true);
+  // }
 }
 
 void buttonPress(){

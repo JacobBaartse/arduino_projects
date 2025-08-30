@@ -170,6 +170,8 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
 
 }
 
+bool pingreceived = false;
+
 //===== Receiving =====//
 uint16_t receiveRFnetwork(unsigned long currentRFmilli){
   static unsigned long receivingTime = 0;
@@ -199,11 +201,19 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(F(", sw2 (BUTTON): "));
       Serial.println(Rxdata.sw2value);
 
-      if (detectorscount < 0xff00)
-        detectorscount += Rxdata.dvalue;
-      Serial.print(F("detectorscount: "));
-      Serial.print(detectorscount);
-      Serial.print(F(", timing: "));
+      pingreceived = ((Rxdata.dvalue==0xff)&&(Rxdata.sw1value==0xff)&&(Rxdata.sw2value==0xff));
+
+      if (pingreceived){
+        Serial.print(nodereceived);
+        Serial.print(F(" PING received: "));
+      }
+      else{
+        if (detectorscount < 0xff00)
+          detectorscount += Rxdata.dvalue;
+        Serial.print(F("detectorscount: "));
+        Serial.print(detectorscount);
+        Serial.print(F(", timing: "));
+      }
       Serial.println(currentRFmilli);
     }
     else{
@@ -279,6 +289,7 @@ void loop() {
 
   currentmilli = millis();
 
+  pingreceived = false;
   detectornode = receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
@@ -302,8 +313,11 @@ void loop() {
 
   trackDetectionsAndButtons(currentmilli);
 
+  if (pingreceived){
+    newdata = true;
+  }
   // possible to send acknowledge to the detector node
-  //newdata = transmitRFnetwork(newdata, detectionnode, currentmilli);
+  newdata = transmitRFnetwork(newdata, detectornode, currentmilli);
 
 }
 
