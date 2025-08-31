@@ -28,9 +28,9 @@ uint16_t readDistanceCM(){
   unsigned long distance = (unsigned long)(ds[0]) * 65536;
   distance = distance + (unsigned long)(ds[1]) * 256;
   distance = (distance + (unsigned long)(ds[2])) / 10000;
-  if (distance > 0) {
-    Serial.print(distance);
-    Serial.println(F(" cm "));
+  if (distance > 0) { // minimum distance is 4 cm, maximum 400 cm
+    // Serial.print(distance);
+    // Serial.println(F(" cm "));
     retDist = distance;
   }
   return retDist;
@@ -78,7 +78,7 @@ uint16_t sonardistance(uint16_t command, unsigned long distMilli){
       break;
     // case 1:
     default: // 1
-      if (((unsigned long)(distMilli - startdistancemilli) > 1000)){ // 1 measurement per second is enough
+      if (((unsigned long)(distMilli - startdistancemilli) > 250)){ // 4 measurements per second is enough
         Wire.beginTransmission(SR04_I2CADDR);
         Wire.write(1);          // 1 = cmd to start meansurement
         Wire.endTransmission();

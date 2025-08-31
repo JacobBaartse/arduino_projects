@@ -265,6 +265,7 @@ unsigned long difPIR = 3;
 unsigned long difPIRtime1 = 0;
 //unsigned long difPIRtime2 = 0;
 bool PIRconfirmed = false;
+uint16_t mloop = 0;
 uint16_t objectdistance = 0;
 
 void loop() {
@@ -299,34 +300,37 @@ void loop() {
   //   remPIR2 = curPIR2;
   //   difPIRtime2 = currentmilli;
   // }
-  if (!activePIR){
+  if (activePIR){
+    if (curPIR1 == LOW){
+      activePIR = false;
+    }
+  }
+  else{
     if (curPIR1 == HIGH){
+      mloop = 0;
       activePIR = true;
-      //startDistance(currentmilli);
       newdata = true;
     }
-    // if (curPIR2 == HIGH){
-    //   activePIR = true;
-    //   newdata = true;
-    // }
   }
   if (pressBUTTON){
     activeBUTTON = true;
     newdata = true;
     pressBUTTON = false;
   } 
-   
-  //currentmilli = millis();
 
+  // this is limited bij the PIR active signal (2-3 seconds)
   if ((activePIR)&&(!PIRconfirmed)){
     //startDistance(currentmilli);
     //objectdistance = readDistance(currentmilli);
     objectdistance = measureDistance(currentmilli);
     
     if (objectdistance < 0xff00){
-      Serial.print(F(" objectdistance "));
-      Serial.println(objectdistance);
-      PIRconfirmed = objectdistance < 20; // smaller than 100 cm
+      mloop++;
+      Serial.print(F(" distance "));
+      Serial.print(objectdistance);
+      Serial.print(F(" cm, loop: "));
+      Serial.println(mloop);
+      PIRconfirmed = objectdistance < 100; // smaller than 100 cm
     }
   }
 
