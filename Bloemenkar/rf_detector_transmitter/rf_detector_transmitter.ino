@@ -27,7 +27,7 @@
 
 #define PIR_PIN1 7
 //#define PIR_PIN1 A5
-#define PIR_PIN2 A3
+//#define PIR_PIN2 A3
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -69,7 +69,7 @@ void setup() {
   pinMode(BUTTON_PIN1, INPUT_PULLUP);
   pinMode(BUTTON_PIN2, INPUT_PULLUP);
   pinMode(PIR_PIN1, INPUT);
-  pinMode(PIR_PIN2, INPUT);
+  //pinMode(PIR_PIN2, INPUT);
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
     detectornode = 2;
@@ -176,7 +176,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       break;
     }
     if (Rxdata.keyword == keywordvalD){
-      Serial.print(F("new data received from base/collector "));
+      Serial.print(F("Data received from base/collector "));
       Serial.println(currentRFmilli);
       // in case a message is received, with specific data, the detector could be 'reset' (for example)
 
@@ -189,24 +189,25 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
+//bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
+bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
-  static unsigned long pingTimer = 0;
+  //static unsigned long pingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
   bool fresh = pfresh;
 
-  if (pping){
-    if ((unsigned long)(currentRFmilli - pingTimer) > 25000){
-      fresh = true; // directly send message
-      detectionValue = 0xff;
-      sw1Value = 0xff;
-      sw2Value = 0xff;
-      if (debug) Serial.print(F(" PING "));
-      pingTimer = currentRFmilli;
-    }
-  }
+  // if (pping){
+  //   if ((unsigned long)(currentRFmilli - pingTimer) > 25000){
+  //     fresh = true; // directly send message
+  //     detectionValue = 0xff;
+  //     sw1Value = 0xff;
+  //     sw2Value = 0xff;
+  //     if (debug) Serial.print(F(" PING "));
+  //     pingTimer = currentRFmilli;
+  //   }
+  // }
   // Every 60 seconds, or on new data
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 60000)){
     sendingTimer = currentRFmilli;
@@ -250,21 +251,19 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
       fresh = false; // do not send a lot of messages continously
     }
   }
-  if (pping){
-    fresh = false; // 
-  }
+  // if (pping){
+  //   fresh = false; // 
+  // }
   return fresh;
 }
 
 uint8_t remPIR1 = 3;
 uint8_t curPIR1 = 3;
-uint8_t remPIR2 = 3;
-uint8_t curPIR2 = 3;
+//uint8_t remPIR2 = 3;
+//uint8_t curPIR2 = 3;
 unsigned long difPIR = 3;
 unsigned long difPIRtime1 = 0;
-unsigned long difPIRtime2 = 0;
-unsigned long collectorpresenttime = 0;
-bool collectorpresent = false;
+//unsigned long difPIRtime2 = 0;
 bool PIRconfirmed = false;
 uint16_t objectdistance = 0;
 
@@ -274,15 +273,12 @@ void loop() {
 
   currentmilli = millis();
 
-  collectorpresent = receiveRFnetwork(currentmilli);
-  if (collectorpresent){
-    collectorpresenttime = currentmilli + 60000;
-  }
+  receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
 
   curPIR1 = digitalRead(PIR_PIN1);
-  curPIR2 = digitalRead(PIR_PIN2);
+  //curPIR2 = digitalRead(PIR_PIN2);
   if (curPIR1 != remPIR1){
     difPIR = (unsigned long)(currentmilli - difPIRtime1);
     Serial.print(currentmilli);
@@ -293,39 +289,43 @@ void loop() {
     remPIR1 = curPIR1;
     difPIRtime1 = currentmilli;
   }
-  if (curPIR2 != remPIR2){
-    difPIR = (unsigned long)(currentmilli - difPIRtime2);
-    Serial.print(currentmilli);
-    Serial.print(F(" PIR 2 change "));
-    Serial.print(difPIR);
-    Serial.print(F(" to "));
-    Serial.println(curPIR2);
-    remPIR2 = curPIR2;
-    difPIRtime2 = currentmilli;
-  }
+  // if (curPIR2 != remPIR2){
+  //   difPIR = (unsigned long)(currentmilli - difPIRtime2);
+  //   Serial.print(currentmilli);
+  //   Serial.print(F(" PIR 2 change "));
+  //   Serial.print(difPIR);
+  //   Serial.print(F(" to "));
+  //   Serial.println(curPIR2);
+  //   remPIR2 = curPIR2;
+  //   difPIRtime2 = currentmilli;
+  // }
   if (!activePIR){
     if (curPIR1 == HIGH){
       activePIR = true;
       //startDistance(currentmilli);
       newdata = true;
     }
-    if (curPIR2 == HIGH){
-      activePIR = true;
-      newdata = true;
-    }
+    // if (curPIR2 == HIGH){
+    //   activePIR = true;
+    //   newdata = true;
+    // }
   }
   if (pressBUTTON){
     activeBUTTON = true;
     newdata = true;
     pressBUTTON = false;
-  }  
-  if ((activePIR)&&(!PIRconfirmed))
-  //if (activePIR)
-    startDistance(currentmilli);
-  if (distanceinprogress){
-    objectdistance = readDistance(currentmilli);
-    if (objectdistance < 0xffff){
-      distanceinprogress = false;
+  } 
+   
+  //currentmilli = millis();
+
+  if ((activePIR)&&(!PIRconfirmed)){
+    //startDistance(currentmilli);
+    //objectdistance = readDistance(currentmilli);
+    objectdistance = measureDistance(currentmilli);
+    
+    if (objectdistance < 0xff00){
+      Serial.print(F(" objectdistance "));
+      Serial.println(objectdistance);
       PIRconfirmed = objectdistance < 20; // smaller than 100 cm
     }
   }
@@ -334,7 +334,7 @@ void loop() {
 
   //trackDetectionAndButton(currentmilli);
   
-  newdata = transmitRFnetwork(newdata, currentmilli, (currentmilli < collectorpresenttime));
+  newdata = transmitRFnetwork(newdata, currentmilli);
   // if (currentmilli < collectorpresenttime){ // for a certain amount of time after the base node was 'heared'
   //   newdata = transmitRFnetwork(newdata, currentmilli, false);
   // }
