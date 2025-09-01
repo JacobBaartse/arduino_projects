@@ -170,7 +170,7 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
 
 }
 
-bool pingreceived = false;
+//bool pingreceived = false;
 
 //===== Receiving =====//
 uint16_t receiveRFnetwork(unsigned long currentRFmilli){
@@ -201,19 +201,19 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(F(", sw2 (BUTTON): "));
       Serial.println(Rxdata.sw2value);
 
-      pingreceived = ((Rxdata.dvalue==0xff)&&(Rxdata.sw1value==0xff)&&(Rxdata.sw2value==0xff));
+      //pingreceived = ((Rxdata.dvalue==0xff)&&(Rxdata.sw1value==0xff)&&(Rxdata.sw2value==0xff));
 
-      if (pingreceived){
-        Serial.print(nodereceived);
-        Serial.print(F(" PING received: "));
-      }
-      else{
+      // if (pingreceived){
+      //   Serial.print(nodereceived);
+      //   Serial.print(F(" PING received: "));
+      // }
+      // else{
         if (detectorscount < 0xff00)
           detectorscount += Rxdata.dvalue;
         Serial.print(F("detectorscount: "));
         Serial.print(detectorscount);
         Serial.print(F(", timing: "));
-      }
+      //}
       Serial.println(currentRFmilli);
     }
     else{
@@ -243,7 +243,7 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     // Txdata.sw1value = sw1Value;
     // Txdata.sw2value = sw2Value;
 
-    Serial.print(F("Message: "));
+    // Serial.print(F("Message: "));
     // Serial.print(F(", xvalue: "));
     // Serial.print(Txdata.xvalue);
     // Serial.print(F(", yvalue: "));
@@ -289,7 +289,7 @@ void loop() {
 
   currentmilli = millis();
 
-  pingreceived = false;
+  //pingreceived = false;
   detectornode = receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
@@ -313,9 +313,9 @@ void loop() {
 
   trackDetectionsAndButtons(currentmilli);
 
-  if (pingreceived){
-    newdata = true;
-  }
+  // if (pingreceived){
+  //   newdata = true;
+  // }
   // possible to send acknowledge to the detector node
   newdata = transmitRFnetwork(newdata, detectornode, currentmilli);
 

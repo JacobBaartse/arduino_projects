@@ -120,16 +120,18 @@ uint8_t detectionValue = 0;
 uint8_t sw1Value = 0;
 uint8_t sw2Value = 0;
 bool activePIR = false;
+bool PIRconfirmed = false;
 bool activeBUTTON = false;
 bool pressBUTTON = false;
 
 void trackDetectionAndButton(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
   static bool alarming = false;
+  bool fresh = false;
 
   if (alarming){
-    if ((unsigned long)(currentDetectMillis - activationTime) > 60000){ // 60 seconds no new detection
-      activePIR = false;
+    if ((unsigned long)(currentDetectMillis - activationTime) > 60000){ // 60 seconds no new alarming
+      PIRconfirmed = false;
       activeBUTTON = false;
       detectionValue = 0;
       sw1Value = 0;
@@ -140,7 +142,7 @@ void trackDetectionAndButton(unsigned long currentDetectMillis){
     }
   }
   else {
-    if (activePIR){
+    if (PIRconfirmed){
       sw1Value = 0xa5;
       Serial.print(F("PIR detection "));
       Serial.println(currentDetectMillis);
@@ -157,8 +159,10 @@ void trackDetectionAndButton(unsigned long currentDetectMillis){
     if (alarming){
       activationTime = currentDetectMillis;
       detectionValue = 0xff;
+      fresh = true;
     }
   }
+  return fresh;
 }
 
 //===== Receiving =====//
@@ -264,7 +268,6 @@ uint8_t curPIR1 = 3;
 unsigned long difPIR = 3;
 unsigned long difPIRtime1 = 0;
 //unsigned long difPIRtime2 = 0;
-bool PIRconfirmed = false;
 uint16_t mloop = 0;
 uint16_t objectdistance = 0;
 
@@ -309,12 +312,12 @@ void loop() {
     if (curPIR1 == HIGH){
       mloop = 0;
       activePIR = true;
-      newdata = true;
+      //newdata = true;
     }
   }
   if (pressBUTTON){
     activeBUTTON = true;
-    newdata = true;
+    //newdata = true;
     pressBUTTON = false;
   } 
 
@@ -330,13 +333,13 @@ void loop() {
       Serial.print(objectdistance);
       Serial.print(F(" cm, loop: "));
       Serial.println(mloop);
-      PIRconfirmed = objectdistance < 100; // smaller than 100 cm
+      PIRconfirmed = objectdistance < 200; // smaller than 200 cm
     }
   }
 
   //************************ sensors ****************//
 
-  //trackDetectionAndButton(currentmilli);
+  newdata = trackDetectionAndButton(currentmilli);
   
   newdata = transmitRFnetwork(newdata, currentmilli);
   // if (currentmilli < collectorpresenttime){ // for a certain amount of time after the base node was 'heared'

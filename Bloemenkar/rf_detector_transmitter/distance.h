@@ -78,7 +78,8 @@ uint16_t sonardistance(uint16_t command, unsigned long distMilli){
       break;
     // case 1:
     default: // 1
-      if (((unsigned long)(distMilli - startdistancemilli) > 250)){ // 4 measurements per second is enough
+      //if (((unsigned long)(distMilli - startdistancemilli) > 250)){ // 4 measurements per second is enough
+      if (true){ // as quickly as possible
         Wire.beginTransmission(SR04_I2CADDR);
         Wire.write(1);          // 1 = cmd to start meansurement
         Wire.endTransmission();
