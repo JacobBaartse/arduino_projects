@@ -377,7 +377,7 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh, uint16_t 
 
   // Every x seconds...
   if((lfresh)||(currentmilli > sendingTimer)){
-    sendingTimer = currentmilli + 10000; // once per 10 seconds, cycle the connected nodes
+    sendingTimer = (unsigned long) currentmilli + 10000; // once per 10 seconds, cycle the connected nodes
     ks_payload mpayload;
     char datakey = 'X';
 

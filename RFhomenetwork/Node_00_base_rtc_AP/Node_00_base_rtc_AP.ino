@@ -5,7 +5,8 @@
 
 #include "matrix.h"
 #include "networking.h"
-#include "screen.h"
+#include "clock.h"
+//#include "screen.h" // the screen control is solved differently
 #include "sdisplay.h"
 #include "webinterface.h"
 #include "temppress.h"
@@ -31,7 +32,7 @@ void setup() {
   //RTC.begin();
   matrix.begin();
   setupRFnetwork();
-  setupScreenControl();
+  //setupScreenControl();
   temppress_setup();
   sdisplay_setup();
 
@@ -148,9 +149,9 @@ void loop() {
     // wcommand = 0;
   }
 
-  if (screening){
-    screening = screenprocessing(currentMillis);
-  }
+  // if (screening){
+  //   screening = screenprocessing(currentMillis);
+  // }
 
   tempress_values(currentMillis);
 

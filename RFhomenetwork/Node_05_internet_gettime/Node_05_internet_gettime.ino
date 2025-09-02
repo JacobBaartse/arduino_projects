@@ -86,12 +86,12 @@ void setup() {
 //   NVIC_SystemReset();
 // }
 
-bool messageStatus(unsigned long interval)
+bool messageStatus(unsigned long mtime, unsigned long interval)
 {
   static unsigned long statustime = 0;
   static unsigned long statussequence = 0;
-  if (millis() < statustime) return false;
-  statustime = millis() + interval;
+  if (mtime < statustime) return false;
+  statustime = (unsigned long) mtime + interval;
   statussequence++;
   Serial.print(F("Item: "));
   Serial.print(statussequence);
@@ -114,6 +114,7 @@ bool messageStatus(unsigned long interval)
 bool alarming = true; // should become: false;
 unsigned int receiveaction = 0;
 unsigned int transmitaction = 0;
+unsigned long looptime = 0;
 
 // prototypes
 unsigned int receiveRFnetwork();
@@ -121,9 +122,11 @@ unsigned int transmitRFnetwork(unsigned long commandtx);
 
 void loop() {
 
+  looptime = millis();
+
   network.update();
 
-  if (messageStatus(60000)) { // request remote status when local status is printed
+  if (messageStatus(looptime, 60000)) { // request remote status when local status is printed
     commanding = command_status;
   }
 
@@ -131,14 +134,14 @@ void loop() {
   receiveaction = receiveRFnetwork();
 
   //===== Sending =====//
-  transmitaction = transmitRFnetwork(commanding);
+  transmitaction = transmitRFnetwork(commanding, looptime);
 
   // show something on the LED matrix 
   if (alarming) {
-    alarming = alarmingsequence();
+    alarming = alarmingsequence(looptime);
   }
   else {
-    loadsequencepicture();
+    loadsequencepicture(looptime);
   }
 
   webinterfacing();

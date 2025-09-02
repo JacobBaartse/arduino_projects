@@ -66,7 +66,7 @@ void tempress_data(unsigned long currentmilli) {
 void tempress_values(unsigned long currentmilli){
   static unsigned long sensorTimer = 0;
   if (currentmilli > sensorTimer){ // todo de andere berekening die wel altijd werkt
-    sensorTimer = currentmilli + 60000; // once per minute
+    sensorTimer = (unsigned long) currentmilli + 60000; // once per minute
     tempress_data(currentmilli);
   }
 }

@@ -48,12 +48,12 @@ void set_clock(unsigned long unix_time){
 }
 
 void restart_uno(){
-  Serial.println("Restart the UNO R4 WiFi...");
+  Serial.println(F("Restart the UNO R4 WiFi..."));
   delay(2000);
   NVIC_SystemReset();
 }
 
-void get_time_from_hsdesign(){
+bool get_time_from_hsdesign(bool startup=true){
   char c;
   RTC.begin();
   WiFiSSLClient client;
@@ -65,7 +65,7 @@ void get_time_from_hsdesign(){
   client.setCACert(root_ca);
 
   while (!time_response_received){
-    if (client.connect(server, 443)) {
+    if (client.connect(server, 443)){
       // send the HTTP request:
       client.println("GET /localtime.php HTTP/1.1");
       client.println("Host: www.tdic.nl");
@@ -74,7 +74,7 @@ void get_time_from_hsdesign(){
       client.flush();
     };
 
-    counter += 1;
+    counter++;
     for (int i=0; i<200; i++){
       delay(20);
       while (client.available()) {
@@ -83,11 +83,18 @@ void get_time_from_hsdesign(){
         time_response_received = true;
       }
       if (time_response_received) break;
-      if (i == 199) counter += 1;
+      if (i == 199) counter++;
     }
-    if (counter > 60) restart_uno();
+    if (counter > 60){
+      if (startup){
+        restart_uno();
+      }
+      break; // continue if this function is called after setup/startup
+    } 
   }
   client.stop();
+
+  if (!time_response_received) return false; // if nothing received fast enough
 
   // parse the httpResponseString to get the utc time and timeoffset.
   int unix_time_start = httpResponseString.indexOf("\r\n\r\n") + 7; // 3 bytes after the headers.
@@ -104,30 +111,6 @@ void get_time_from_hsdesign(){
   // correct startup value for clock for internet lag..
   startup_unix_time_internet += 1;
   set_clock(startup_unix_time_internet);   
-  Serial.println("Time retrieved from the internet and set locally.");
+  Serial.println(F("Time retrieved from the internet and set locally."));
+  return true;
 }
-
-// int prev_second;
-// const int hour = 60*60;
-
-// int Hour = 0;
-// int Minutes = 0;
-// int Seconds = -1;
-
-// void update_clock(){
-//   RTC.getTime(currentTime);
-//   if (currentTime.getSeconds() != prev_second){
-//     prev_second = currentTime.getSeconds();
-//     unsigned long unix_time = currentTime.getUnixTime();
-//     unsigned long elapsed_seconds = unix_time - startup_unix_time_rtc;
-//     elapsed_seconds -= elapsed_seconds/53;
-//     // elapsed_seconds += elapsed_seconds/3400;  // additional correction if required.
-
-//     unsigned long corrected_unix_time = startup_unix_time_rtc + elapsed_seconds;
-//     Minutes = (corrected_unix_time / 60) % 60;
-//     Hour = (corrected_unix_time / hour) % 24;
-//     Seconds = corrected_unix_time % 60;
-
-//     if (currentTime.getHour()== 4 && (millis()/1000/hour)>2) restart_uno();  //restart every night at 4 a clock once.
-//   }
-// }
