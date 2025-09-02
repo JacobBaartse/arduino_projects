@@ -39,33 +39,33 @@ void temppress_setup() {
 }
 
 void tempress_data(unsigned long currentmilli) {
-  Serial.println("----------------");
+  Serial.println(F("----------------"));
   Serial.println(currentmilli);
 
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp); // populate temp and humidity objects with fresh data
-  Serial.print("Temperature: "); 
+  Serial.print(F("Temperature: ")); 
   Serial.print(temp.temperature); 
-  Serial.println(" degrees C");
+  Serial.println(F(" degrees C"));
 
-  Serial.print("Humidity: "); 
+  Serial.print(F("Humidity: ")); 
   Serial.print(humidity.relative_humidity); 
-  Serial.println("% rH");
+  Serial.println(F("% rH"));
 
   Serial.print(F("Temperature: "));
   Serial.print(bmp.readTemperature());
-  Serial.println(" *C");
+  Serial.println(F(" *C"));
 
   Serial.print(F("Pressure: "));
   Serial.print(bmp.readPressure());
-  Serial.println(" Pa");
+  Serial.println(F(" Pa"));
 
-  Serial.println("----------------");
+  Serial.println(F("----------------"));
 }
 
 void tempress_values(unsigned long currentmilli){
   static unsigned long sensorTimer = 0;
-  if (currentmilli > sensorTimer){
+  if (currentmilli > sensorTimer){ // todo de andere berekening die wel altijd werkt
     sensorTimer = currentmilli + 60000; // once per minute
     tempress_data(currentmilli);
   }

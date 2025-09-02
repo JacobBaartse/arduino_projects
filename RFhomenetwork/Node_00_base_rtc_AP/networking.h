@@ -189,6 +189,8 @@ const uint32_t kitchenkeyword = 0x10112003;
 const uint32_t shedkeyword = 0xffddeecc;
 const uint32_t spoorstrakeyword = 0xfdecba98;
 const uint32_t keypadkeyword = 0xabcdef01;
+const uint32_t joystickkeyword = 0xabcdef01;
+const uint32_t tm1638keyword = 0xabcdef01;
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/

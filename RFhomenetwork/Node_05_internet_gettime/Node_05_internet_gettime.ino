@@ -13,8 +13,6 @@ Target: UNO R4 Wifi, with RF24 module
 nRF24L01 (CE,CSN) connected to pin 8, 7
 location SO148
 
-@todo send message to repeater
-
 */
 
 #include <SPI.h>

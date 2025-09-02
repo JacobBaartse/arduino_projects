@@ -1,5 +1,5 @@
 /*
- *
+ * flexible webpage
  */
 
 WiFiServer server(80);

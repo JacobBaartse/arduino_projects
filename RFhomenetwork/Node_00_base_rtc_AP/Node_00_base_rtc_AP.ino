@@ -1,5 +1,6 @@
 /*
  * UNO R4 Wifi, configured in as an Access Point
+ * Base station of the home network
  */
 
 #include "matrix.h"
@@ -16,7 +17,7 @@ IPAddress IPhere;
 char ssid[] = "UNO_R4_AP_Living"; // your network SSID (name)
 char pass[] = "TBD PW for UNO_R4_AP_RF"; // your network password
 
-uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
+uint8_t WiFichannel = 11; // WiFi channel (1-13), 6 seems default
 
 // void restart_arduino(){
 //   Serial.println(F("Restart the arduino UNO board..."));
@@ -26,34 +27,27 @@ uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial) {
-    // some boards need this because of native USB capability
-  }
-  delay(1000);
+
+  //RTC.begin();
+  matrix.begin();
+  setupRFnetwork();
+  setupScreenControl();
+  temppress_setup();
+  sdisplay_setup();
+
   Serial.println(F("Starting UNO R4 WiFi"));
   Serial.println();
   Serial.print(__FILE__);
   Serial.print(F("\n, creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
-  
-  //RTC.begin();
-  matrix.begin();
-
-  setupRFnetwork();
-
-  setupScreenControl();
-
-  temppress_setup();
-
-  sdisplay_setup();
 
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
   Serial.print(ssid);
-  Serial.print(F(", password: '"));
-  Serial.print(pass);
-  Serial.println(F("'"));
+  // Serial.print(F(", password: '"));
+  // Serial.print(pass);
+  // Serial.println(F("'"));
 
   // by default the local IP address will be 192.168.4.1
   // you can override it with the following:
