@@ -14,7 +14,6 @@ nRF24L01 (CE,CSN) connected to pin 8, 7
 location SO148
 
 @todo send message to repeater
-@todo define base channel
 
 */
 
@@ -34,27 +33,26 @@ IPAddress IPhere;
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+  RTC.begin();
+  matrix.begin();
+  SPI.begin();
+  radio.begin();
+
   Serial.println();
   Serial.println(__FILE__);
   Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
-  RTC.begin();
-  matrix.begin();
-  SPI.begin();
-  radio.begin();
   radio.setPALevel(RF24_PA_LOW); // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm.
   radio.setDataRate(RF24_1MBPS); // (RF24_2MBPS);
   // radio.setDataRate(RF24_250KBPS); // (RF24_2MBPS);
   // radio.setChannel(100);
   // radio.setAutoAck(true);                                              
   // radio.enableDynamicPayloads(); 
-  network.begin(104, internet_node);
+  network.begin(radio_channel, internet_node);
 
   Serial.print(F("Starting up UNO R4 WiFi"));
-  Serial.flush();
 
   // String fv = WiFi.firmwareVersion();
   // if (fv < WIFI_FIRMWARE_LATEST_VERSION){
@@ -82,7 +80,6 @@ void setup() {
 
   Serial.println(F("\n ******"));  
   Serial.println();  
-  Serial.flush(); 
 }
 
 // void restart_arduino(){

@@ -156,11 +156,14 @@ int WifiConnect(){
 }
 
 //===== Radio =====//
+#define radio_channel 104
+#define CE_PIN 8
+#define CSN_PIN 7
 
 const uint16_t base_node = 00;      // Address of the base node in Octal format (04, 031, etc.)
 const uint16_t internet_node = 05;  // Address of the node node in Octal format (04, 031, etc.)
 
-RF24 radio(8, 7);                // nRF24L01 (CE, CSN)
+RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
 
 const uint16_t wrappingcounter = 255;
@@ -224,7 +227,7 @@ unsigned int receiveRFnetwork(){
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
     Serial.println(incomingData.keyword, HEX);
-    if (header.from_node != node01) {
+    if (header.from_node != base_node) {
       Serial.print(F("Received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
@@ -294,7 +297,7 @@ unsigned int transmitRFnetwork(unsigned long commandtx){
   if(currentmilli - sendingTimer > 5000) {
     sendingTimer = currentmilli;
     sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header1(node01, 'B'); // Address where the data is going
+    RF24NetworkHeader header1(base_node, 'B'); // Address where the data is going
     network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1};//, data2, data3};
 
     //network.update();
