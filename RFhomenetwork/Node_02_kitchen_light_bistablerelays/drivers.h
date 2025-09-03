@@ -2,8 +2,9 @@
  * relays driving stuff
  */
 
-#define pinLightS 4      // relays driver pin
-#define pinLightR 5      // relays driver pin
+#define pinLightS 4      // relays driver Set pin (Set)
+#define pinLightR 5      // relays driver Reset pin (Clear)
+#define pinDetect 6      // monitor pin (Detect)
 
 void setupdrivers(){
 

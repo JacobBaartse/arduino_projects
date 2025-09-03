@@ -6,14 +6,16 @@
 #include "RF24.h"
 #include <SPI.h>
 
-#include "sensors.h"
-#include "drivers.h"
-
+//#include "sensors.h"
+//#include "drivers.h"
+#include "relays.h"
 
 #define radioChannel 104
+#define CE_PIN 10
+#define CSN_PIN 9
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(10, 9); // nRF24L01 (CE, CSN)
+RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 const uint16_t kitchen_node = 02; // Address of this node in the kitchen
@@ -24,8 +26,9 @@ unsigned long const keywordvalM = 0xfeedbeed;
 void setup() {
   Serial.begin(115200);
 
-  setupsensors();
-  setupdrivers();
+  //setupsensors();
+  //setupdrivers();
+  setuprelays();
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
@@ -38,11 +41,11 @@ void setup() {
     Serial.println(F("Radio hardware error."));
     while (true) delay(1000);
   }
-  radio.setPALevel(RF24_PA_MIN, 0);
+  radio.setPALevel(RF24_PA_LOW, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, kitchen_node);
 
-  attachInterrupt(digitalPinToInterrupt(pinPressButton), buttonPress, FALLING); // trigger when button is pressed
+  //attachInterrupt(digitalPinToInterrupt(pinPressButton), buttonPress, FALLING); // trigger when button is pressed
 }
 
 //===== Receiving =====//
@@ -64,7 +67,6 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       case 'Z': 
     
         mreceived = true;
-
         break;
       default: 
         network.read(header, 0, 0);
@@ -72,6 +74,8 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
         Serial.println(header.type);
     }
   }
+  // commandaction = RelayState::R_On;
+  // commandaction = RelayState::R_Off;
   return mreceived;
 }
 
@@ -117,9 +121,9 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
 }
 
 unsigned long currentmilli = 0;
-uint8_t sensorstatus = 0;
-
+//uint8_t sensorstatus = 0;
 bool newdata = false;
+bool relayserror = false;
 
 void loop() {
 
@@ -131,11 +135,17 @@ void loop() {
 
   //************************ sensors/actuators ****************//
 
-  sensorstatus = checkSensors(currentmilli);
+  // sensorstatus = checkSensors(currentmilli);
 
-  driveRelays(sensorstatus, currentmilli);
+  relayserror = relaytracking(newdata, currentmilli);
+  //driveRelays(sensorstatus, currentmilli);
 
   //************************ sensors/actuators ****************//
+
+  if (relayserror){
+    Serial.print(F("Relays error detected "));
+    Serial.println(currentmilli);
+  }
 
   //transmitRFnetwork(ack, currentmilli);
 
