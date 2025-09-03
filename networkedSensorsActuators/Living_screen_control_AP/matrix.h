@@ -94,12 +94,12 @@ const PROGMEM int sequencing[][2] = {
   }
 };
 
-void loadsequencepicture(){
-  static long runningtime = 0;
+void loadsequencepicture(unsigned long actualtime){
+  static unsigned long runningtime = 0;
   static int pointer = 0;
-  if(millis() < runningtime) return;
+  if (actualtime < runningtime) return;
   loadstaticpicture(sequencing[pointer][0]);
-  runningtime = millis() + sequencing[pointer][1];
+  runningtime = (unsigned long) actualtime + sequencing[pointer][1];
   pointer = (pointer + 1) % 12;
 }
 
@@ -132,14 +132,14 @@ void displayFull(bool on=true){
   else matrix.loadFrame(full_off);
 }
 
-bool alarmingsequence(){
-  static long alarmtime = 0;
+bool alarmingsequence(unsigned long actualtime){
+  static unsigned long alarmtime = 0;
   static int alarmcount = 0;
   static bool fullred = false;
-  if(millis() < alarmtime) return true;
+  if (actualtime < alarmtime) return true;
   fullred = !fullred;
   displayFull(fullred);
   alarmcount++;
-  alarmtime = millis() + 500;
+  alarmtime = (unsigned long) actualtime + 500;
   return alarmcount < 20; // flash maximum 10 times
 }

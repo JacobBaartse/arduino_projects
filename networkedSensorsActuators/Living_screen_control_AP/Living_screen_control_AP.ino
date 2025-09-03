@@ -4,7 +4,7 @@
 
 #include "matrix.h"
 #include "networking.h"
-#include "screen.h"
+ //#include "screen.h"
 #include "sdisplay.h"
 #include "webinterface.h"
 #include "temppress.h"
@@ -26,10 +26,14 @@ uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial) {
-    // some boards need this because of native USB capability
-  }
-  delay(1000);
+
+  //RTC.begin();
+  matrix.begin();
+  setupRFnetwork();
+  //setupScreenControl();
+  temppress_setup();
+  sdisplay_setup();
+
   Serial.println(F("Starting UNO R4 WiFi"));
   Serial.println();
   Serial.print(__FILE__);
@@ -37,23 +41,12 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
   
-  //RTC.begin();
-  matrix.begin();
-
-  setupRFnetwork();
-
-  setupScreenControl();
-
-  temppress_setup();
-
-  sdisplay_setup();
-
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));
-  Serial.print(ssid);
-  Serial.print(F(", password: '"));
-  Serial.print(pass);
-  Serial.println(F("'"));
+  Serial.println(ssid);
+  // Serial.print(F(", password: '"));
+  // Serial.print(pass);
+  // Serial.println(F("'"));
 
   // by default the local IP address will be 192.168.4.1
   // you can override it with the following:
@@ -154,9 +147,9 @@ void loop() {
     // wcommand = 0;
   }
 
-  if (screening){
-    screening = screenprocessing(currentMillis);
-  }
+  // if (screening){
+  //   screening = screenprocessing(currentMillis);
+  // }
 
   tempress_values(currentMillis);
 

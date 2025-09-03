@@ -1,5 +1,5 @@
 /*
- * 
+ * Wifi and RF24 functions
  */
 
 #include <SPI.h>

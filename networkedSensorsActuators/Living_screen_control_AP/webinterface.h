@@ -1,5 +1,5 @@
 /*
- *
+ * webpage for providing information and command input
  */
 
 WiFiServer server(80);
