@@ -8,6 +8,8 @@
 #include "distance.h"
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
+#define CE_PIN 10
+#define CSN_PIN 9
 
 #define CFG_PIN0 A0
 #define CFG_PIN1 A1
@@ -31,7 +33,7 @@
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(10, 9); // nRF24L01 (CE, CSN)
+RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 uint16_t detectornode = 01; // Address of this node in Octal format (04, 031, etc.)
@@ -124,7 +126,7 @@ bool PIRconfirmed = false;
 bool activeBUTTON = false;
 bool pressBUTTON = false;
 
-void trackDetectionAndButton(unsigned long currentDetectMillis){
+bool trackDetectionAndButton(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
   static bool alarming = false;
   bool fresh = false;

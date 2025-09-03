@@ -34,6 +34,8 @@ void setup() {
   temppress_setup();
   sdisplay_setup();
 
+  Serial.println(F(" ***** <> *****")); 
+  Serial.flush();  
   Serial.println(F("Starting UNO R4 WiFi"));
   Serial.println();
   Serial.print(__FILE__);
