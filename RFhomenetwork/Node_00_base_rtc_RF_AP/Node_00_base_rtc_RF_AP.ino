@@ -13,10 +13,8 @@ int status = WL_IDLE_STATUS;
 
 IPAddress IPhere;
 
-char ssid[] = "UNO_R4_AP_Living"; // your network SSID (name)
-char pass[] = "TBD PW for UNO_R4_AP_RF"; // your network password
-
-uint8_t WiFichannel = 13; // WiFi channel (1-13), 6 seems default
+char ssid[] = "UNO_RTC_RF_AP"; // your network SSID (name)
+char pass[] = "uno_RTC_rf_AP"; // your network password
 
 // void restart_arduino(){
 //   Serial.println(F("Restart the arduino UNO board..."));
@@ -29,15 +27,14 @@ void setup() {
 
   //RTC.begin();
   matrix.begin();
+  Serial.println();
+  Serial.println(F("Starting UNO R4 WiFi"));
+
   setupRFnetwork();
   //setupScreenControl();
   temppress_setup();
   sdisplay_setup();
 
-  Serial.println(F(" ***** <> *****")); 
-  Serial.flush();  
-  Serial.println(F("Starting UNO R4 WiFi"));
-  Serial.println();
   Serial.print(__FILE__);
   Serial.print(F("\n, creation/build time: "));
   Serial.println(__TIMESTAMP__);
