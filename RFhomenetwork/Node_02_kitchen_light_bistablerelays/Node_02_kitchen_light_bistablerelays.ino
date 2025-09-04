@@ -6,7 +6,7 @@
 #include "RF24.h"
 #include <SPI.h>
 
-//#include "sensors.h"
+#include "sensors.h"
 //#include "drivers.h"
 #include "relays.h"
 
@@ -45,7 +45,7 @@ void setup() {
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, kitchen_node);
 
-  //attachInterrupt(digitalPinToInterrupt(pinPressButton), buttonPress, FALLING); // trigger when button is pressed
+  attachInterrupt(digitalPinToInterrupt(pinPressButton), buttonPress, FALLING); // trigger when button is pressed
 }
 
 //===== Receiving =====//
