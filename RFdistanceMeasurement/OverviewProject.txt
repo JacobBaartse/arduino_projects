@@ -1,0 +1,14 @@
+Base node, repeater node en eindpunt node
+
+Als de base en eindpunt bij elkaar blijven is de feedback er meteen.
+De afstand tot de repeater node geeft het bereik van het RF signaal.
+
+Zijn het ook meteen 4 metingen:
+1 van base naar repeater
+2 van repeater naar base
+3 van eindpunt naar repeater
+4 van repeater naar eindpunt
+
+Dus bij wegvallen verbinding is het 1 van de 4 verbindingen die wegvalt en is 
+het bereik gemeten. Dit is dan uit te voeren voor de 4 verschillende RF vermogens.
+
