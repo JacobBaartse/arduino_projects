@@ -44,10 +44,10 @@ void setup() {
   pinMode(CFG_PIN3, INPUT_PULLUP);
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-    //detectornode = 2;
+
   }
   if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-    //detectornode = detectornode + 2;
+
   }
 
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
