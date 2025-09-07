@@ -18,10 +18,8 @@
 #define BUTTON_PIN 2
 #define LED_PIN 2
 
-const uint16_t basenode = 00;
-const uint16_t endnode = 011;
-uint16_t txnode = basenode;
-uint16_t rxnode = endnode;
+const uint16_t endpointnode = 00;
+const uint16_t repeaternode = 01;
 
 // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
 uint8_t radiolevel = RF24_PA_MIN;
@@ -52,7 +50,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
     RF24NetworkHeader header;
     dist_payload Rxdata;
     network.read(header, &Rxdata, sizeof(Rxdata)); // Read the incoming data
-    if ((header.from_node != rxnode)||(header.type != 'D')) {
+    if ((header.from_node != repeaternode)||(header.type != 'D')) {
       Serial.print(F("received unexpected message, from_node: "));
       Serial.print(header.from_node);
       Serial.print(F(", type: "));
@@ -106,12 +104,8 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
     Txdata.svalue = 0xa0;
     Txdata.rvalue = 0x05;
 
-    RF24NetworkHeader header0(txnode, 'D'); // address where the data is going
+    RF24NetworkHeader header0(repeaternode, 'D'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-    if (!w_ok){ // retry
-      delay(50);
-      w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-    }
     Serial.print(F("Message send ")); 
     if (w_ok){
       fresh = false;
@@ -154,8 +148,7 @@ void setup() {
   pinMode(CFG_PIN3, INPUT_PULLUP);
 
   if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-    rxnode = basenode;
-    txnode = endnode;
+
   }
   if (digitalRead(CFG_PIN1) == LOW){ // PIN active
 
@@ -175,7 +168,7 @@ void setup() {
   }
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
-  network.begin(radioChannel, endnode);
+  network.begin(radioChannel, endpointnode);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonPress, FALLING); // trigger when button is pressed

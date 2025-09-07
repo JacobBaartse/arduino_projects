@@ -12,3 +12,14 @@ Zijn het ook meteen 4 metingen:
 Dus bij wegvallen verbinding is het 1 van de 4 verbindingen die wegvalt en is 
 het bereik gemeten. Dit is dan uit te voeren voor de 4 verschillende RF vermogens.
 
+------------------------------------------------------------------------------
+                                                            7 september 2025
+
+Bij nader inzien is 1 base node "rfdist_endpoint" met 1 repeater voldoende.
+Dan zijn het ook meteen 2 metingen:
+1 van endpoint naar repeater
+2 van repeater naar endpoint
+
+Dus bij wegvallen verbinding is het 1 van de 2 verbindingen die wegvalt en is 
+het bereik gemeten. Dit is dan uit te voeren voor de 4 verschillende RF vermogens.
+
