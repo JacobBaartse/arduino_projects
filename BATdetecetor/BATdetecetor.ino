@@ -1,12 +1,12 @@
 /*
- * part of the tool/demo to measure the RF distance with the standardized RF24 hardware, build into the RF-NANO
+ * NANO with ultrasound receiver conencted to interrupt pin
  */
 
 #define DETECT_PIN 2
 #define LED_PIN 6
+#define BUZZER_PIN 8
 
 bool activeDetect = false;
-bool activeDetection = false;
 
 void setup() {
   Serial.begin(115200);
@@ -21,10 +21,11 @@ void setup() {
   Serial.flush(); 
 
   pinMode(DETECT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, FALLING); // trigger when button is pressed
-  
-  // pinMode(LED_PIN, OUTPUT);
-  // digitalWrite(LED_PIN, LOW);
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, RISING); // trigger when ultrasound detected
 
   Serial.println();  
   Serial.println(F(" ***************"));  
@@ -32,23 +33,42 @@ void setup() {
   Serial.flush(); 
 }
  
+void processdetection(bool detect, unsigned long timingmoment){
+  static bool alarming = false;
+  static unsigned long detecttiming = 0;
+
+  if (alarming){ // maximum 1 second
+    if ((unsigned long)(timingmoment - detecttiming) > 1000){ // stop alarm
+      noTone(BUZZER_PIN);
+      alarming = false;
+      digitalWrite(LED_PIN, LOW);
+      activeDetect = false;
+    }
+  }
+  else{
+    if (detect){
+      alarming = true;
+      detecttiming = timingmoment; 
+      digitalWrite(LED_PIN, HIGH);
+      tone(BUZZER_PIN, 2500); // Send 1KHz sound signal...
+    }
+  }
+}
+
 unsigned long runtiming = 0;
 
 void loop() {
 
   runtiming = millis();
 
-  if (activeDetection){
-    activeDetect = true;
-    activeDetection = false;
-  }
+  processdetection(activeDetect, runtiming);
 
-  delay(100);
+  delay(10);
 }
 
 void batDetect(){
   if (!activeDetect){
-    activeDetection = true;
+    activeDetect = true;
     Serial.print(F("Detection: "));
     Serial.println(millis());
   }
