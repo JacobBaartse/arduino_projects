@@ -1,9 +1,8 @@
 /*
- * NANO with ultrasound receiver conencted to interrupt pin
+ * NANO with ultrasound receiver coneceted to interrupt pin, buzzer and builtin LED
  */
 
 #define DETECT_PIN 2
-#define LED_PIN 6
 #define BUZZER_PIN 8
 
 bool activeDetect = false;
@@ -22,8 +21,8 @@ void setup() {
 
   pinMode(DETECT_PIN, INPUT_PULLUP);
   pinMode(BUZZER_PIN, OUTPUT);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
 
   attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, RISING); // trigger when ultrasound detected
 
@@ -41,7 +40,7 @@ void processdetection(bool detect, unsigned long timingmoment){
     if ((unsigned long)(timingmoment - detecttiming) > 1000){ // stop alarm
       noTone(BUZZER_PIN);
       alarming = false;
-      digitalWrite(LED_PIN, LOW);
+      digitalWrite(LED_BUILTIN, LOW);
       activeDetect = false;
     }
   }
@@ -49,7 +48,7 @@ void processdetection(bool detect, unsigned long timingmoment){
     if (detect){
       alarming = true;
       detecttiming = timingmoment; 
-      digitalWrite(LED_PIN, HIGH);
+      digitalWrite(LED_BUILTIN, HIGH);
       tone(BUZZER_PIN, 2500); // Send 1KHz sound signal...
     }
   }
