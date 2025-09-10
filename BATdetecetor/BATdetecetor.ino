@@ -32,8 +32,11 @@ void setup() {
   Serial.flush(); 
 }
  
+const uint16_t PROGMEM pitchlist[] = { 2500, 1500, 3000, 2000, 1000, 0 };
+
 void processdetection(bool detect, unsigned long timingmoment){
   static bool alarming = false;
+  static uint16_t tonepitch = 0;
   static unsigned long detecttiming = 0;
 
   if (alarming){ // maximum 1 second
@@ -42,6 +45,8 @@ void processdetection(bool detect, unsigned long timingmoment){
       alarming = false;
       digitalWrite(LED_BUILTIN, LOW);
       activeDetect = false;
+      Serial.print(F("Stop alarm: "));
+      Serial.println(timingmoment);
     }
   }
   else{
@@ -49,7 +54,12 @@ void processdetection(bool detect, unsigned long timingmoment){
       alarming = true;
       detecttiming = timingmoment; 
       digitalWrite(LED_BUILTIN, HIGH);
-      tone(BUZZER_PIN, 2500); // Send 1KHz sound signal...
+      tone(BUZZER_PIN, pitchlist[tonepitch++]); // Send sound signal...
+      if (pitchlist[tonepitch] == 0){
+        tonepitch = 0;
+      }
+      Serial.print(F("Start alarm: "));
+      Serial.println(timingmoment);
     }
   }
 }
