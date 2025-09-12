@@ -16,17 +16,16 @@
 #define CFG_PIN3 A4
 
 #define BUTTON_PIN 2
-#define LED_PIN 2
+#define LED_PIN 4
 
 const uint16_t endpointnode = 00;
 const uint16_t repeaternode = 01;
 
 // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-uint8_t radiolevel = RF24_PA_MIN;
+uint8_t radiolevel = 0;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
-
 RF24Network network(radio);
  
 struct dist_payload{
@@ -41,10 +40,15 @@ struct dist_payload{
 unsigned long const keywordvalD = 0x12348765; 
 bool activeBUTTON = false;
 bool pressBUTTON = false;
-
+uint16_t rtotal = 0;
+uint16_t mtotal = 0;
+uint16_t mfail = 0;
+uint16_t mpass = 0;
 
 //===== Receiving =====//
 bool receiveRFnetwork(unsigned long currentRFmilli){
+  static bool LEDstate = false;
+  bool mreceived = false;
 
   while (network.available()){ // Is there any incoming data?
     RF24NetworkHeader header;
@@ -58,36 +62,40 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       break;
     }
     if (Rxdata.keyword == keywordvalD){
-      Serial.print(F("Data received from base "));
+      mreceived = true;
+      rtotal++;
+      Serial.print(F("Data received from repeater "));
       Serial.println(currentRFmilli);
       // in case a message is received, some action can be taken
       if (Rxdata.bvalue == 0x0a){
-        digitalWrite(LED_PIN, HIGH);
+        if (!LEDstate){
+          digitalWrite(LED_PIN, HIGH);
+          Serial.println(F("Activate LED"));
+          LEDstate = true;
+        }
       }
       else {
         digitalWrite(LED_PIN, LOW);
+        LEDstate = false;
       }
-      //Rxdata.rvalue = 0x05;
-      //Rxdata.svalue = 0x05;
-
     }
     else{
       Serial.println(F("Keyword failure"));
     }
   }
+  return mreceived;
 }
 
 //===== Sending =====//
-//bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
-bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
+bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
+  static uint16_t timeinterval = 1000;
   bool w_ok;
-  bool fresh = pfresh;
 
   // Every second, or on new data
-  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 1000)){
+  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > timeinterval)){
     sendingTimer = currentRFmilli;
 
     dist_payload Txdata;
@@ -106,27 +114,52 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
 
     RF24NetworkHeader header0(repeaternode, 'D'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-    Serial.print(F("Message send ")); 
+    // if (!w_ok){ // retry
+    //   delay(50);
+    //   w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
+    // }
+    Serial.print(F("Message send "));
+    mtotal++; 
     if (w_ok){
       fresh = false;
       failcount = 0;
+      if (timeinterval > 9000)
+        timeinterval -= 1000;   
+      mpass++; 
     }    
     else{
       Serial.print(F("failed "));
       failcount++;
+      if (timeinterval < 60000)
+        timeinterval += 1000;
+      mfail++;
     }
     Serial.print(Txdata.count);
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
 
-    if (failcount > 4){
-      fresh = false; // do not send a lot of messages continously
-    }
+    // if (failcount > 4){
+    //   fresh = false; // do not send a lot of messages continously
+    // }
   }
-  // if (pping){
-  //   fresh = false; // 
-  // }
   return fresh;
+}
+
+void showstatistics(unsigned long curmilli){
+  static unsigned long statTimer = 0;
+
+  if ((unsigned long)(curmilli - statTimer) > 100000){
+    statTimer = curmilli;
+    Serial.print(F("Messages statistics. mtotal: "));
+    Serial.print(mtotal);
+    Serial.print(F(", fail: "));
+    Serial.print(mfail);
+    Serial.print(F(", pass: "));
+    Serial.print(mpass);
+    Serial.print(F(", received: "));
+    Serial.print(rtotal);
+    Serial.println(F(" !"));
+  }
 }
 
 void setup() {
@@ -183,7 +216,7 @@ void setup() {
 }
  
 unsigned long runtiming = 0;
-//unsigned long netupdate = 0;
+bool mfresh = false;
 bool fresh = false;
 
 void loop() {
@@ -192,19 +225,25 @@ void loop() {
 
   runtiming = millis();
 
-  fresh = receiveRFnetwork(runtiming);
+  mfresh = receiveRFnetwork(runtiming);
 
   if (pressBUTTON){
     activeBUTTON = true;
     pressBUTTON = false;
+    fresh = true;
   }
 
-  fresh = transmitRFnetwork(fresh, runtiming);
+  transmitRFnetwork(fresh, runtiming);
+
+  fresh = false;
+  activeBUTTON = false;
+
+  showstatistics(runtiming);
 
 }
 
 void buttonPress(){
-  if (!activeBUTTON){
+  if (!pressBUTTON){
     pressBUTTON = true;
     Serial.print(F("Button press: "));
     Serial.println(millis());

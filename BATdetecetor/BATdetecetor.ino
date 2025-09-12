@@ -3,7 +3,8 @@
  */
 
 #define DETECT_PIN 2
-#define BUZZER_PIN 8
+#define TRIG_PIN 4
+#define BUZZER_PIN 6
 
 bool activeDetect = false;
 
@@ -19,19 +20,35 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
-  pinMode(DETECT_PIN, INPUT_PULLUP);
+  pinMode(DETECT_PIN, INPUT);
+  pinMode(TRIG_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(TRIG_PIN, LOW); 
 
-  attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, RISING); // trigger when ultrasound detected
+  //attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, RISING); // trigger when ultrasound detected
+  attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, FALLING); // trigger when ultrasound detected
 
   Serial.println();  
   Serial.println(F(" ***************"));  
   Serial.println(); 
   Serial.flush(); 
 }
- 
+
+void trigmodule(unsigned long timingmoment){
+  static unsigned long trigtiming = 0;
+
+  if ((unsigned long)(timingmoment - trigtiming) > 300){ // trig
+    trigtiming = timingmoment; 
+    digitalWrite(TRIG_PIN, LOW);
+    delayMicroseconds(5);
+    digitalWrite(TRIG_PIN, HIGH); 
+    delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW); 
+  }
+}
+
 const uint16_t PROGMEM pitchlist[] = { 2500, 1500, 3000, 2000, 1000, 0 };
 
 void processdetection(bool detect, unsigned long timingmoment){
@@ -61,24 +78,37 @@ void processdetection(bool detect, unsigned long timingmoment){
       Serial.print(F("Start alarm: "));
       Serial.println(timingmoment);
     }
+    else {
+      //trigmodule(timingmoment);
+    }
   }
 }
 
 unsigned long runtiming = 0;
+bool detectsound = false;
 
 void loop() {
 
   runtiming = millis();
 
-  processdetection(activeDetect, runtiming);
+  if (activeDetect)
+  {
+    activeDetect = false;
+    detectsound = true;
+  }
+  processdetection(detectsound, runtiming);
 
-  delay(10);
+  detectsound = false;
+
+  //delay(10);
 }
 
 void batDetect(){
-  if (!activeDetect){
-    activeDetect = true;
-    Serial.print(F("Detection: "));
-    Serial.println(millis());
-  }
+  activeDetect = true;
+
+  // if (!activeDetect){
+  //   activeDetect = true;
+  //   // Serial.print(F("Detection: "));
+  //   // Serial.println(millis());
+  // }
 }

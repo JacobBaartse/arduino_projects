@@ -19,14 +19,12 @@ const uint16_t endpointnode = 00;
 const uint16_t repeaternode = 01;
 
 // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-uint8_t radiolevel = RF24_PA_MIN;
+uint8_t radiolevel = 0;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
-
 RF24Network network(radio);
  
-
 struct dist_payload{
   uint32_t keyword;
   uint32_t timing;
@@ -37,9 +35,17 @@ struct dist_payload{
 };
 
 unsigned long const keywordvalD = 0x12348765; 
+uint8_t receivedbvalue = 0;
+uint8_t receivedsvalue = 0;
+uint8_t receivedrvalue = 0;
+uint16_t rtotal = 0;
+uint16_t mtotal = 0;
+uint16_t mfail = 0;
+uint16_t mpass = 0;
 
 //===== Receiving =====//
 bool receiveRFnetwork(unsigned long currentRFmilli){
+  bool mreceived = false;
 
   while (network.available()){ // Is there any incoming data?
     RF24NetworkHeader header;
@@ -53,66 +59,90 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       break;
     }
     if (Rxdata.keyword == keywordvalD){
-      Serial.print(F("Data received from base "));
+      mreceived = true;
+      rtotal++;
+      Serial.print(F("Data received from endpoint "));
       Serial.println(currentRFmilli);
       // in case a message is received, some action can be taken
-      // if (Rxdata.bvalue == 0x0a){
-      //   digitalWrite(LED_PIN, HIGH);
-      // }
-      // else {
-      //   digitalWrite(LED_PIN, LOW);
-      // }
-      //Rxdata.rvalue = 0x05;
-      //Rxdata.svalue = 0x05;
-
+      receivedbvalue = Rxdata.bvalue;
+      receivedsvalue = Rxdata.svalue;
+      receivedrvalue = Rxdata.rvalue;
     }
     else{
       Serial.println(F("Keyword failure"));
     }
   }
+  return mreceived;
 }
 
 //===== Sending =====//
-//bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli, bool pping){
-bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
+bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
-  bool fresh = pfresh;
 
   // Every second, or on new data
-  if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 1000)){
+  //if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 1000)){
+  if (fresh){
     sendingTimer = currentRFmilli;
 
     dist_payload Txdata;
     Txdata.keyword = keywordvalD;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
+    Txdata.bvalue = receivedbvalue;
+    Txdata.svalue = receivedsvalue;
+    Txdata.rvalue = receivedrvalue;
 
     RF24NetworkHeader header0(endpointnode, 'D'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
+    // if (!w_ok){ // retry
+    //   delay(50);
+    //   w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
+    // }
     Serial.print(F("Message send ")); 
+    mtotal++; 
     if (w_ok){
       fresh = false;
       failcount = 0;
+      mpass++; 
     }    
     else{
       Serial.print(F("failed "));
       failcount++;
+      mfail++;
     }
     Serial.print(Txdata.count);
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
+    
+    receivedbvalue = 0;
+    receivedsvalue = 0;
+    receivedrvalue = 0;
 
-    if (failcount > 4){
-      fresh = false; // do not send a lot of messages continously
-    }
+    // if (failcount > 4){
+    //   fresh = false; // do not send a lot of messages continously
+    // }
   }
-  // if (pping){
-  //   fresh = false; // 
-  // }
   return fresh;
+}
+
+void showstatistics(unsigned long curmilli){
+  static unsigned long statTimer = 0;
+
+  if ((unsigned long)(curmilli - statTimer) > 100000){
+    statTimer = curmilli;
+    Serial.print(F("Messages statistics. mtotal: "));
+    Serial.print(mtotal);
+    Serial.print(F(", fail: "));
+    Serial.print(mfail);
+    Serial.print(F(", pass: "));
+    Serial.print(mpass);
+    Serial.print(F(", received: "));
+    Serial.print(rtotal);
+    Serial.println(F(" !"));
+  }
 }
 
 void setup() {
@@ -152,7 +182,7 @@ void setup() {
     Serial.println(F("Radio hardware error."));
     while (true) delay(1000);
   }
-  radio.setPALevel(radiolevel, 0);
+  //\\radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, repeaternode);
 
@@ -163,7 +193,6 @@ void setup() {
 }
  
 unsigned long runtiming = 0;
-//unsigned long netupdate = 0;
 bool fresh = false;
 
 void loop() {
@@ -171,11 +200,6 @@ void loop() {
   network.update();
 
   runtiming = millis();
-
-  // if ((unsigned long)(runtiming - netupdate) > 100){ // regularly update networking
-  //   network.update();
-  //   netupdate = runtiming;
-  // }
 
   fresh = receiveRFnetwork(runtiming);
 

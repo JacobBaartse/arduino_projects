@@ -2,8 +2,8 @@
  * RF-Nano, headers, USB-C, using RF24network library
  */
 
-#include <RF24Network.h>
 #include "RF24.h"
+#include <RF24Network.h>
 #include <SPI.h>
 #include "distance.h"
 
