@@ -79,7 +79,7 @@ void processdetection(bool detect, unsigned long timingmoment){
       Serial.println(timingmoment);
     }
     else {
-      //trigmodule(timingmoment);
+      trigmodule(timingmoment);
     }
   }
 }

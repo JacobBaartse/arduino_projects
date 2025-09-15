@@ -135,7 +135,7 @@ void loop() {
 
   //************************ sensors/actuators ****************//
 
-  // sensorstatus = checkSensors(currentmilli);
+  sensorstatus = checkSensors(currentmilli);
 
   relayserror = relaytracking(newdata, currentmilli);
   //driveRelays(sensorstatus, currentmilli);

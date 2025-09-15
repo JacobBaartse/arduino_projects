@@ -10,10 +10,10 @@
 #define CE_PIN 10
 #define CSN_PIN 9
 
-#define CFG_PIN0 A0
-#define CFG_PIN1 A1
-#define CFG_PIN2 A2
-#define CFG_PIN3 A4
+// #define CFG_PIN0 A0
+// #define CFG_PIN1 A1
+// #define CFG_PIN2 A2
+// #define CFG_PIN3 A4
 
 #define BUTTON_PIN 2
 #define LED_PIN 4
@@ -22,15 +22,15 @@ const uint16_t endpointnode = 00;
 const uint16_t repeaternode = 01;
 
 // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-uint8_t radiolevel = 0;
+uint8_t radiolevel = RF24_PA_MAX;
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio);
  
 struct dist_payload{
-  uint32_t keyword;
-  uint32_t timing;
+  //uint32_t keyword;
+  //uint32_t timing;
   uint8_t count;
   uint8_t bvalue;
   uint8_t svalue;
@@ -61,7 +61,8 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       Serial.println(header.type);
       break;
     }
-    if (Rxdata.keyword == keywordvalD){
+    //if (Rxdata.keyword == keywordvalD){
+    if (true){
       mreceived = true;
       rtotal++;
       Serial.print(F("Data received from repeater "));
@@ -95,12 +96,13 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   bool w_ok;
 
   // Every second, or on new data
+  //if ((failcount > 0)||(fresh)||((unsigned long)(currentRFmilli - sendingTimer) > timeinterval)){
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > timeinterval)){
     sendingTimer = currentRFmilli;
 
     dist_payload Txdata;
-    Txdata.keyword = keywordvalD;
-    Txdata.timing = currentRFmilli;
+    //Txdata.keyword = keywordvalD;
+    //Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
 
     if (activeBUTTON){
@@ -138,9 +140,9 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
 
-    // if (failcount > 4){
-    //   fresh = false; // do not send a lot of messages continously
-    // }
+    if (failcount > 4){
+      failcount = 0; // do not send/retry a lot of messages continously
+    }
   }
   return fresh;
 }
@@ -174,33 +176,33 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
-  // multiple PINs for reading the config
-  pinMode(CFG_PIN0, INPUT_PULLUP);
-  pinMode(CFG_PIN1, INPUT_PULLUP);
-  pinMode(CFG_PIN2, INPUT_PULLUP);
-  pinMode(CFG_PIN3, INPUT_PULLUP);
+  // // multiple PINs for reading the config
+  // pinMode(CFG_PIN0, INPUT_PULLUP);
+  // pinMode(CFG_PIN1, INPUT_PULLUP);
+  // pinMode(CFG_PIN2, INPUT_PULLUP);
+  // pinMode(CFG_PIN3, INPUT_PULLUP);
 
-  if (digitalRead(CFG_PIN0) == LOW){ // PIN active
+  // if (digitalRead(CFG_PIN0) == LOW){ // PIN active
 
-  }
-  if (digitalRead(CFG_PIN1) == LOW){ // PIN active
+  // }
+  // if (digitalRead(CFG_PIN1) == LOW){ // PIN active
 
-  }
+  // }
 
-  // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-  if (digitalRead(CFG_PIN2) == LOW){ // PIN active
-    radiolevel = 1;
-  }
-  if (digitalRead(CFG_PIN3) == LOW){ // PIN active
-    radiolevel = radiolevel + 2;
-  }
+  // // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
+  // if (digitalRead(CFG_PIN2) == LOW){ // PIN active
+  //   radiolevel = 1;
+  // }
+  // if (digitalRead(CFG_PIN3) == LOW){ // PIN active
+  //   radiolevel = radiolevel + 2;
+  // }
 
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_1MBPS);
+  radio.setDataRate(RF24_250KBPS ); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, endpointnode);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
