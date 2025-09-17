@@ -26,8 +26,8 @@ RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio);
  
 struct dist_payload{
-  //uint32_t keyword;
-  //uint32_t timing;
+  uint32_t keyword;
+  uint32_t timing;
   uint8_t count;
   uint8_t bvalue;
   uint8_t svalue;
@@ -58,8 +58,8 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       Serial.println(header.type);
       break;
     }
-    //if (Rxdata.keyword == keywordvalD){
-    if (true){
+    if (Rxdata.keyword == keywordvalD){
+    //if (true){
       mreceived = true;
       rtotal++;
       Serial.print(F("Data received from endpoint "));
@@ -90,8 +90,8 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     sendingTimer = currentRFmilli;
 
     dist_payload Txdata;
-    //Txdata.keyword = keywordvalD;
-    //Txdata.timing = currentRFmilli;
+    Txdata.keyword = keywordvalD;
+    Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
     Txdata.bvalue = receivedbvalue;
     Txdata.svalue = receivedsvalue;
@@ -185,7 +185,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_250KBPS ); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_2MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, repeaternode);
 
   Serial.println();  

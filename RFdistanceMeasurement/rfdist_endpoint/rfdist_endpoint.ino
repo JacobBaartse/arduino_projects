@@ -20,6 +20,7 @@
 
 const uint16_t endpointnode = 00;
 const uint16_t repeaternode = 01;
+uint16_t failcountmax = 0;
 
 // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
 uint8_t radiolevel = RF24_PA_MAX;
@@ -28,9 +29,10 @@ uint8_t radiolevel = RF24_PA_MAX;
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio);
  
+// radioframe is 32 bytes, header 10 bytes, so there is room foor 22 bytes data
 struct dist_payload{
-  //uint32_t keyword;
-  //uint32_t timing;
+  uint32_t keyword;
+  uint32_t timing;
   uint8_t count;
   uint8_t bvalue;
   uint8_t svalue;
@@ -41,6 +43,7 @@ unsigned long const keywordvalD = 0x12348765;
 bool activeBUTTON = false;
 bool pressBUTTON = false;
 uint16_t rtotal = 0;
+uint16_t rdist = 0;
 uint16_t mtotal = 0;
 uint16_t mfail = 0;
 uint16_t mpass = 0;
@@ -48,6 +51,8 @@ uint16_t mpass = 0;
 //===== Receiving =====//
 bool receiveRFnetwork(unsigned long currentRFmilli){
   static bool LEDstate = false;
+  static uint8_t counttrack = 0;
+  uint8_t localcount = 0;
   bool mreceived = false;
 
   while (network.available()){ // Is there any incoming data?
@@ -61,8 +66,8 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       Serial.println(header.type);
       break;
     }
-    //if (Rxdata.keyword == keywordvalD){
-    if (true){
+    if (Rxdata.keyword == keywordvalD){
+    //if (true){
       mreceived = true;
       rtotal++;
       Serial.print(F("Data received from repeater "));
@@ -79,6 +84,14 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
         digitalWrite(LED_PIN, LOW);
         LEDstate = false;
       }
+      localcount = Rxdata.count;
+      if (localcount - counttrack > 1){
+        rdist = localcount - counttrack;
+      }
+      // else {
+
+      // }
+      counttrack = localcount;
     }
     else{
       Serial.println(F("Keyword failure"));
@@ -88,21 +101,25 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
+void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
-  static uint8_t failcount = 0;
-  static uint16_t timeinterval = 1000;
+  static uint16_t failcount = 0;
+  static uint16_t timeinterval = 10000;
   bool w_ok;
 
   // Every second, or on new data
   //if ((failcount > 0)||(fresh)||((unsigned long)(currentRFmilli - sendingTimer) > timeinterval)){
+  // if (failcount > 0){
+  //   if ((unsigned long)(currentRFmilli - sendingTimer) > 100) // retry failed message after 100 ms
+  //     fresh = true;
+  // }
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > timeinterval)){
     sendingTimer = currentRFmilli;
 
     dist_payload Txdata;
-    //Txdata.keyword = keywordvalD;
-    //Txdata.timing = currentRFmilli;
+    Txdata.keyword = keywordvalD;
+    Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
 
     if (activeBUTTON){
@@ -124,38 +141,45 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     mtotal++; 
     if (w_ok){
       fresh = false;
+      if (failcount > failcountmax){
+        failcountmax = failcount;
+      }
       failcount = 0;
-      if (timeinterval > 9000)
-        timeinterval -= 1000;   
+      // if (timeinterval > 9000)
+      //   timeinterval -= 1000;   
       mpass++; 
     }    
     else{
       Serial.print(F("failed "));
       failcount++;
-      if (timeinterval < 60000)
-        timeinterval += 1000;
+      // if (timeinterval < 60000)
+      //   timeinterval += 1000;
       mfail++;
     }
     Serial.print(Txdata.count);
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
 
-    if (failcount > 4){
-      failcount = 0; // do not send/retry a lot of messages continously
-    }
+    // if (failcount > 4){
+    //   failcount = 0; // do not send/retry a lot of messages continously
+    // }
   }
-  return fresh;
+  //return fresh;
 }
 
 void showstatistics(unsigned long curmilli){
+  static uint8_t statcounter = 0;
   static unsigned long statTimer = 0;
 
   if ((unsigned long)(curmilli - statTimer) > 100000){
     statTimer = curmilli;
-    Serial.print(F("Messages statistics. mtotal: "));
+    Serial.print(++statcounter);
+    Serial.print(F(" messages statistics. mtotal: "));
     Serial.print(mtotal);
     Serial.print(F(", fail: "));
     Serial.print(mfail);
+    Serial.print(F(", maxfail: "));
+    Serial.print(failcountmax);
     Serial.print(F(", pass: "));
     Serial.print(mpass);
     Serial.print(F(", received: "));
@@ -202,7 +226,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_250KBPS ); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_2MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, endpointnode);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
