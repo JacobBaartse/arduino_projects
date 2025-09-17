@@ -105,7 +105,7 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint16_t failcount = 0;
-  static uint16_t timeinterval = 10000;
+  static uint16_t timeinterval = 1000;
   bool w_ok;
 
   // Every second, or on new data

@@ -23,3 +23,9 @@ Dan zijn het ook meteen 2 metingen:
 Dus bij wegvallen verbinding is het 1 van de 2 verbindingen die wegvalt en is 
 het bereik gemeten. Dit is dan uit te voeren voor de 4 verschillende RF vermogens.
 
+Stabiliteit is ook belangrijk, dat de verbinding over langere tijd over afstand blijft werken.
+Zie plaatje t.b.v. settigns in RF24_config.h
+
+
+C:\Users\pbakk\Documents\Arduino\libraries\RF24Network\RF24Network_config.h
+
