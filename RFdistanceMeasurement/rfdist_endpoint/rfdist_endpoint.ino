@@ -105,7 +105,7 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint16_t failcount = 0;
-  static uint16_t timeinterval = 1000;
+  static uint16_t timeinterval = 10000;
   bool w_ok;
 
   // Every second, or on new data
@@ -226,7 +226,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_2MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, endpointnode);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -259,6 +259,10 @@ void loop() {
     fresh = true;
   }
 
+  network.update();
+
+  runtiming = millis();
+  
   transmitRFnetwork(fresh, runtiming);
 
   fresh = false;

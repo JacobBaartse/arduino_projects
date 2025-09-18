@@ -185,7 +185,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_2MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, repeaternode);
 
   Serial.println();  
@@ -204,6 +204,10 @@ void loop() {
   runtiming = millis();
 
   fresh = receiveRFnetwork(runtiming);
+
+  network.update();
+
+  runtiming = millis();
 
   transmitRFnetwork(fresh, runtiming);
 
