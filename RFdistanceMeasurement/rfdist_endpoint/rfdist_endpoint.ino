@@ -39,6 +39,10 @@ struct dist_payload{
   uint8_t rvalue;
 };
 
+uint8_t mainbvalue = 0;
+uint8_t mainsvalue = 0;
+uint8_t mainrvalue = 0;
+
 unsigned long const keywordvalD = 0x12348765; 
 bool activeBUTTON = false;
 bool pressBUTTON = false;
@@ -106,7 +110,7 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint16_t failcount = 0;
-  static uint16_t timeinterval = 1000;
+  static uint16_t timeinterval = 10000;
   bool w_ok;
 
   // Every second, or on new data
@@ -122,16 +126,19 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Txdata.keyword = keywordvalD;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
-
-    if (activeBUTTON){
-      Txdata.bvalue = 0x0a;
-    }
-    else {
-      Txdata.bvalue = 0x50;
-    }
-    Txdata.svalue = 0xa0;
-    Txdata.rvalue = 0x05;
-
+    // if (activeBUTTON){
+    //   mainbvalue = 0x0a;
+    // }
+    // else {
+    //   //Txdata.bvalue = mainbvalue;
+    // }
+    Txdata.bvalue = mainbvalue;
+    Txdata.svalue = mainsvalue;
+    Txdata.rvalue = mainrvalue;
+    mainbvalue = 0;
+    mainsvalue = 0;
+    mainrvalue = 0;
+ 
     RF24NetworkHeader header0(repeaternode, 'D'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     // if (!w_ok){ // retry
@@ -227,7 +234,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_1MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, endpointnode);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -240,6 +247,10 @@ void setup() {
   Serial.println(F(" ***************"));  
   Serial.println(); 
   Serial.flush(); 
+
+  mainbvalue = 0xff;
+  mainsvalue = 0xff;
+  mainrvalue = 0xff;
 }
  
 unsigned long runtiming = 0;
@@ -258,6 +269,7 @@ void loop() {
     activeBUTTON = true;
     pressBUTTON = false;
     fresh = true;
+    mainbvalue = 0x0a;
   }
 
   transmitRFnetwork(fresh, runtiming);

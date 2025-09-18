@@ -45,7 +45,7 @@ uint16_t mfail = 0;
 uint16_t mpass = 0;
 
 //===== Receiving =====//
-bool receiveRFnetwork(unsigned long currentRFmilli){
+bool receiveRFnetwork(){
   bool mreceived = false;
 
   //while (network.available()){ // Is there any incoming data?
@@ -65,7 +65,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       mreceived = true;
       rtotal++;
       Serial.print(F("Data received from endpoint "));
-      Serial.println(currentRFmilli);
+      Serial.println(millis());
       // in case a message is received, some action can be taken
       receivedbvalue = Rxdata.bvalue;
       receivedsvalue = Rxdata.svalue;
@@ -78,14 +78,19 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
   return mreceived;
 }
 
+
 //===== Sending =====//
-void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
+bool transmitRFnetwork(bool fresh){
+  const uint8_t responsetimefactor = 15;
   static unsigned long triggerTimer = 0;
   static unsigned long sendingTimer = 0;
+  static uint8_t responsecounter = responsetimefactor;
   static uint8_t counter = 0;
   static bool freshdata = false;
   static uint16_t failcount = 0;
   bool w_ok;
+  bool sendattempt = false;
+  unsigned long currentRFmilli = millis();
 
   if (fresh){
     freshdata = true;
@@ -95,9 +100,9 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   // Every second, or on new data
   //if ((fresh)||(failcount > 0)||((unsigned long)(currentRFmilli - sendingTimer) > 1000)){
   //if ((fresh)||(failcount > 0)){
-  if ((freshdata)&&((unsigned long)(currentRFmilli - triggerTimer) > 50)){
+  if ((freshdata)&&((unsigned long)(currentRFmilli - triggerTimer) > responsecounter)){
     sendingTimer = currentRFmilli;
-    freshdata = false;
+    sendattempt = true;
 
     dist_payload Txdata;
     Txdata.keyword = keywordvalD;
@@ -116,15 +121,21 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Serial.print(F("Message send ")); 
     mtotal++; 
     if (w_ok){
+      freshdata = false;
       //fresh = false;
       if (failcount > failcountmax){
         failcountmax = failcount;
       }
       failcount = 0;
       mpass++; 
+      receivedbvalue = 0;
+      receivedsvalue = 0;
+      receivedrvalue = 0;
+      responsecounter = responsetimefactor;
     }    
     else{
       Serial.print(F("failed "));
+      responsecounter += responsetimefactor;
       failcount++;
       mfail++;
     }
@@ -133,16 +144,17 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Serial.print((sendingTimer - triggerTimer));
     Serial.print(F(" ms: "));
     Serial.println(currentRFmilli);
-    
-    receivedbvalue = 0;
-    receivedsvalue = 0;
-    receivedrvalue = 0;
+    Serial.flush(); 
 
     if (failcount > 4){
       failcount = 0; // do not send/retry a lot of messages continously
+      freshdata = false;
+      receivedbvalue = 0;
+      receivedsvalue = 0;
+      receivedrvalue = 0;
     }
   }
-  //return fresh;
+  return sendattempt;
 }
 
 void showstatistics(unsigned long curmilli){
@@ -163,6 +175,7 @@ void showstatistics(unsigned long curmilli){
     Serial.print(F(", received: "));
     Serial.print(rtotal);
     Serial.println(F(" !"));
+    Serial.flush(); 
   }
 }
 
@@ -204,7 +217,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_1MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, repeaternode);
 
   Serial.println();  
@@ -214,36 +227,34 @@ void setup() {
 }
  
 unsigned long runtiming = 0;
-unsigned long fresh = 0;
-//uint8_t loopselect = 0;
+bool freshreceived = false;
+bool freshtransmit = false;
 
 void loop() {
 
-  runtiming = millis();
-
   network.update();
 
-  fresh = receiveRFnetwork(runtiming);
+  freshreceived = receiveRFnetwork();
 
-  transmitRFnetwork(fresh, runtiming);
+  if (freshreceived){ // clear statistics when end node startsup
+    if ((receivedbvalue==0xff)&&(receivedsvalue==0xff)&&(receivedrvalue==0xff)){
+      rtotal = 0;
+      mtotal = 0;
+      mfail = 0;
+      mpass = 0;
+      failcountmax = 0;
+      Serial.println(F(" >>>>>> Clear counters"));  
+      Serial.flush(); 
+    }
+  }
+
+  //network.update();
+
+  freshtransmit = transmitRFnetwork(freshreceived);
+  if (freshtransmit){
+    network.update();
+  }
 
   showstatistics(runtiming);
-
-  // switch(loopselect++){
-  //   case 0: {
-  //     fresh = receiveRFnetwork(runtiming);
-  //   }
-  //   break;
-  //   case 1: {
-  //     transmitRFnetwork(fresh, runtiming);
-  //   }
-  //   break;
-  //   case 3: {
-  //     showstatistics(runtiming);
-  //   }
-  //   default: {
-  //     loopselect = 0;
-  //   }
-  // }
 
 }

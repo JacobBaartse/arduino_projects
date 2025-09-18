@@ -26,7 +26,9 @@ het bereik gemeten. Dit is dan uit te voeren voor de 4 verschillende RF vermogen
 Stabiliteit is ook belangrijk, dat de verbinding over langere tijd over afstand blijft werken.
 Zie plaatje t.b.v. settigns in RF24_config.h
 
-...\Arduino\libraries\RF24Network\RF24Network_config.h ??
+...\Arduino\libraries\RF24Network\RF24Network_config.h 
+#define DISABLE_FRAGMENTATION
+//#define RF24NetworkMulticast
 
 ...\Arduino\libraries\RF24\RF24_config.h 
 
