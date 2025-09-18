@@ -55,7 +55,8 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
   uint8_t localcount = 0;
   bool mreceived = false;
 
-  while (network.available()){ // Is there any incoming data?
+  //while (network.available()){ // Is there any incoming data?
+  if (network.available()){ // Is there any incoming data?
     RF24NetworkHeader header;
     dist_payload Rxdata;
     network.read(header, &Rxdata, sizeof(Rxdata)); // Read the incoming data
@@ -64,7 +65,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(header.from_node);
       Serial.print(F(", type: "));
       Serial.println(header.type);
-      break;
+      //break;
     }
     if (Rxdata.keyword == keywordvalD){
     //if (true){
@@ -105,7 +106,7 @@ void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint16_t failcount = 0;
-  static uint16_t timeinterval = 10000;
+  static uint16_t timeinterval = 1000;
   bool w_ok;
 
   // Every second, or on new data
@@ -226,7 +227,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_1MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, endpointnode);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -259,10 +260,6 @@ void loop() {
     fresh = true;
   }
 
-  network.update();
-
-  runtiming = millis();
-  
   transmitRFnetwork(fresh, runtiming);
 
   fresh = false;

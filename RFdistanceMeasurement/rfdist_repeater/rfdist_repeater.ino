@@ -17,6 +17,7 @@
 
 const uint16_t endpointnode = 00;
 const uint16_t repeaternode = 01;
+uint16_t failcountmax = 0;
 
 // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
 uint8_t radiolevel = RF24_PA_MAX;
@@ -47,7 +48,8 @@ uint16_t mpass = 0;
 bool receiveRFnetwork(unsigned long currentRFmilli){
   bool mreceived = false;
 
-  while (network.available()){ // Is there any incoming data?
+  //while (network.available()){ // Is there any incoming data?
+  if (network.available()){ // Is there any incoming data?
     RF24NetworkHeader header;
     dist_payload Rxdata;
     network.read(header, &Rxdata, sizeof(Rxdata)); // Read the incoming data
@@ -56,7 +58,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(header.from_node);
       Serial.print(F(", type: "));
       Serial.println(header.type);
-      break;
+      //break;
     }
     if (Rxdata.keyword == keywordvalD){
     //if (true){
@@ -77,17 +79,25 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
 }
 
 //===== Sending =====//
-bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
+void transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
+  static unsigned long triggerTimer = 0;
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
-  static uint8_t failcount = 0;
+  static bool freshdata = false;
+  static uint16_t failcount = 0;
   bool w_ok;
+
+  if (fresh){
+    freshdata = true;
+    triggerTimer = currentRFmilli;
+  }
 
   // Every second, or on new data
   //if ((fresh)||(failcount > 0)||((unsigned long)(currentRFmilli - sendingTimer) > 1000)){
   //if ((fresh)||(failcount > 0)){
-  if (fresh){
+  if ((freshdata)&&((unsigned long)(currentRFmilli - triggerTimer) > 50)){
     sendingTimer = currentRFmilli;
+    freshdata = false;
 
     dist_payload Txdata;
     Txdata.keyword = keywordvalD;
@@ -106,7 +116,10 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
     Serial.print(F("Message send ")); 
     mtotal++; 
     if (w_ok){
-      fresh = false;
+      //fresh = false;
+      if (failcount > failcountmax){
+        failcountmax = failcount;
+      }
       failcount = 0;
       mpass++; 
     }    
@@ -116,7 +129,9 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
       mfail++;
     }
     Serial.print(Txdata.count);
-    Serial.print(F(", "));
+    Serial.print(F(", response time "));    
+    Serial.print((sendingTimer - triggerTimer));
+    Serial.print(F(" ms: "));
     Serial.println(currentRFmilli);
     
     receivedbvalue = 0;
@@ -127,18 +142,22 @@ bool transmitRFnetwork(bool fresh, unsigned long currentRFmilli){
       failcount = 0; // do not send/retry a lot of messages continously
     }
   }
-  return fresh;
+  //return fresh;
 }
 
 void showstatistics(unsigned long curmilli){
+  static uint8_t statcounter = 0;
   static unsigned long statTimer = 0;
 
   if ((unsigned long)(curmilli - statTimer) > 100000){
     statTimer = curmilli;
-    Serial.print(F("Messages statistics. mtotal: "));
+    Serial.print(++statcounter);
+    Serial.print(F(" messages statistics. mtotal: "));
     Serial.print(mtotal);
     Serial.print(F(", fail: "));
     Serial.print(mfail);
+    Serial.print(F(", maxfail: "));
+    Serial.print(failcountmax);
     Serial.print(F(", pass: "));
     Serial.print(mpass);
     Serial.print(F(", received: "));
@@ -185,7 +204,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_1MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, repeaternode);
 
   Serial.println();  
@@ -195,22 +214,36 @@ void setup() {
 }
  
 unsigned long runtiming = 0;
-bool fresh = false;
+unsigned long fresh = 0;
+//uint8_t loopselect = 0;
 
 void loop() {
 
-  network.update();
-
   runtiming = millis();
+
+  network.update();
 
   fresh = receiveRFnetwork(runtiming);
-
-  network.update();
-
-  runtiming = millis();
 
   transmitRFnetwork(fresh, runtiming);
 
   showstatistics(runtiming);
+
+  // switch(loopselect++){
+  //   case 0: {
+  //     fresh = receiveRFnetwork(runtiming);
+  //   }
+  //   break;
+  //   case 1: {
+  //     transmitRFnetwork(fresh, runtiming);
+  //   }
+  //   break;
+  //   case 3: {
+  //     showstatistics(runtiming);
+  //   }
+  //   default: {
+  //     loopselect = 0;
+  //   }
+  // }
 
 }
