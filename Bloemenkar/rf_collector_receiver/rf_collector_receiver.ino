@@ -110,65 +110,127 @@ bool pressBUTTON2 = false;
 bool activeBUTTON1 = false;
 bool activeBUTTON2 = false;
 
-void drivebuzzer(bool buzzerstatus){
-static uint16_t buzzertone = 2000;
+void ledactivity(uint8_t ledid, uint8_t ledaction, unsigned long ledtime){
+  static unsigned long ledflashtime = 0;
+  static uint8_t ledAction[3][3] = {
+    {0, 0, 0}, // LED PIN, status, time
+    {0, 0, 0},
+    {0, 0, 0},
+  };
+  bool toggle = false;
 
-  if (buzzerstatus){
-    if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-      buzzertone = 1000;
+  if (ledid == 0){ // run the time
+    for(uint8_t id=1;id<3;id++){
+      if (ledAction[id][2] == 2){ // flashing
+        if ((unsigned long)(ledtime - ledflashtime) > 750){
+          uint8_t curstate = ledAction[id][1];
+          curstate = curstate == 1 ? 0 : 1;
+          ledAction[id][1] = curstate;
+          toggle = true;
+        }
+      }
     }
-    if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-      buzzertone += 2000;
-    }
-    tone(BUZZER_PIN, buzzertone);
   }
   else {
-    noTone(BUZZER_PIN); 
+    if (ledaction > 1){
+      digitalWrite(ledAction[ledid][0], 1); // flashing starts with on
+      ledAction[ledid][1] = 1;
+    }
+    else {
+      digitalWrite(ledAction[ledid][0], ledaction);
+      ledAction[ledid][1] = ledaction;
+    }
+    ledAction[ledid][2] = ledaction;
+  }
+  if (toggle){
+    ledflashtime = ledtime;
   }
 }
+
+void drivebuzzer(bool buzzerstatus){
+  static bool status = false;
+  uint16_t buzzertone = 2000;
+
+  if (buzzerstatus != status){
+    if (buzzerstatus){
+      if (digitalRead(CFG_PIN0) == LOW){ // PIN active
+        buzzertone = 1000;
+      }
+      if (digitalRead(CFG_PIN1) == LOW){ // PIN active
+        buzzertone += 2000;
+      }
+      tone(BUZZER_PIN, buzzertone);
+    }
+    else {
+      noTone(BUZZER_PIN); 
+    }
+    status = buzzerstatus;
+  }
+}
+
+void driveLED(uint8_t lstat, unsigned long currenttiming){
+  static uint8_t status = 0;
+
+  if (status != lstat){
+    ledactivity(1, lstat, currenttiming);
+    status = lstat;
+  }
+}
+
 
 unsigned long reportingTime = 0;
 
 void trackDetectionsAndButtons(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
-  static uint8_t reportingdog = 0;
+  //static uint8_t reportingdog = 0;
   static bool alarming = false;
 
-  if (detectorscount > 0){
-    // activate LED and sound
-    drivebuzzer(true);
-    
+  if (!alarming){
+    if (detectorscount > 0){
+      // activate LED and sound
+      drivebuzzer(true);
+      driveLED(1, currentDetectMillis);
+      alarming = true;
+    }
   }
-  else {
-    // turn off LED and sound
-    drivebuzzer(false);
+  // else {
+  //   // turn off LED and sound
+  //   drivebuzzer(false);
 
-  }
+  // }
 
   if (alarming){ // show LED and sound (buzzer)
-    if (!activeBUTTON1){ // button 1 means alarm acknowledged, do not buzz
+    if (activeBUTTON1){ // button 1 means alarm acknowledged, do not buzz
       drivebuzzer(false);
-
+      activeBUTTON1 = false;
+    }
+    if (activeBUTTON2){ // button 2 means reset for detections
+      drivebuzzer(false);
+      driveLED(0, currentDetectMillis);
+      activeBUTTON2 = false;
+      detectorscount = 0;
     }
     // activate alarm LED
 
   }
 
-  // if nothing happened
-  if (false){
-    // at least print for debugging something to know the software is still running
-    if ((unsigned long)(currentDetectMillis - reportingTime) > 60000){
-      Serial.print(F("Running detection tracking: "));
-      Serial.println(currentDetectMillis);
-      reportingTime = currentDetectMillis;
-      reportingdog += 1;
-    }
-  }
-  else{
-    reportingdog = 0;
-  }
+  // // if nothing happened
+  // if (false){
+  //   // at least print for debugging something to know the software is still running
+  //   if ((unsigned long)(currentDetectMillis - reportingTime) > 60000){
+  //     Serial.print(F("Running detection tracking: "));
+  //     Serial.println(currentDetectMillis);
+  //     reportingTime = currentDetectMillis;
+  //     reportingdog += 1;
+  //   }
+  // }
+  // else{
+  //   reportingdog = 0;
+  // }
 
 }
+
+//bool pingreceived = false;
 
 //===== Receiving =====//
 uint16_t receiveRFnetwork(unsigned long currentRFmilli){
@@ -199,11 +261,19 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(F(", sw2 (BUTTON): "));
       Serial.println(Rxdata.sw2value);
 
-      if (detectorscount < 0xff00)
-        detectorscount += Rxdata.dvalue;
-      Serial.print(F("detectorscount: "));
-      Serial.print(detectorscount);
-      Serial.print(F(", timing: "));
+      //pingreceived = ((Rxdata.dvalue==0xff)&&(Rxdata.sw1value==0xff)&&(Rxdata.sw2value==0xff));
+
+      // if (pingreceived){
+      //   Serial.print(nodereceived);
+      //   Serial.print(F(" PING received: "));
+      // }
+      // else{
+        if (detectorscount < 0xff00)
+          detectorscount += Rxdata.dvalue;
+        Serial.print(F("detectorscount: "));
+        Serial.print(detectorscount);
+        Serial.print(F(", timing: "));
+      //}
       Serial.println(currentRFmilli);
     }
     else{
@@ -233,7 +303,7 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     // Txdata.sw1value = sw1Value;
     // Txdata.sw2value = sw2Value;
 
-    Serial.print(F("Message: "));
+    // Serial.print(F("Message: "));
     // Serial.print(F(", xvalue: "));
     // Serial.print(Txdata.xvalue);
     // Serial.print(F(", yvalue: "));
@@ -279,6 +349,7 @@ void loop() {
 
   currentmilli = millis();
 
+  //pingreceived = false;
   detectornode = receiveRFnetwork(currentmilli);
 
   //************************ sensors ****************//
@@ -289,12 +360,12 @@ void loop() {
 
   if (pressBUTTON1){
     activeBUTTON1 = true;
-    newdata = true;
+    //newdata = true; // this button is only for local action
     pressBUTTON1 = false;
   }  
   if (pressBUTTON2){
     activeBUTTON2 = true;
-    newdata = true;
+    //newdata = true; // this button is only for local action
     pressBUTTON2 = false;
   }  
 
@@ -302,8 +373,13 @@ void loop() {
 
   trackDetectionsAndButtons(currentmilli);
 
+  ledactivity(0, 0, currentmilli); // run the LED activity on all LEDs, for example flashing
+
+  // if (pingreceived){
+  //   newdata = true;
+  // }
   // possible to send acknowledge to the detector node
-  //newdata = transmitRFnetwork(newdata, detectionnode, currentmilli);
+  newdata = transmitRFnetwork(newdata, detectornode, currentmilli);
 
 }
 

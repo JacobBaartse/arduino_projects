@@ -22,14 +22,15 @@ IPAddress printWifiStatus(int connect) {
   Serial.println();
   Serial.println();
   // print your board's IP address:
-  Serial.print("IP Address: ");
+  Serial.print(F("IP Address: "));
   IPAddress here = WiFi.localIP();
   Serial.print(here);
 
   // print the received signal strength:
-  Serial.print(", signal strength (RSSI): ");
+  Serial.print(F(", signal strength (RSSI): "));
   Serial.print(WiFi.RSSI());
-  Serial.println(String(" dBm, con: ") + connect);
+  Serial.print(F(" dBm, con: "));
+  Serial.println(connect);
   Serial.flush();
   return here;
 }
@@ -38,54 +39,54 @@ void printEncryptionType(int thisType) {
   // read the encryption type and print out the name:
   switch (thisType) {
     case ENC_TYPE_WEP:
-      Serial.println("WEP");
+      Serial.println(F("WEP"));
       break;
     case ENC_TYPE_WPA:
-      Serial.println("WPA");
+      Serial.println(F("WPA"));
       break;
     case ENC_TYPE_WPA2:
-      Serial.println("WPA2");
+      Serial.println(F("WPA2"));
       break;
     case ENC_TYPE_WPA3:
-      Serial.print("WPA3");
+      Serial.print(F("WPA3"));
       break;   
     case ENC_TYPE_NONE:
-      Serial.println("None");
+      Serial.println(F("None"));
       break;
     case ENC_TYPE_AUTO:
-      Serial.println("Auto");
+      Serial.println(F("Auto"));
       break;
     case ENC_TYPE_UNKNOWN:
     default:
-      Serial.println("Unknown");
+      Serial.println(F("Unknown"));
       break;
   }
 }
 
 String findNetwork() {
   // scan for nearby networks:
-  Serial.println("** Scan Networks **");
+  Serial.println(F("** Scan Networks **"));
   int numSsid = WiFi.scanNetworks();
   if (numSsid == -1) {
-    Serial.println("Couldn't get WiFi information");
-    while (true);
+    Serial.println(F("Couldn't get WiFi information"));
+    while (true) delay(1000);
   }
 
   // print the list of networks seen:
-  Serial.print("number of available networks: ");
+  Serial.print(F("number of available networks: "));
   Serial.println(numSsid);
 
   // print the network number and name for each network found:
   for (int thisNet = 0; thisNet < numSsid; thisNet++) {
     Serial.print(thisNet);
-    Serial.print(") ");
+    Serial.print(F(") "));
     Serial.print(WiFi.SSID(thisNet));
-    Serial.print(" Signal: ");
+    Serial.print(F(" Signal: "));
     Serial.print(WiFi.RSSI(thisNet));
-    Serial.println(" dBm");
-    // Serial.print(" Encryption: ");
+    Serial.println(F(" dBm"));
+    // Serial.print(F(" Encryption: "));
     // printEncryptionType(WiFi.encryptionType(thisNet));
-    // Serial.println(" ");
+    // Serial.println(F(" "));
   }
 
   String availSSID = "";
@@ -101,7 +102,7 @@ String findNetwork() {
       }
     }
   }
-  Serial.print("foundSSID: ");
+  Serial.print(F("foundSSID: "));
   Serial.println(foundSSID);
   return foundSSID;
 }
@@ -133,9 +134,9 @@ int WifiConnect(){
   String SSIDpwd = getNetworkPassword(SSIDfound);
   String SSIDlocation = getNetworkLocation(SSIDfound);
   
-  Serial.print("Wifi network: ");
+  Serial.print(F("Wifi network: "));
   Serial.print(SSIDfound);
-  Serial.print(", ");
+  Serial.print(F(", "));
   Serial.println(SSIDlocation);
 
   // attempt to connect to WiFi network:
@@ -156,11 +157,14 @@ int WifiConnect(){
 }
 
 //===== Radio =====//
+#define radio_channel 104
+#define CE_PIN 8
+#define CSN_PIN 7
 
 const uint16_t base_node = 00;      // Address of the base node in Octal format (04, 031, etc.)
 const uint16_t internet_node = 05;  // Address of the node node in Octal format (04, 031, etc.)
 
-RF24 radio(8, 7);                // nRF24L01 (CE, CSN)
+RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio);      // Include the radio in the network
 
 const uint16_t wrappingcounter = 255;
@@ -224,7 +228,7 @@ unsigned int receiveRFnetwork(){
     network_payload incomingData;
     network.read(header, &incomingData, sizeof(incomingData)); // Read the incoming data
     Serial.println(incomingData.keyword, HEX);
-    if (header.from_node != node01) {
+    if (header.from_node != base_node) {
       Serial.print(F("Received unexpected message, from_node: "));
       Serial.println(header.from_node);
       break;
@@ -279,30 +283,31 @@ unsigned int receiveRFnetwork(){
       responsefromremote = response_none;
     }
 
-    network.update();
+    //network.update();
   }
   return reaction;
 }
 
 //===== Sending =====//
-unsigned int transmitRFnetwork(unsigned long commandtx){
+unsigned int transmitRFnetwork(unsigned long commandtx, unsigned long sTimer){
   static unsigned long sendingTimer = 0;
   unsigned int traction = 0;
 
   // Every x seconds...
-  unsigned long currentmilli = millis();
-  if(currentmilli - sendingTimer > 5000) {
-    sendingTimer = currentmilli;
+  unsigned long currentmilli = sTimer;
+  if(sTimer - sendingTimer > 5000) {
+    sendingTimer = sTimer;
     sendingCounter = updatecounter(sendingCounter); 
-    RF24NetworkHeader header1(node01, 'B'); // Address where the data is going
+    RF24NetworkHeader header1(base_node, 'B'); // Address where the data is going
     network_payload outgoing = {keywordval, sendingCounter, currentmilli, commandtx, responding, data1};//, data2, data3};
 
     //network.update();
 
     bool ok = network.write(header1, &outgoing, sizeof(outgoing)); // Send the data
     if (!ok) {
-      Serial.print(F("Retry sending message: "));
-      Serial.println(sendingCounter);      
+      delay(50);
+      // Serial.print(F("Retry sending message: "));
+      // Serial.println(sendingCounter);      
       ok = network.write(header1, &outgoing, sizeof(outgoing)); // retry once
     }
     if (ok) {

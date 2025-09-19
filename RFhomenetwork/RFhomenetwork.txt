@@ -1,0 +1,11 @@
+
+                                                  3 september 2025
+
+Voor het licht in de keuken is het idee aangepasst t.o.v. de tekening:
+
+Gebruik een detector met batterij uit het bloemenkar project.
+Die kan dan rechtstreeks de keuken aansturen (verlichting).
+De adressen van de joystick, keypad etc. moeten dan niet allemaal meer via de keuken gaan.
+Via 5 (de UNO die internet tijd ophaalt) is dan een mogelijke optie.
+
+

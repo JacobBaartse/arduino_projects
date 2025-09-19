@@ -1,5 +1,5 @@
 /*
- * RF-Nano with 1.3 inch Display (big display)
+ * RF-Nano with 1.3 inch Display (big display), can not get it working.
  */
 
 #include <RF24Network.h>
@@ -84,7 +84,7 @@ void clear_display(){
 
 String Line1 = "Welcome George!"; 
 String Line2 = "Demo B"; 
-String Line3 = "Whats c up?"; 
+String Line3 = "What's up?"; 
 
 int y1, y2, y3;
 
@@ -94,44 +94,40 @@ char rxNum = '0';
 void setup() {
   Serial.begin(115200);
   Serial.println();
-  Serial.flush(); 
-  Serial.println(__TIMESTAMP__);
-  Serial.print(__FILE__);
-  Serial.print(F(", creation/build time: "));
+  Serial.println(__FILE__);
+  Serial.print(F("Creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
   
   SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
-    while (1) {
-      // hold in an infinite loop
-    }
+    while (true) delay(1000);
   }
   radio.setPALevel(RF24_PA_MIN, 0);
   //Serial.println("SimpleRxAckPayload Starting");
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, node01);
 
-  //Wire.begin();
-  display.begin(i2c_Address, true); // Address 0x3C default
-  display.oled_command(SH110X_DISPLAYON);
-  display.setContrast(0); // dim display
-  displaystatus = DisplayState::Dim;
-  display.clearDisplay();
-  //display.setFont(&FreeSerif12pt7b);
-  display.setTextSize(2); // 3 lines of 10-12 chars
-  display.setTextColor(SH110X_WHITE);
-  display.setTextWrap(false);
-  display.display();
+  Wire.begin();
+  // display.begin(i2c_Address, true); // Address 0x3C default
+  // display.oled_command(SH110X_DISPLAYON);
+  // display.setContrast(0); // dim display
+  // displaystatus = DisplayState::Dim;
+  // display.clearDisplay();
+  // //display.setFont(&FreeSerif12pt7b);
+  // display.setTextSize(2); // 3 lines of 10-12 chars
+  // display.setTextColor(SH110X_WHITE);
+  // display.setTextWrap(false);
+  // display.display();
 
-  y1 = 0;//16;
-  y2 = 21;//38;
-  y3 = 42;//60;
+  // y1 = 0;//16;
+  // y2 = 21;//38;
+  // y3 = 42;//60;
 
-  display_oled(true, 0, y1, Line1); 
-  display_oled(false, 2, y2, Line2); 
-  display_oled(false, 4, y3, Line3);  
+  // display_oled(true, 0, y1, Line1); 
+  // display_oled(false, 2, y2, Line2); 
+  // display_oled(false, 4, y3, Line3);  
 }
  
 bool new_data = false;
@@ -219,33 +215,33 @@ void loop() {
 
   transmitRFnetwork();
 
-  if(currentmilli - receiveTimer > 20000){
-    //printing should be a once of action
-    if (!no_data){
-      no_data = true; // for printing/clearing previous data
-      new_data = true; // print stuff
-    }
-  }
+  // if(currentmilli - receiveTimer > 20000){
+  //   //printing should be a once of action
+  //   if (!no_data){
+  //     no_data = true; // for printing/clearing previous data
+  //     new_data = true; // print stuff
+  //   }
+  // }
 
-  if (new_data){
-    new_data = false;
-    //Serial.print(dataReceived);
-    //Serial.print(F(" "));
-    if (no_data){
-      display_oled(true, 0, y1, "----");
-    }
-    else{
-      display_oled(true, 0, y1, Rxdata.dataText1);
-    }
-    float timeval = (float)Rxdata.timing / (float)1000;
-    display_oled(false, 4, y2, String(timeval, 1) + " s");
+  // if (new_data){
+  //   new_data = false;
+  //   //Serial.print(dataReceived);
+  //   //Serial.print(F(" "));
+  //   if (no_data){
+  //     display_oled(true, 0, y1, "----");
+  //   }
+  //   else{
+  //     display_oled(true, 0, y1, Rxdata.dataText1);
+  //   }
+  //   float timeval = (float)Rxdata.timing / (float)1000;
+  //   display_oled(false, 4, y2, String(timeval, 1) + " s");
 
-    //Serial.print(ackData);
-    //Serial.print(F(" "));
-    float tempval = (float)currentmilli / (float)1000;
-    //Serial.println(tempval);
-    display_oled(false, 4, y3, String(tempval, 1) + " s");
-    // delay(1250);
-  }
+  //   //Serial.print(ackData);
+  //   //Serial.print(F(" "));
+  //   float tempval = (float)currentmilli / (float)1000;
+  //   //Serial.println(tempval);
+  //   display_oled(false, 4, y3, String(tempval, 1) + " s");
+  //   // delay(1250);
+  // }
 
 }

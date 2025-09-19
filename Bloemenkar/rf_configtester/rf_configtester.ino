@@ -8,6 +8,7 @@
 #include <RF24Network.h>
 #include "RF24.h"
 #include <SPI.h>
+#include "distance.h"
 
 #define radioChannel 98 
 
@@ -23,7 +24,7 @@
 #define BUTTON_PIN 2
 #define BUTTON_PIN2 3
 
-#define PIR_PIN 4
+#define PIR_PIN 7
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -70,31 +71,38 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress2, FALLING); // trigger when button is pressed
 }
  
+unsigned long currentmilli = 0;
+unsigned long printtiming = 0;
 
 void loop() {
 
-  delay(5000); // 5 seconds between readings, prevent too much printing
+  currentmilli = millis();
 
-  // read input PINS and print the result
+  measureDistance(currentmilli);
 
-  Serial.print(F("CFG_PIN0: "));  
-  Serial.println(digitalRead(CFG_PIN0));  
-  Serial.print(F("CFG_PIN1: "));  
-  Serial.println(digitalRead(CFG_PIN1));  
-  Serial.print(F("CFG_PIN2: "));  
-  Serial.println(digitalRead(CFG_PIN2));  
-  Serial.print(F("CFG_PIN3: "));  
-  Serial.println(digitalRead(CFG_PIN3));  
- 
-  Serial.print(F("PIR_PIN: "));  
-  Serial.println(digitalRead(PIR_PIN)); 
+  if ((unsigned long)(currentmilli - printtiming) > 5000){ // 5 seconds between readings, prevent too much printing
+    // read input PINS and print the result
+    printtiming = currentmilli;
 
-  Serial.print(F("BUTTON_PIN 1: "));  
-  Serial.println(pressBUTTON);
-  pressBUTTON = false;  
-  Serial.print(F("BUTTON_PIN 2: "));  
-  Serial.println(pressBUTTON2);
-  pressBUTTON2 = false;  
+    Serial.print(F("CFG_PIN0: "));  
+    Serial.println(digitalRead(CFG_PIN0));  
+    Serial.print(F("CFG_PIN1: "));  
+    Serial.println(digitalRead(CFG_PIN1));  
+    Serial.print(F("CFG_PIN2: "));  
+    Serial.println(digitalRead(CFG_PIN2));  
+    Serial.print(F("CFG_PIN3: "));  
+    Serial.println(digitalRead(CFG_PIN3));  
+  
+    Serial.print(F("PIR_PIN: "));  
+    Serial.println(digitalRead(PIR_PIN)); 
+
+    Serial.print(F("BUTTON_PIN 1: "));  
+    Serial.println(pressBUTTON);
+    pressBUTTON = false;  
+    Serial.print(F("BUTTON_PIN 2: "));  
+    Serial.println(pressBUTTON2);
+    pressBUTTON2 = false; 
+  } 
 }
 
 void buttonPress(){

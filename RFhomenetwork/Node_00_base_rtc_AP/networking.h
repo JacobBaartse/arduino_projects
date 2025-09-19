@@ -189,6 +189,8 @@ const uint32_t kitchenkeyword = 0x10112003;
 const uint32_t shedkeyword = 0xffddeecc;
 const uint32_t spoorstrakeyword = 0xfdecba98;
 const uint32_t keypadkeyword = 0xabcdef01;
+const uint32_t joystickkeyword = 0xabcdef01;
+const uint32_t tm1638keyword = 0xabcdef01;
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -200,11 +202,12 @@ RF24Network network(radio); // Include the radio in the network
 
 const uint16_t base_node = 00;   // Address of this node in Octal format (04, 031, etc.)
 const uint16_t rtc_node = 05;
-const uint16_t shed_node = 03;
-const uint16_t spoorstra_node = 013; // connect via shed_node
+const uint16_t shed_node = 01;
+const uint16_t spoorstra_node = 011; // connect via shed_node
 const uint16_t kitchen_node = 02;
-const uint16_t keypad_node = 012; // connect via kitchen_node
-const uint16_t joystick_node = 022; // connect via kitchen_node
+const uint16_t keypad_node = 022; // connect via kitchen_node
+const uint16_t joystick_node = 032; // connect via kitchen_node
+const uint16_t tm1638_node = 042; // connect via kitchen_node
 
 void setupRFnetwork(){
   SPI.begin();
@@ -374,7 +377,7 @@ unsigned int transmitRFnetwork(unsigned long currentmilli, bool fresh, uint16_t 
 
   // Every x seconds...
   if((lfresh)||(currentmilli > sendingTimer)){
-    sendingTimer = currentmilli + 10000; // once per 10 seconds, cycle the connected nodes
+    sendingTimer = (unsigned long) currentmilli + 10000; // once per 10 seconds, cycle the connected nodes
     ks_payload mpayload;
     char datakey = 'X';
 
