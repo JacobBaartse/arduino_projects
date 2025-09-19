@@ -102,7 +102,7 @@ void showScore(){
     while (screen_text.length() < 10) screen_text += " ";
     screen_text += String(score_counter);
     while (screen_text.length() < 16) screen_text += " ";
-    screen_text += String("   Balls: ") + String(nr_balls_left);
+    screen_text += String("   Balls: ") + String(nr_balls_left) + ".";
     disp_8x8_matrix.print(screen_text.c_str());
   }
 }
@@ -125,14 +125,18 @@ void loop(){
     start_millis = millis();
     duration = 1000;
     
-    if (speed < 400) score_counter += (400 - speed);
-    String speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
-    disp_8x8_matrix.print(speed_text.c_str());
-    keep_matrix_millis = millis() + 10000;
+    if (speed < 600){
+      score_counter += (600 - speed);
+      String speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
+      disp_8x8_matrix.print(speed_text.c_str());
+      keep_matrix_millis = millis() + 10000;
+    }
+    score_counter += 50;
+    delay(200); // pevent contact ossilation.
   }
-  if (switch_nr == 2){  // ramp down
+  if (switch_nr == 2){  // high ramp
     Play_mp3_file(DO_RE_MI);
-    score_counter += 100;
+    score_counter += 250;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
     duration = 1600;
@@ -238,7 +242,7 @@ void loop(){
     start_millis = millis();
     duration = 2000;
   }
-    if (switch_nr == 6){  //right side button klaver 8
+  if (switch_nr == 6){  //right side button klaver 8
     right1hit = true;
     Play_mp3_file(KLONGNGNG);
     right1blink_until = millis() + 2000;
