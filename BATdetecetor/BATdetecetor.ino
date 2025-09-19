@@ -2,7 +2,7 @@
  * NANO with ultrasound receiver coneceted to interrupt pin, buzzer and builtin LED
  */
 
-#define DETECT_PIN 2
+#define DETECT_PIN 3
 #define TRIG_PIN 4
 #define BUZZER_PIN 6
 
@@ -27,8 +27,8 @@ void setup() {
   digitalWrite(LED_BUILTIN, LOW);
   digitalWrite(TRIG_PIN, LOW); 
 
-  //attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, RISING); // trigger when ultrasound detected
-  attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, FALLING); // trigger when ultrasound detected
+  attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, RISING); // trigger when ultrasound detected
+  //attachInterrupt(digitalPinToInterrupt(DETECT_PIN), batDetect, FALLING); // trigger when ultrasound detected
 
   Serial.println();  
   Serial.println(F(" ***************"));  
@@ -49,7 +49,7 @@ void trigmodule(unsigned long timingmoment){
   }
 }
 
-const uint16_t PROGMEM pitchlist[] = { 2500, 1500, 3000, 2000, 1000, 0 };
+const uint16_t pitchlist[] = { 2500, 1500, 3000, 2000, 1000, 0 };
 
 void processdetection(bool detect, unsigned long timingmoment){
   static bool alarming = false;
@@ -71,12 +71,17 @@ void processdetection(bool detect, unsigned long timingmoment){
       alarming = true;
       detecttiming = timingmoment; 
       digitalWrite(LED_BUILTIN, HIGH);
-      tone(BUZZER_PIN, pitchlist[tonepitch++]); // Send sound signal...
+      tonepitch++;
+      //tone(BUZZER_PIN, pitchlist[tonepitch++]); // Send sound signal...
       if (pitchlist[tonepitch] == 0){
         tonepitch = 0;
       }
       Serial.print(F("Start alarm: "));
-      Serial.println(timingmoment);
+      Serial.print(timingmoment);
+      Serial.print(F(", tonepitch: "));
+      Serial.print(tonepitch);
+      Serial.print(F(", pitchlist: "));
+      Serial.println(pitchlist[tonepitch]);
     }
     else {
       trigmodule(timingmoment);

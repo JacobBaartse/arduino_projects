@@ -81,7 +81,7 @@ bool receiveRFnetwork(){
 
 //===== Sending =====//
 bool transmitRFnetwork(bool fresh){
-  const uint8_t responsetimefactor = 15;
+  const uint8_t responsetimefactor = 5; // amount of ms to wait for sending a response
   static unsigned long triggerTimer = 0;
   static unsigned long sendingTimer = 0;
   static uint8_t responsecounter = responsetimefactor;
@@ -217,7 +217,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_2MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, repeaternode);
 
   Serial.println();  
