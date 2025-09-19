@@ -38,7 +38,7 @@ RF24Network network(radio); // Include the radio in the network
 
 uint16_t detectornode = 01; // Address of this node in Octal format (04, 031, etc.)
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
-uint8_t radiolevel = RF24_PA_MIN;
+uint8_t radiolevel = RF24_PA_MAX;
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
 

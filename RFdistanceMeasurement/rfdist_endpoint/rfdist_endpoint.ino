@@ -234,7 +234,7 @@ void setup() {
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
-  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
+  radio.setDataRate(RF24_2MBPS); // RF24_1MBPS, RF24_2MBPS, RF24_250KBPS
   network.begin(radioChannel, endpointnode);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
