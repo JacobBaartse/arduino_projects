@@ -31,6 +31,7 @@ CRGB leds_2[NUM_LEDS_2];
 #define RUN_AROUND      4
 #define FADE_IN_OUT     5
 #define CANNON_SHOT_LEDS 6
+#define SPARKLING_COLORS 7
 
 long prev_millis_leds=0;
 void pattern_on_ledstrip(int pattern, long start_millis, long duration){
@@ -56,6 +57,15 @@ void pattern_on_ledstrip(int pattern, long start_millis, long duration){
                 fadeToBlackBy(leds_1, NUM_LEDS_1, 40);
             }
             break; 
+        case SPARKLING_COLORS:
+            if (now > prev_millis_leds + 20){
+                prev_millis_leds = now;
+                leds_1[random8(0, NUM_LEDS_1 - 1)] = CRGB(0,255,0);
+                leds_1[random8(0, NUM_LEDS_1 - 1)] = CRGB(255,0,0);
+                leds_1[random8(0, NUM_LEDS_1 - 1)] = CRGB(0,0,255);
+                fadeToBlackBy(leds_1, NUM_LEDS_1, 40);
+            }
+            break;
         case RUN_AROUND:
             position = (uint8_t) (now /10 %NUM_LEDS_1);
             for (uint8_t i=0; i<NUM_LEDS_1; i++)

@@ -123,7 +123,7 @@ void loop(){
     Play_mp3_file(KOEKOEK_KLOK);
     effect = CANNON_SHOT_LEDS;
     start_millis = millis();
-    duration = 1000;
+    duration = 4000;
     
     if (speed < 600){
       score_counter += (600 - speed);
@@ -139,7 +139,7 @@ void loop(){
     score_counter += 250;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
-    duration = 1600;
+    duration = 4000;
   }
   if (switch_nr == 3){  // CANNON 
     cannon_millis = millis();
@@ -187,30 +187,37 @@ void loop(){
   }
   if (switch_nr == 11){  //left side button 1
     left1hit = true;
-    left1blink_until = millis() + 2000;
+    left1blink_until = millis() + 4000;  // delays also the reset of the servo
     Play_mp3_file(PRRRR);
     score_counter += 5;
     effect = SPARKLING;
     start_millis = millis();
-    duration = 2000;
+    duration = 4000;
   }
   if (switch_nr == 12){  //left side button 2
     left2hit = true;
     Play_mp3_file(HIGH_PING);
-    left2blink_until = millis() + 2000;
+    left2blink_until = millis() + 4000;  // delays also the reset of the servo
     score_counter += 5;
     effect = FADE_IN_OUT;
     start_millis = millis();
-    duration = 2000;
+    duration = 4000;
   }
   if (switch_nr == 13){  //left side button 3
     left3hit = true;
     Play_mp3_file(OLD_TELEPHONE_RING);
-    left3blink_until = millis() + 2000;
+    left3blink_until = millis() + 4000;  // delays also the reset of the servo
     score_counter += 5;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
-    duration = 2000;
+    duration = 4000;
+  }
+   if (switch_nr == 14){  // top ball 
+    Play_mp3_file(KIP);
+    score_counter += 25;
+    effect = SPARKLING_COLORS;
+    start_millis = millis();
+    duration = 4000;
   }
   
   if (switch_nr == 7){  //right side button Joker
@@ -221,7 +228,7 @@ void loop(){
     score_counter += 50;
     effect = FADE_IN_OUT;
     start_millis = millis();
-    duration = 2000;
+    duration = 4000;
   }
 
   if (switch_nr == 8){   //right side button klaver 10
@@ -231,7 +238,7 @@ void loop(){
     score_counter += 5;
     effect = SPARKLING;
     start_millis = millis();
-    duration = 2000;
+    duration = 4000;
   }
   if (switch_nr == 5){  //right side button klaver 9
     right2hit = true;
@@ -240,7 +247,7 @@ void loop(){
     score_counter += 5;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
-    duration = 2000;
+    duration = 4000;
   }
   if (switch_nr == 6){  //right side button klaver 8
     right1hit = true;
@@ -249,7 +256,7 @@ void loop(){
     score_counter += 5;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
-    duration = 2000;
+    duration = 4000;
   }
   
 
