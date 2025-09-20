@@ -3,9 +3,9 @@
  * 
  */
 
-#define ClearPin 6
-#define SetPin 5
 #define FeedbackPin 4
+#define ClearPin 5
+#define SetPin 6
 
 #define pulse_time 2100  // pulse low time, max. 2 seconds needed
 
@@ -81,29 +81,31 @@ void setuprelays(){
   }
 }
 
-bool relaytracking(bool fresh, unsigned long currentmilli){
-  bool error = false;
+uint8_t relaytracking(bool fresh){
+  unsigned long currentmilli = millis();
+  uint8_t error = 0;
+
   // check state agains actual monitoring
   RelayState RelStat = handleRelay(currentmilli, RelayState::R_None);
   if ((RelStat == RelayState::R_On)||(RelStat == RelayState::R_Off)){
     relaysdetectstate = digitalRead(FeedbackPin);
     if (RelStat == RelayState::R_On){
       if (relaysdetectstate != LOW){
-        Serial.print(currentmilli);
-        Serial.println(F(" relaytrackig 1")); 
-        error = true;     
+        // Serial.print(currentmilli);
+        // Serial.println(F(" relaytrackig 1")); 
+        error = 1;     
       }
     }
     else{ // (RelStat == RelayState::R_Off)
       if (relaysdetectstate != HIGH){
-        Serial.print(currentmilli);
-        Serial.println(F(" relaytrackig 2"));    
-        error = true;  
+        // Serial.print(currentmilli);
+        // Serial.println(F(" relaytrackig 2"));    
+        error = 2;  
       }
     }
   }
   else{ // action to go on or go off is still in progress
-    error = fresh; // fresh command cannot be handled yet
+    error = 3; // fresh command cannot be handled yet
   }
 
   if ((fresh)&&(commandaction != RelayState::R_None)){
