@@ -110,6 +110,7 @@ uint8_t relaytracking(bool fresh){
 
   if ((fresh)&&(commandaction != RelayState::R_None)){
     RelStat = handleRelay(currentmilli, commandaction); // start the action
+    error = 4; // new command
     commandaction = RelayState::R_None;
   }
 

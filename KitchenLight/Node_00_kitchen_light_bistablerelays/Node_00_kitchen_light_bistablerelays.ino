@@ -35,15 +35,13 @@ struct detector_payload{
   uint32_t timing;
   uint8_t count;
   uint8_t dvalue;
-  uint8_t sw1value;
-  uint8_t sw2value;
+  uint8_t cvalue;
 };
 
 bool newdata = false;
 unsigned long currentmilli = 0;
 uint8_t detectionValue = 0;
-uint8_t sw1Value = 0;
-uint8_t sw2Value = 0;
+uint8_t commandValue = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -79,15 +77,16 @@ void setup() {
 }
 
 //===== Receiving =====//
-bool receiveRFnetwork(){
-  // unsigned long currentRFmilli = millis();
+bool receiveRFnetwork(unsigned long currentRFmilli){
+  static unsigned long receivalTime = 0;
   bool mreceived = false;
 
   if (network.available()){ // Is there any incoming data?
+    receivalTime = currentRFmilli;
     RF24NetworkHeader header;
     network.peek(header);
   
-    switch(header.type) {
+    switch(header.type){
       // Display the incoming millis() values from sensor nodes
       case 'Y': 
 
@@ -111,29 +110,42 @@ bool receiveRFnetwork(){
         }
         if (RxData.keyword == keywordvalD){
           Serial.print(F("Data received from detector/sensors "));
-          Serial.println(millis());
+          Serial.print(currentRFmilli);
           mreceived = true;
           // in case a message is received, with specific data, the detector could be 'reset' (for example)
           detectionValue = RxData.dvalue;
-          sw1Value = RxData.sw1value;
-          sw2Value = RxData.sw2value;
+          commandValue = RxData.cvalue;
+          Serial.print(F(", m # "));
+          Serial.print(RxData.count);
+          Serial.print(F(", dvalue: "));
+          Serial.print(detectionValue);
+          Serial.print(F(", cvalue: "));
+          Serial.println(commandValue); 
+
           if (detectionValue == 0xff){
-             Serial.print(F("Command received: "));
-            if (sw2Value == 0x5a) {
-              commandaction = RelayState::R_Off;
-              Serial.println(F("Kitchen light OFF"));
-            }
-            if (sw1Value == 0xa5){
-              commandaction = RelayState::R_On;
-              Serial.println(F("Kitchen light ON"));
+            Serial.print(F("Command received: "));
+            switch(commandValue){
+              case 85:
+                commandaction = RelayState::R_Off;
+                Serial.println(F("Kitchen light OFF (B)"));
+              break;
+              case 90:
+                commandaction = RelayState::R_On;
+                Serial.println(F("Kitchen light ON (B)"));
+              break;
+              case 95:
+                commandaction = RelayState::R_On;
+                Serial.println(F("Kitchen light ON (D)"));
+              break;
+              default:
+                Serial.print(F("Unknown: "));
+                Serial.println(commandValue);
             }
           }
-
         }
         else{
           Serial.println(F("Keyword failure"));
         }
-
         break;
       default: 
         network.read(header, 0, 0);
@@ -141,6 +153,15 @@ bool receiveRFnetwork(){
         Serial.print(header.type);
         Serial.println(char(header.type));
     }
+  }
+
+  // turn off if too long no message received from detector
+  if ((unsigned long)(currentRFmilli - receivalTime) > 300000){ // 5 minutes
+    Serial.print(F("Missing data from detector/sensors "));
+    Serial.println(currentRFmilli);
+    commandaction = RelayState::R_Off;
+    Serial.println(F("Kitchen light OFF (T)"));
+    mreceived = true; // method to get data handled as 'fresh'
   }
 
   return mreceived;
@@ -189,7 +210,9 @@ void loop() {
 
   network.update();
 
-  newdata = receiveRFnetwork();
+  currentmilli = millis();
+
+  newdata = receiveRFnetwork(currentmilli);
 
   //************************ sensors/actuators ****************//
 

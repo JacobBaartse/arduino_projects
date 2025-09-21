@@ -39,15 +39,13 @@ struct detector_payload{
   uint32_t timing;
   uint8_t count;
   uint8_t dvalue;
-  uint8_t sw1value;
-  uint8_t sw2value;
+  uint8_t cvalue;
 };
 
 bool newdata = false;
 unsigned long currentmilli = 0;
 uint8_t detectionValue = 0;
-uint8_t sw1Value = 0;
-uint8_t sw2Value = 0;
+uint8_t commandValue = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -99,32 +97,42 @@ bool trackSensors(bool pfresh, unsigned long currentDetectMillis){
   bool fresh = pfresh;
 
   if (activated){
-    if ((unsigned long)(currentDetectMillis - activationTime) > 60000){ // 60 seconds no new activation
-      PIRconfirmed = false;
-      activeBUTTON = false;
-      detectionValue = 0;
-      sw1Value = 0;
-      sw2Value = 0;
-      Serial.print(F("Reset detections "));
-      Serial.println(currentDetectMillis);
-      activated = false;
-    }
+
     if (activeBUTTON){ // turn off, when PIR clear
-      sw2Value = 0xa5;
-      clearingTime = currentDetectMillis;
-      Serial.print(F("BUTTON detection (OFF) "));
-      Serial.println(currentDetectMillis);
-      if (!activePIR){ // if PIR cleared after button press
-        fresh = true;
-        activated = false;
+      if ((unsigned long)(currentDetectMillis - activationTime) > 3000){ // 3 seconds
+        if (!activePIR){ // if PIR cleared after button press
+          commandValue = 85;
+          clearingTime = currentDetectMillis;
+          Serial.print(F("BUTTON detection (OFF) "));
+          Serial.println(currentDetectMillis);
+          fresh = true;
+          activated = false;
+          activePIR = false;
+          PIRconfirmed = false;
+          activeBUTTON = false;
+        }
+      }
+      else { // pressed button to quickly or too long
         activeBUTTON = false;
       }
     }
+    else {    
+      if ((unsigned long)(currentDetectMillis - activationTime) > 60000){ // 60 seconds no new activation
+        PIRconfirmed = false;
+        activeBUTTON = false;
+        detectionValue = 0;
+        commandValue = 0;
+        Serial.print(F("Reset detections "));
+        Serial.println(currentDetectMillis);
+        activated = false;
+      }
+    }
+
   }
   else {
     if (PIRconfirmed){
-      sw1Value = 0xa5;
-      Serial.print(F("PIR detection "));
+      commandValue = 95;
+      Serial.print(F("PIR detection confirmed "));
       Serial.println(currentDetectMillis);
       activated = true;
     }
@@ -140,11 +148,12 @@ bool trackSensors(bool pfresh, unsigned long currentDetectMillis){
       }
     }
     if (activeBUTTON){ // turn on in case this is not done yet
-      sw2Value = 0x5a;
+      commandValue = 90;
       activationTime = currentDetectMillis;
       Serial.print(F("BUTTON detection (ON) "));
       Serial.println(currentDetectMillis);
       activated = true;
+      activeBUTTON = false;
     }
     if (activated){
       activationTime = currentDetectMillis;
@@ -208,20 +217,16 @@ bool transmitRFnetwork(bool pfresh){
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
     Txdata.dvalue = detectionValue;
-    Txdata.sw1value = sw1Value;
-    Txdata.sw2value = sw2Value;
+    Txdata.cvalue = commandValue;
 
     Serial.print(F("Message dvalue: "));
-    //Serial.print(F(" dvalue: "));
     Serial.print(Txdata.dvalue);
-    Serial.print(F(", sw1value (PIR): "));
-    Serial.print(Txdata.sw1value);        
-    Serial.print(F(", sw2value (BUTTON): "));
-    Serial.println(Txdata.sw2value);
+    Serial.print(F(", cvalue: "));
+    Serial.print(Txdata.cvalue);        
 
     RF24NetworkHeader header0(basenode, 'K'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-    Serial.print(F("Message send ")); 
+    Serial.print(F(", send ")); 
     if (w_ok){
       fresh = false;
       failcount = 0;
@@ -230,6 +235,7 @@ bool transmitRFnetwork(bool pfresh){
       Serial.print(F("failed "));
       failcount++;
     }
+    Serial.print(F("m # "));
     Serial.print(Txdata.count);
     Serial.print(F(", "));
     Serial.println(currentRFmilli);
@@ -291,10 +297,6 @@ void loop() {
     newdata = true;
     pressBUTTON = false;
   } 
-
-  // this is limited bij the PIR active signal (2-3 seconds)
-  if ((activePIR)&&(!PIRconfirmed)){
-  }
 
   //************************ sensors ****************//
 
