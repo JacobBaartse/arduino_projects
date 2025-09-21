@@ -1,9 +1,9 @@
 /*
- * RF-Nano, receiver for stable relays control
+ * RF-Nano, headers, receiver for bi-stable relays control
  */
 
-#include <RF24Network.h>
 #include "RF24.h"
+#include <RF24Network.h>
 #include <SPI.h>
 
 #include "relays.h"
@@ -16,9 +16,9 @@
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
-const uint16_t basenode = 00;    // Address of the home/host/controller node in Octal format
+const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
 const uint16_t detectornode = 01; // Address of the detector node in the kitchen
-uint8_t radiolevel = RF24_PA_LOW;
+const uint8_t radiolevel = RF24_PA_LOW; // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
 
 const unsigned long keywordvalB = 0xbeeffeed; 
 const unsigned long keywordvalD = 0xdeeffeeb; 
@@ -39,40 +39,51 @@ struct detector_payload{
   uint8_t sw2value;
 };
 
+bool newdata = false;
+unsigned long currentmilli = 0;
+uint8_t detectionValue = 0;
+uint8_t sw1Value = 0;
+uint8_t sw2Value = 0;
+
 void setup() {
   Serial.begin(115200);
+  while (!Serial) { // some boards need this because of native USB capability
+    delay(10);
+  }
 
+  // setup for sensors
   setuprelays();
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
   Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
+  Serial.print(F("Basenode: "));
+  Serial.println(basenode);
   Serial.flush(); 
 
   SPI.begin();
   if (!radio.begin()){
-    Serial.println(F("Radio hardware error."));
+    Serial.println(F("Radio HW error."));
     while (true) delay(1000);
   }
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, basenode);
+  Serial.print(F("radioChannel: "));
+  Serial.print(radioChannel);
+  Serial.print(F(", level: "));
+  Serial.println(radiolevel);
 
   Serial.println(F(" ----"));
 }
-
-uint8_t detectionValue = 0;
-uint8_t sw1Value = 0;
-uint8_t sw2Value = 0;
 
 //===== Receiving =====//
 bool receiveRFnetwork(){
   // unsigned long currentRFmilli = millis();
   bool mreceived = false;
 
-  // Check for incoming data details
-  if (network.available()) {
+  if (network.available()){ // Is there any incoming data?
     RF24NetworkHeader header;
     network.peek(header);
   
@@ -126,8 +137,9 @@ bool receiveRFnetwork(){
         break;
       default: 
         network.read(header, 0, 0);
-        Serial.print(F("TBD header.type: "));
-        Serial.println(header.type);
+        Serial.print(F("unknown header.type: "));
+        Serial.print(header.type);
+        Serial.println(char(header.type));
     }
   }
 
@@ -135,32 +147,26 @@ bool receiveRFnetwork(){
 }
 
 //===== Sending =====//
-void transmitRFnetwork(bool fresh){
+void transmitRFnetwork(bool pfresh){
   static unsigned long sendingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
+  bool fresh = pfresh;
   unsigned long currentRFmilli = millis();
   bool w_ok;
 
-  // Every 5 seconds, or on new data
+  // Every x seconds, or on new data
   //if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 5000)){
-  // if (fresh)
-  //   if ((unsigned long)(currentRFmilli - sendingTimer) > 5000){
-
   //   sendingTimer = currentRFmilli;
 
-  //   base_payload Txdata;
-  //   Txdata.keyword = keywordvalM;
-  //   Txdata.timing = currentRFmilli;
-  //   Txdata.counter = counter++;
+  //   base_payload TxData;
+  //   TxData.keyword = keywordvalB;
+  //   TxData.timing = currentRFmilli;
+  //   TxData.count = counter++;
+  //   TxData.bvalue = 0xfd;
 
-  //   RF24NetworkHeader header0(joynode, 'M'); // address where the data is going
-  //   w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-  //   if (!w_ok){ // retry
-  //     failcount++;
-  //     delay(50);
-  //     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
-  //   }
+  //   RF24NetworkHeader header0(detectornode, 'B'); // address where the data is going
+  //   w_ok = network.write(header0, &TxData, sizeof(TxData)); // Send the data
   //   Serial.print(F("Message send ")); 
   //   if (w_ok){
   //     failcount = 0;
@@ -169,15 +175,13 @@ void transmitRFnetwork(bool fresh){
   //     Serial.print(F("failed "));
   //     failcount++;
   //   }
-  //   Serial.print(Txdata.counter);
+  //   Serial.print(Txdata.count);
   //   Serial.print(F(", "));
   //   Serial.println(currentRFmilli);
 
   // }
 }
 
-//uint8_t sensorstatus = 0;
-bool newdata = false;
 uint8_t relaysstatus = 0;
 uint8_t remrelaysstatus = 0;
 
