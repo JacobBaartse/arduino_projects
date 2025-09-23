@@ -83,7 +83,7 @@ void setuprelays(){
 
 uint8_t relaytracking(bool fresh){
   unsigned long currentmilli = millis();
-  uint8_t error = 0;
+  uint8_t trackval = 0;
 
   // check state agains actual monitoring
   RelayState RelStat = handleRelay(currentmilli, RelayState::R_None);
@@ -93,28 +93,28 @@ uint8_t relaytracking(bool fresh){
       if (relaysdetectstate != LOW){
         // Serial.print(currentmilli);
         // Serial.println(F(" relaytrackig 1")); 
-        error = 1;     
+        trackval = 1;     
       }
     }
     else{ // (RelStat == RelayState::R_Off)
       if (relaysdetectstate != HIGH){
         // Serial.print(currentmilli);
         // Serial.println(F(" relaytrackig 2"));    
-        error = 2;  
+        trackval = 2;  
       }
     }
   }
   else{ // action to go on or go off is still in progress
-    error = 3; // fresh command cannot be handled yet
+    trackval = 3; // fresh command cannot be handled yet
   }
 
   if ((fresh)&&(commandaction != RelayState::R_None)){
     RelStat = handleRelay(currentmilli, commandaction); // start the action
-    error = 4; // new command
+    trackval = 4; // new command
     commandaction = RelayState::R_None;
   }
 
-  return error;
+  return trackval;
 }
 
 

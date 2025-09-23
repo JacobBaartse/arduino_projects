@@ -148,11 +148,13 @@ bool trackSensors(bool pfresh, unsigned long currentDetectMillis){
       }
     }
     if (activeBUTTON){ // turn on in case this is not done yet
-      commandValue = 90;
-      activationTime = currentDetectMillis;
-      Serial.print(F("BUTTON detection (ON) "));
-      Serial.println(currentDetectMillis);
-      activated = true;
+      if ((unsigned long)(currentDetectMillis - clearingTime) > 3000){ // 3 seconds
+        commandValue = 90;
+        activationTime = currentDetectMillis;
+        Serial.print(F("BUTTON detection (ON) "));
+        Serial.println(currentDetectMillis);
+        activated = true;
+      }
       activeBUTTON = false;
     }
     if (activated){
@@ -293,9 +295,9 @@ void loop() {
   }
 
   if (pressBUTTON){
-    activeBUTTON = true;
-    newdata = true;
     pressBUTTON = false;
+    newdata = true;
+    activeBUTTON = true;
   } 
 
   //************************ sensors ****************//

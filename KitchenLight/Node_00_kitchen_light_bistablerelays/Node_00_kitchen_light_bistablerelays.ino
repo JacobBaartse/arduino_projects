@@ -157,6 +157,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
 
   // turn off if too long no message received from detector
   if ((unsigned long)(currentRFmilli - receivalTime) > 300000){ // 5 minutes
+    receivalTime = currentRFmilli; // just 1 action every 5 minutes
     Serial.print(F("Missing data from detector/sensors "));
     Serial.println(currentRFmilli);
     commandaction = RelayState::R_Off;
