@@ -54,7 +54,7 @@ uint8_t io_extender_check_switches()
     if (pos == 1) xor_value ^= 0b0000000000000001; // prevent spinner to give points to next player keep track of last value of spinner
     
     //delay for contact bounce
-    delay(100);
+    delay(10);
   }
   return pos;
 }

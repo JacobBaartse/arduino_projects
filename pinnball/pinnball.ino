@@ -94,16 +94,22 @@ void setup(){
   next_player();
 }
 
-long keep_matrix_millis = 0;
+long keep_speed_millis = 0;
+String speed_text = "";
 
 void showScore(){
-  if (millis() > keep_matrix_millis){
+
     String screen_text = current_player_name;
     while (screen_text.length() < 10) screen_text += " ";
     screen_text += String(score_counter);
     while (screen_text.length() < 16) screen_text += " ";
+  if (millis() > keep_speed_millis){
     screen_text += String("   Balls: ") + String(nr_balls_left) + ".";
     disp_8x8_matrix.print(screen_text.c_str());
+  }
+  else{
+    screen_text += speed_text;
+    disp_8x8_matrix.print(screen_text.c_str());  
   }
 }
 
@@ -117,6 +123,7 @@ void loop(){
     } 
   }
   if (switch_nr == 15){  // BALL in the top left corner
+    delay(SKIP_CONTACT_BOUNCE);
     long speed = millis() - cannon_millis;
     debug("speed : ");
     debugln(speed);
@@ -127,9 +134,8 @@ void loop(){
     
     if (speed < 600){
       score_counter += (600 - speed);
-      String speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
-      disp_8x8_matrix.print(speed_text.c_str());
-      keep_matrix_millis = millis() + 10000;
+      speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
+      keep_speed_millis = millis() + 10000;
     }
     score_counter += 50;
     delay(200); // pevent contact ossilation.
@@ -340,7 +346,7 @@ void loop(){
         prev_volume_level = volume_level;
       }
   }
-  delay(2);
+  delay(1);
     
 }
 
