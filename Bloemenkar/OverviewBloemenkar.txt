@@ -25,7 +25,12 @@ Na een druk op knop 2 wordt het monitoring systeem weer actief (buzzer en LED ui
 In geval van nieuwe detectie gaat de buzzer en LED weer aan.
 
 
-De detectie met 1 PIR geeft af en toe een valse melding.
+De detectie met 1 PIR (SR620) geeft af en toe een valse melding.
 De detectie met 2 PIR sensors (SR602) geeft af en toe een valse melding, vaak ook gelijktijdig.
 
 Oplossing om te onderzoeken: PIR sensor (SR602) in combinatie met ultrasone afstandsmeting (HC-SR04) via I2C.
+Dit lijkt te werken, afstandsmeting is in 1 richting
+
+Oplossing om te checken: 1 PIR sensor HC-SR501, deze is groter en heeft meer electronica erop.
+
+

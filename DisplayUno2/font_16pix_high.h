@@ -181,4 +181,4 @@ const GFXglyph Small_Glyphs[] PROGMEM = {
   {   969,   4,   4,   6,    0,  -15 }    // 0x7F 'non-printable'
 };
 
-const GFXfont font_16_pix PROGMEM = {(uint8_t *) Small_Bitmaps,         (GFXglyph *)Small_Glyphs, 0x20, 0x7F,         16};
+const GFXfont font_16_pix PROGMEM = {(uint8_t *) Small_Bitmaps, (GFXglyph *)Small_Glyphs, 0x20, 0x7F, 16};

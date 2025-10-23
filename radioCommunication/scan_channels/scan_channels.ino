@@ -37,12 +37,12 @@
 //
 
 // external NRF24 module
-// #define CE_PIN 7
-// #define CSN_PIN 8
+#define CE_PIN 7
+#define CSN_PIN 8
 
 // RF Nano
-#define CE_PIN 10
-#define CSN_PIN 9
+//#define CE_PIN 10
+//#define CSN_PIN 9
 
 // RF Nano, microUSB
 // #define CE_PIN 9
