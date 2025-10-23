@@ -113,6 +113,8 @@ void showScore(){
   }
 }
 
+int rotary_switch = 1;
+
 void loop(){
   int switch_nr = io_extender_check_switches();
   if (switch_nr > 0){
@@ -132,8 +134,8 @@ void loop(){
     start_millis = millis();
     duration = 4000;
     
-    if (speed < 600){
-      score_counter += (600 - speed);
+    if (speed < 800){
+      score_counter += (800 - speed);
       speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
       keep_speed_millis = millis() + 10000;
     }
@@ -146,6 +148,7 @@ void loop(){
     effect = SCROLING_RAINBOW;
     start_millis = millis();
     duration = 4000;
+    delay(200); // prevent contact bounce.
   }
   if (switch_nr == 3){  // CANNON 
     cannon_millis = millis();
@@ -266,12 +269,27 @@ void loop(){
   }
   
 
-  if (switch_nr == 1){ // ROTARY SENSOR
-    Play_mp3_file(Y1_KORT_PR);
-    effect = RUN_AROUND;
-    start_millis = millis();
-    duration = 1000;
-    score_counter += 4;
+  if (switch_nr == 1){ // ROTARY SENSOR 1
+    if (rotary_switch == 16)
+    {
+      rotary_switch = 1;
+      Play_mp3_file(Y1_KORT_PR);
+      effect = RUN_AROUND;
+      start_millis = millis();
+      duration = 1000;
+      score_counter += 4;
+    }
+  }  
+  if (switch_nr == 16){ // ROTARY SENSOR 16
+    if (rotary_switch == 1)
+    {
+      rotary_switch = 16;
+      Play_mp3_file(Y1_KORT_PR);
+      effect = RUN_AROUND;
+      start_millis = millis();
+      duration = 1000;
+      score_counter += 4;
+    }
   }  
 
   if (left1hit & left2hit & left3hit){

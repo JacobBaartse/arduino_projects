@@ -51,8 +51,9 @@ uint8_t io_extender_check_switches()
     }
     debug("button pushed: ");
     debugln(pos);
-    if (pos == 1) xor_value ^= 0b0000000000000001; // prevent spinner to give points to next player keep track of last value of spinner
-    
+    if (pos == 1)  xor_value ^= 0b0000000000000001; // prevent spinner to block other inputs
+    if (pos == 16) xor_value ^= 0b1000000000000000; // prevent spinner to block other inputs
+
     //delay for contact bounce
     delay(10);
   }
