@@ -55,7 +55,7 @@ uint8_t io_extender_check_switches()
     if (pos == 16) xor_value ^= 0b1000000000000000; // prevent spinner to block other inputs
 
     //delay for contact bounce
-    delay(10);
+    delay(25);
   }
   return pos;
 }

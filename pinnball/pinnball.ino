@@ -92,6 +92,7 @@ void setup(){
   pinMode(TILT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(TILT_PIN), save_tilt_state, FALLING);
   next_player();
+  int switch_nr = io_extender_check_switches(); // skip inital rotary sensor position.
 }
 
 long keep_speed_millis = 0;
