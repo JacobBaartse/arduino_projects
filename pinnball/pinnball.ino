@@ -230,9 +230,8 @@ void loop(){
   }
   
   if (switch_nr == 7){  //right side button Joker
-    right4hit = true;
+    if (right4hit < 2) right4hit +=1;
     Play_mp3_file(TADI_TADIADI);
-    // nr_balls_left++;
     right4blink_until = millis() + 2000;
     score_counter += 50;
     effect = FADE_IN_OUT;
@@ -241,28 +240,28 @@ void loop(){
   }
 
   if (switch_nr == 8){   //right side button klaver 10
-    right3hit = true;
+    if (right3hit < 2) right3hit +=1;
     right3blink_until = millis() + 2000;
     Play_mp3_file(PAARD);
-    score_counter += 5;
+    score_counter += 10;
     effect = SPARKLING;
     start_millis = millis();
     duration = 4000;
   }
   if (switch_nr == 5){  //right side button klaver 9
-    right2hit = true;
+    if (right2hit < 2) right2hit +=1;
     Play_mp3_file(KREKEL);
     right2blink_until = millis() + 2000;
-    score_counter += 5;
+    score_counter += 9;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
     duration = 4000;
   }
   if (switch_nr == 6){  //right side button klaver 8
-    right1hit = true;
+    if (right1hit < 2) right1hit +=1;
     Play_mp3_file(KLONGNGNG);
     right1blink_until = millis() + 2000;
-    score_counter += 5;
+    score_counter += 8;
     effect = SCROLING_RAINBOW;
     start_millis = millis();
     duration = 4000;
@@ -307,7 +306,7 @@ void loop(){
     }
   }
 
-  if (right1hit & right2hit & right3hit & right4hit){
+  if ((right1hit==2) & (right2hit==2) & (right3hit==2) & (right4hit==2)){
     if (!reset_right_hits_done) { // prevent double counting of points
       score_counter += 100;
       nr_balls_left++;
@@ -316,7 +315,7 @@ void loop(){
     reset_right_hits_done =  true;// prevent double counting of points
   }
   else{
-    if (reset_right_hits_done & (!right1hit |!right2hit |!right3hit |!right4hit)){
+    if (reset_right_hits_done & ((right1hit==0) |(right2hit==0) |(right3hit==0) |(right4hit==0) )){
       reset_right_hits_done = false;
     }
   }

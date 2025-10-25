@@ -106,10 +106,10 @@ long left2blink_until = 0;
 long left3blink_until = 0;
 long leftblinkall_until = 0;
 
-bool right1hit = false;
-bool right2hit = false;
-bool right3hit = false;
-bool right4hit = false;
+int right1hit = 0;
+int right2hit = 0;
+int right3hit = 0;
+int right4hit = 0;
 long right1blink_until = 0;
 long right2blink_until = 0;
 long right3blink_until = 0;
@@ -119,6 +119,10 @@ long rightblinkall_until = 0;
 void leds_on(CRGB leds[], int led1, int led2, CRGB color){
     leds[led1] = color;  
     leds[led2] = color;
+}
+
+void led_on(CRGB leds[], int led1, CRGB color){
+    leds[led1] = color;  
 }
 
 void blink(CRGB leds[], int led1, int led2, CRGB color){
@@ -135,10 +139,10 @@ void reset_left_hit(){
 }
 
 void reset_right_hit(){
-    right1hit = false;
-    right2hit = false;
-    right3hit = false;
-    right4hit = false;
+    right1hit = 0;
+    right2hit = 0;
+    right3hit = 0;
+    right4hit = 0;
 }
 
 void score_onleds(){
@@ -163,23 +167,39 @@ void score_onleds(){
             reset_left_hit();
         };
 
-    if ((right1hit & right1blink_until>now)| rightblinkall_until>now) blink(leds_2, 0, 1,  CRGB::Green);
-    else if (right1hit) leds_on(leds_2, 0, 1,  CRGB::Green);
-         else leds_on(leds_2, 0, 1,  CRGB::Black);
+    if (right1blink_until>now| rightblinkall_until>now) blink(leds_2, 0, 1,  CRGB::Green);
+    else if  (right1hit == 1){
+            led_on(leds_2, 0,  CRGB::Green);
+            led_on(leds_2, 1,  CRGB::Black);
+        }     
+        else if (right1hit == 2) leds_on(leds_2, 0, 1,  CRGB::Green);
+        else                     leds_on(leds_2, 0, 1,  CRGB::Black);
 
-    if ((right2hit & right2blink_until>now)| rightblinkall_until>now) blink(leds_2, 2, 3,  CRGB::Red);
-    else if (right2hit) leds_on(leds_2, 2, 3,  CRGB::Red);
-         else leds_on(leds_2, 2, 3,  CRGB::Black);
+    if (right2blink_until>now| rightblinkall_until>now) blink(leds_2, 2, 3,  CRGB::Red);
+    else if  (right2hit == 1){
+            led_on(leds_2, 2,  CRGB::Red);
+            led_on(leds_2, 3,  CRGB::Black);
+        }     
+        else if (right2hit == 2) leds_on(leds_2, 2, 3,  CRGB::Red);
+        else                     leds_on(leds_2, 2, 3,  CRGB::Black);
 
-    if ((right3hit & right3blink_until>now)| rightblinkall_until>now) blink(leds_2, 4, 5,  CRGB::Blue);
-    else if (right3hit) leds_on(leds_2, 4, 5,  CRGB::Blue);
-         else leds_on(leds_2, 4, 5,  CRGB::Black);
+    if (right3blink_until>now| rightblinkall_until>now) blink(leds_2, 4, 5,  CRGB::Blue);
+    else if  (right3hit == 1){
+            led_on(leds_2, 4,  CRGB::Blue);
+            led_on(leds_2, 5,  CRGB::Black);
+        }     
+        else if (right3hit == 2) leds_on(leds_2, 4, 5,  CRGB::Blue);
+        else                     leds_on(leds_2, 4, 5,  CRGB::Black);
 
-    if ((right4hit & right4blink_until>now)| rightblinkall_until>now) blink(leds_2, 6, 7,  CRGB::Yellow);
-    else if (right4hit) leds_on(leds_2, 6, 7,  CRGB::Yellow);
-         else leds_on(leds_2, 6, 7,  CRGB::Black);
+    if (right4blink_until>now| rightblinkall_until>now) blink(leds_2, 6, 7,  CRGB::Yellow);
+    else if  (right4hit == 1){
+            led_on(leds_2, 6,  CRGB::Yellow);
+            led_on(leds_2, 7,  CRGB::Black);
+        }     
+        else if (right4hit == 2) leds_on(leds_2, 6, 7,  CRGB::Yellow);
+        else                     leds_on(leds_2, 6, 7,  CRGB::Black);
 
-    if (right1hit & right2hit & right3hit & right4hit)
+    if (right1hit==2 & right2hit==2 & right3hit==2 & right4hit==2)
         if (right1blink_until<now & right2blink_until<now & right3blink_until<now & right4blink_until<now)
         {
             rightblinkall_until = now + 2000;
