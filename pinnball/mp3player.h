@@ -1,3 +1,4 @@
+#include "api/Stream.h"
 /** Demonstrate how to play a file by it's (FAT table) index number.
  *
 
@@ -80,7 +81,10 @@ void setup_mp3_player() {
   // num_files = mp3.countFiles(MP3_SRC_BUILTIN);
 }
 
-void Play_mp3_file(byte songNumber) {
+void Play_mp3_file(byte songNumber, bool reset_before_play=false) {
+  if (reset_before_play){
+    mp3.reset();
+  }
   debug("play mp3 file");
   debugln(songNumber);
   byte command[] = {0x7E, 0x04, 0x03, 0x00, songNumber+1, 0xEF};

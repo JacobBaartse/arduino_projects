@@ -167,7 +167,7 @@ void loop(){
     prev_score_counter = score_counter;
 
     if (nr_balls_left == 0){
-      Play_mp3_file(HIGH_ANOTHERONE);  //all BALLs OUT
+      Play_mp3_file(HIGH_ANOTHERONE, true);  //all BALLs OUT
       Play_mp3_file(LOW_ANOTHERONE);
       Play_mp3_file(HIGH_ANOTHERONE);
       Play_mp3_file(LOW_ANOTHERONE);
@@ -177,7 +177,7 @@ void loop(){
       next_player();
     }
     else{
-      Play_mp3_file(JAMMER);  // BALL OUT
+      Play_mp3_file(JAMMER, true);  // BALL OUT
       blink_all_leds_blue_red(5000);
     }
   }  
@@ -296,7 +296,7 @@ void loop(){
     if (!reset_servo) { // prevent double counting of points
       score_counter += 100;
       nr_balls_left++;
-      Play_mp3_file(SUPER_GOOD);
+      Play_mp3_file(SUPER_GOOD, true);
     }
     reset_servo =  true;// prevent double counting of points
   }
@@ -311,7 +311,7 @@ void loop(){
     if (!reset_right_hits_done) { // prevent double counting of points
       score_counter += 100;
       nr_balls_left++;
-      Play_mp3_file(SUPER_GOOD);
+      Play_mp3_file(SUPER_GOOD, true);
     }
     reset_right_hits_done =  true;// prevent double counting of points
   }
@@ -324,7 +324,7 @@ void loop(){
 
   if (tilt){ // tilt contact
     delay(SKIP_CONTACT_BOUNCE);
-    Play_mp3_file(HIGH_ANOTHERONE);
+    Play_mp3_file(HIGH_ANOTHERONE, true);
     Play_mp3_file(LOW_ANOTHERONE);
     Play_mp3_file(HIGH_ANOTHERONE);
     Play_mp3_file(LOW_ANOTHERONE);
@@ -360,7 +360,7 @@ void loop(){
       if (volume_level != prev_volume_level){
         mp3.setVolume(volume_level);
         delay(10);
-        Play_mp3_file(Y1_KORT_PR);
+        Play_mp3_file(Y1_KORT_PR, true);
         prev_volume_level = volume_level;
       }
   }
