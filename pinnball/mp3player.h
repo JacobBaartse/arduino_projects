@@ -72,18 +72,25 @@ JQ6500_Serial mp3(Serial1);  // for arduino R4 , R4 wifi Serial1 has to be used.
 #define  XILOFOON_UP 35
 #define  Y1_KORT_PR 36
 
+byte cur_volume = 15;
 
 void setup_mp3_player() {
   Serial1.begin(9600);
   mp3.reset();
-  mp3.setVolume(15);
+  mp3.setVolume(cur_volume);
   mp3.setLoopMode(MP3_LOOP_NONE);
   // num_files = mp3.countFiles(MP3_SRC_BUILTIN);
+}
+
+void mp3_setVolume(byte volume){
+  cur_volume = volume;
+  mp3.setVolume(cur_volume);
 }
 
 void Play_mp3_file(byte songNumber, bool reset_before_play=false) {
   if (reset_before_play){
     mp3.reset();
+    mp3.setVolume(cur_volume);
   }
   debug("play mp3 file");
   debugln(songNumber);
@@ -104,6 +111,7 @@ void reset_mp3(){
   debug("mp3 reset");
   byte command[] = {0x7E, 0x02, 0x0C, 0xEF};
   sendCommand(command, sizeof(command));
+  mp3.setVolume(cur_volume);
 }
 
 void playTrack( byte b){

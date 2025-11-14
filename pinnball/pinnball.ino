@@ -324,13 +324,15 @@ void loop(){
 
   if (tilt){ // tilt contact
     delay(SKIP_CONTACT_BOUNCE);
-    Play_mp3_file(HIGH_ANOTHERONE, true);
-    Play_mp3_file(LOW_ANOTHERONE);
-    Play_mp3_file(HIGH_ANOTHERONE);
-    Play_mp3_file(LOW_ANOTHERONE);
-    disp_8x8_matrix.print(tilt_text);
-    blink_all_leds(5000);
-    next_player();
+    if (millis()> 30000){
+      Play_mp3_file(HIGH_ANOTHERONE, true);
+      Play_mp3_file(LOW_ANOTHERONE);
+      Play_mp3_file(HIGH_ANOTHERONE);
+      Play_mp3_file(LOW_ANOTHERONE);
+      disp_8x8_matrix.print(tilt_text);
+      blink_all_leds(5000);
+      next_player();
+    }
     tilt = false;
   }
 
@@ -358,7 +360,7 @@ void loop(){
     byte volume_level = (byte) (p.x/115);
     if (volume_level>30) volume_level = 30;
       if (volume_level != prev_volume_level){
-        mp3.setVolume(volume_level);
+        mp3_setVolume(volume_level);
         delay(10);
         Play_mp3_file(Y1_KORT_PR, true);
         prev_volume_level = volume_level;
