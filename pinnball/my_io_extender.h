@@ -13,6 +13,23 @@
 #define debugln(x)
 #endif
 
+#define ROTARY_1 1
+#define HIGH_RAMP_SWITCH 2
+#define TUBE_END_SWITCH 3
+#define BALL_OUT_SWITCH 4
+#define RIGHT_MIDDLE_SWITCH_CLOVER_NINE 5
+#define RIGHT_TOP_SWITCH_CLOVER_EIGHT 6
+#define RIGHT_BOTTOM_SWITCH_JOKER 7
+#define RIGHT_MIDDLE_SWITCH_CLOVER_TEN 8
+#define GREEN_PUSH_BUTTON 9
+#define RED_PUSH_BUTTON 10
+#define LEFT_EDGE_TOP_BUTTON 11
+#define LEFT_EDGE_MIDDLE_BUTTON 12
+#define LEFT_EDGE_BOTTOM_BUTTON 13
+#define TOP_BALL_FUNNEL 14
+#define LEFT_TOP_SWITCH 15
+#define ROTARY_2 16
+
 
 //  adjust addresses if needed
 PCF8575 PCF_20(0x20);  //  add switches to lines  (used as input)
@@ -55,7 +72,10 @@ uint8_t io_extender_check_switches()
     if (pos == 16) xor_value ^= 0b1000000000000000; // prevent spinner to block other inputs
 
     //delay for contact bounce
-    delay(25);
+    if (pos != ROTARY_1 && pos != ROTARY_2 && pos != TUBE_END_SWITCH){
+      delay(100);
+    }
+
   }
   return pos;
 }
