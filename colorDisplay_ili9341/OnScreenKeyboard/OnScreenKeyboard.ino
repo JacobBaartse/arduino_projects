@@ -82,13 +82,13 @@ struct keyboard_row{
 };
 
 const int v_offset = 115;
-const int h_offset = 20;
+const int h_offset = -2;
 const int num_rows = 4;
 const keyboard_row keyboard[num_rows] PROGMEM ={
-  {"`1234567890-=", "~!@#$%^&*()_+",  0,  0, 13, 550},
-  {"qwertyuiop[]" , "QWERTYUIOP{}" , 20, 28, 12, 670},
-  {"asdfghjkl;'"  , "ASDFGHJKL:\"" , 27, 56, 11, 744},
-  {"\\zxcvbnm,./" , "|ZXCVBNM<>?"  , 17, 84, 11, 604}
+  {"`1234567890-=", "~!@#$%^&*()_+",  0,  0, 13, 350},
+  {"qwertyuiop[]" , "QWERTYUIOP{}" , 20, 28, 12, 470},
+  {"asdfghjkl;'"  , "ASDFGHJKL:\"" , 27, 56, 11, 544},
+  {"\\zxcvbnm,./" , "|ZXCVBNM<>?"  , 17, 84, 11, 404}
 };
 
 
@@ -113,7 +113,7 @@ void get_character(int8_t row, uint16_t x, bool shift){
   Serial.println(x);
   if (x > keyboard[row].tuch_start_x){
     x -= keyboard[row].tuch_start_x;
-    x /=226;
+    x /=257;
     Serial.print("position in row: ");
     Serial.println(x);
     if (x < keyboard[row].num_chars){
@@ -124,6 +124,13 @@ void get_character(int8_t row, uint16_t x, bool shift){
     update_input();
   }
 
+}
+
+void print_with_spacing(String text, int spacing){
+    for (auto x: text){
+        tft.print(x);
+        tft.setCursor(tft.getCursorX()+spacing, tft.getCursorY());  // add more spacing between characters.
+    }
 }
 
 String onScreenKeyboard(bool shift, String value, String label) {
@@ -142,8 +149,8 @@ String onScreenKeyboard(bool shift, String value, String label) {
     //print onscreen keyboard.
     for (int i=0; i<num_rows; i++){
       tft.setCursor(h_offset+keyboard[i].x, v_offset+keyboard[i].y);
-      if (shift) tft.print(keyboard[i].shift_keys);
-      else tft.print(keyboard[i].keys);
+      if (shift) print_with_spacing(keyboard[i].shift_keys, 4);
+      else print_with_spacing(keyboard[i].keys, 4);
     }
     tft.setCursor(h_offset + 4, v_offset + 112);
     tft.print("Aa <-- spa ent");
