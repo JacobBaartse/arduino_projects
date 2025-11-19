@@ -1,3 +1,4 @@
+#include "api/Common.h"
 //
 //    FILE: pcf8575_test.ino
 //  AUTHOR: Rob Tillaart
@@ -30,6 +31,8 @@
 #define LEFT_TOP_SWITCH 15
 #define ROTARY_2 16
 
+#define NUM_SWITCHES 16
+
 
 //  adjust addresses if needed
 PCF8575 PCF_20(0x20);  //  add switches to lines  (used as input)
@@ -46,6 +49,9 @@ void setup_io_extender()
   Wire.begin();
   PCF_20.begin();
 }
+
+unsigned long contact_timing[NUM_SWITCHES + 1];
+
 
 uint8_t io_extender_check_switches()
 {
@@ -68,13 +74,21 @@ uint8_t io_extender_check_switches()
     }
     debug("button pushed: ");
     debugln(pos);
-    if (pos == 1)  xor_value ^= 0b0000000000000001; // prevent spinner to block other inputs
-    if (pos == 16) xor_value ^= 0b1000000000000000; // prevent spinner to block other inputs
 
-    //delay for contact bounce
-    if (pos != ROTARY_1 && pos != ROTARY_2 && pos != TUBE_END_SWITCH){
-      delay(100);
+    unsigned long cur_millis = millis();
+    if (pos != ROTARY_1 && pos != ROTARY_2){
+      if ((cur_millis - contact_timing[pos])< 1000){
+        // contact bounce detected.
+        contact_timing[pos] = cur_millis;
+        return 0;
+      }
     }
+    contact_timing[pos] = cur_millis;
+
+    
+
+    if (pos == ROTARY_1) xor_value ^= 0b0000000000000001; // toggle so next change will trigger again.
+    if (pos == ROTARY_2) xor_value ^= 0b1000000000000000; // toggle so next change will trigger again.
 
   }
   return pos;

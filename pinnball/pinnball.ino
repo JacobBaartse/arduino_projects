@@ -30,6 +30,7 @@
 #define NR_BALLS 4
 #define TILT_PIN 3
 #define SKIP_CONTACT_BOUNCE 100
+#define MAX_BONUS_BALLS 4
 
 #define DEBUG 0
 
@@ -50,6 +51,7 @@ uint32_t prev_score_counter = 0;
 int nr_balls_left = NR_BALLS;
 String current_player_name = "";
 bool tilt = false;
+int nr_bonus_balls = 0;
 
 
 void next_player(){
@@ -58,6 +60,7 @@ void next_player(){
   do_servo(0, 0);
   score_counter = 0;
   prev_score_counter = 0;
+  nr_bonus_balls = 0;
   reset_left_hit();
   reset_right_hit();
   showScore();
@@ -69,11 +72,9 @@ void save_tilt_state()
   tilt = true;
 }
 
-
-long cannon_millis;
 int effect;
-long start_millis;
-long duration;
+unsigned long start_millis;
+unsigned long duration;
 bool intro_melody=true;
 
 void setup(){
@@ -126,33 +127,29 @@ void loop(){
     } 
   }
   if (switch_nr == LEFT_TOP_SWITCH){  // BALL in the top left corner
-    delay(SKIP_CONTACT_BOUNCE);
-    long speed = millis() - cannon_millis;
+    long speed = contact_timing[LEFT_TOP_SWITCH] - contact_timing[TUBE_END_SWITCH];
     debug("speed : ");
     debugln(speed);
     Play_mp3_file(KOEKOEK_KLOK);
     effect = CANNON_SHOT_LEDS;
-    start_millis = millis();
+    start_millis = contact_timing[LEFT_TOP_SWITCH];
     duration = 4000;
     
     if (speed < 800){
       score_counter += (800 - speed);
       speed_text = String("speed: ")+ String((float)972 / speed) + String("Km/h");
-      keep_speed_millis = millis() + 10000;
+      keep_speed_millis = contact_timing[LEFT_TOP_SWITCH] + 10000;
     }
     score_counter += 50;
-    delay(200); // pevent contact ossilation.
   }
   if (switch_nr == HIGH_RAMP_SWITCH){  // high ramp
     Play_mp3_file(DO_RE_MI);
     score_counter += 250;
     effect = SCROLING_RAINBOW;
-    start_millis = millis();
+    start_millis = contact_timing[HIGH_RAMP_SWITCH];
     duration = 4000;
-    delay(200); // prevent contact bounce.
   }
   if (switch_nr == TUBE_END_SWITCH){  // CANNON 
-    cannon_millis = millis();
     Play_mp3_file(CANNON_SHOT);
     do_servo(0, 60);
     score_counter += 100;
@@ -197,74 +194,74 @@ void loop(){
   }
   if (switch_nr == LEFT_EDGE_TOP_BUTTON){  //left side button 1
     left1hit = true;
-    left1blink_until = millis() + 4000;  // delays also the reset of the servo
+    left1blink_until = contact_timing[LEFT_EDGE_TOP_BUTTON] + 4000;  // delays also the reset of the servo
     Play_mp3_file(PRRRR);
     score_counter += 5;
     effect = SPARKLING;
-    start_millis = millis();
+    start_millis = contact_timing[LEFT_EDGE_TOP_BUTTON];
     duration = 4000;
   }
   if (switch_nr == LEFT_EDGE_MIDDLE_BUTTON){  //left side button 2
     left2hit = true;
     Play_mp3_file(HIGH_PING);
-    left2blink_until = millis() + 4000;  // delays also the reset of the servo
+    left2blink_until = contact_timing[LEFT_EDGE_MIDDLE_BUTTON] + 4000;  // delays also the reset of the servo
     score_counter += 5;
     effect = FADE_IN_OUT;
-    start_millis = millis();
+    start_millis = contact_timing[LEFT_EDGE_MIDDLE_BUTTON];
     duration = 4000;
   }
   if (switch_nr == LEFT_EDGE_BOTTOM_BUTTON){  //left side button 3
     left3hit = true;
     Play_mp3_file(OLD_TELEPHONE_RING);
-    left3blink_until = millis() + 4000;  // delays also the reset of the servo
+    left3blink_until = contact_timing[LEFT_EDGE_BOTTOM_BUTTON] + 4000;  // delays also the reset of the servo
     score_counter += 5;
     effect = SCROLING_RAINBOW;
-    start_millis = millis();
+    start_millis = contact_timing[LEFT_EDGE_BOTTOM_BUTTON];
     duration = 4000;
   }
    if (switch_nr == TOP_BALL_FUNNEL){  // top ball 
     Play_mp3_file(KIP);
     score_counter += 25;
     effect = SPARKLING_COLORS;
-    start_millis = millis();
+    start_millis = contact_timing[TOP_BALL_FUNNEL];
     duration = 4000;
   }
   
   if (switch_nr == RIGHT_BOTTOM_SWITCH_JOKER){  //right side button Joker
     if (right4hit < 2) right4hit +=1;
     Play_mp3_file(TADI_TADIADI);
-    right4blink_until = millis() + 2000;
+    right4blink_until = contact_timing[RIGHT_BOTTOM_SWITCH_JOKER] + 2000;
     score_counter += 50;
     effect = FADE_IN_OUT;
-    start_millis = millis();
+    start_millis = contact_timing[RIGHT_BOTTOM_SWITCH_JOKER];
     duration = 4000;
   }
 
   if (switch_nr == RIGHT_MIDDLE_SWITCH_CLOVER_TEN){   //right side button klaver 10
     if (right3hit < 2) right3hit +=1;
-    right3blink_until = millis() + 2000;
+    right3blink_until = contact_timing[RIGHT_MIDDLE_SWITCH_CLOVER_TEN] + 2000;
     Play_mp3_file(PAARD);
     score_counter += 10;
     effect = SPARKLING;
-    start_millis = millis();
+    start_millis = contact_timing[RIGHT_MIDDLE_SWITCH_CLOVER_TEN];
     duration = 4000;
   }
   if (switch_nr == RIGHT_MIDDLE_SWITCH_CLOVER_NINE){  //right side button klaver 9
     if (right2hit < 2) right2hit +=1;
     Play_mp3_file(KREKEL);
-    right2blink_until = millis() + 2000;
+    right2blink_until = contact_timing[RIGHT_MIDDLE_SWITCH_CLOVER_NINE] + 2000;
     score_counter += 9;
     effect = SCROLING_RAINBOW;
-    start_millis = millis();
+    start_millis = contact_timing[RIGHT_MIDDLE_SWITCH_CLOVER_NINE];
     duration = 4000;
   }
   if (switch_nr == RIGHT_TOP_SWITCH_CLOVER_EIGHT){  //right side button klaver 8
     if (right1hit < 2) right1hit +=1;
     Play_mp3_file(KLONGNGNG);
-    right1blink_until = millis() + 2000;
+    right1blink_until = contact_timing[RIGHT_TOP_SWITCH_CLOVER_EIGHT] + 2000;
     score_counter += 8;
     effect = SCROLING_RAINBOW;
-    start_millis = millis();
+    start_millis = contact_timing[RIGHT_TOP_SWITCH_CLOVER_EIGHT];
     duration = 4000;
   }
   
@@ -275,7 +272,7 @@ void loop(){
       rotary_switch = ROTARY_1;
       Play_mp3_file(Y1_KORT_PR);
       effect = RUN_AROUND;
-      start_millis = millis();
+      start_millis = contact_timing[ROTARY_1];
       duration = 1000;
       score_counter += 4;
     }
@@ -286,7 +283,7 @@ void loop(){
       rotary_switch = ROTARY_2;
       Play_mp3_file(Y1_KORT_PR);
       effect = RUN_AROUND;
-      start_millis = millis();
+      start_millis = contact_timing[ROTARY_2];
       duration = 1000;
       score_counter += 4;
     }
@@ -295,7 +292,8 @@ void loop(){
   if (left1hit & left2hit & left3hit){
     if (!reset_servo) { // prevent double counting of points
       score_counter += 100;
-      nr_balls_left++;
+      if (nr_bonus_balls < MAX_BONUS_BALLS) nr_balls_left++;
+      nr_bonus_balls++;
       Play_mp3_file(SUPER_GOOD, true);
     }
     reset_servo =  true;// prevent double counting of points
@@ -310,7 +308,8 @@ void loop(){
   if ((right1hit==2) & (right2hit==2) & (right3hit==2) & (right4hit==2)){
     if (!reset_right_hits_done) { // prevent double counting of points
       score_counter += 100;
-      nr_balls_left++;
+      if (nr_bonus_balls < MAX_BONUS_BALLS) nr_balls_left++;
+      nr_bonus_balls++;
       Play_mp3_file(SUPER_GOOD, true);
     }
     reset_right_hits_done =  true;// prevent double counting of points
@@ -366,7 +365,7 @@ void loop(){
         prev_volume_level = volume_level;
       }
   }
-  delay(1);
+  // delay(1);
     
 }
 
