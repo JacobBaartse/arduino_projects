@@ -76,7 +76,7 @@ uint8_t io_extender_check_switches()
     debugln(pos);
 
     unsigned long cur_millis = millis();
-    if (pos != ROTARY_1 && pos != ROTARY_2){
+    if (pos != ROTARY_1 && pos != ROTARY_2  && pos !=GREEN_PUSH_BUTTON && pos !=RED_PUSH_BUTTON){
       if ((cur_millis - contact_timing[pos])< 1000){
         // contact bounce detected.
         contact_timing[pos] = cur_millis;

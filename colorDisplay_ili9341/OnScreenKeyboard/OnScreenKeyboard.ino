@@ -85,10 +85,10 @@ const int v_offset = 115;
 const int h_offset = -2;
 const int num_rows = 4;
 const keyboard_row keyboard[num_rows] PROGMEM ={
-  {"`1234567890-=", "~!@#$%^&*()_+",  0,  0, 13, 350},
-  {"qwertyuiop[]" , "QWERTYUIOP{}" , 20, 28, 12, 470},
-  {"asdfghjkl;'"  , "ASDFGHJKL:\"" , 27, 56, 11, 544},
-  {"\\zxcvbnm,./" , "|ZXCVBNM<>?"  , 17, 84, 11, 404}
+  {"`1234567890-=", "~!@#$%^&*()_+",  0,  0, 13, 310},
+  {"qwertyuiop[]" , "QWERTYUIOP{}" , 20, 28, 12, 430},
+  {"asdfghjkl;'"  , "ASDFGHJKL:\"" , 27, 56, 11, 514},
+  {"\\zxcvbnm,./" , "|ZXCVBNM<>?"  , 17, 84, 11, 374}
 };
 
 
@@ -113,7 +113,7 @@ void get_character(int8_t row, uint16_t x, bool shift){
   Serial.println(x);
   if (x > keyboard[row].tuch_start_x){
     x -= keyboard[row].tuch_start_x;
-    x /=257;
+    x /=270;
     Serial.print("position in row: ");
     Serial.println(x);
     if (x < keyboard[row].num_chars){

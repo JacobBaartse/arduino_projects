@@ -7,6 +7,7 @@
 
 #include "PCF8575.h"
 #include "my_io_extender.h"
+#include "my_io_extender2.h"
 
 
 #include <Arduino.h>
@@ -82,6 +83,7 @@ void setup(){
   setup_8x8matrix();
   onScreen_keyboard_setup();
   setup_io_extender();
+  setup_io_extender2();
   setup_servo();
   ledstrip_setup();
   setup_mp3_player();
@@ -96,7 +98,7 @@ void setup(){
   int switch_nr = io_extender_check_switches(); // skip inital rotary sensor position.
 }
 
-long keep_speed_millis = 0;
+unsigned long keep_speed_millis = 0;
 String speed_text = "";
 
 void showScore(){
@@ -347,6 +349,13 @@ void loop(){
     do_menu();
     show_text_on_screen(get_top_scores());
   }
+
+  switch_nr = io_extender_check_switches2();
+  if (switch_nr > 0){
+    Serial.println("extender 2 : ");
+    Serial.println(switch_nr);
+  }
+
 
   pattern_on_ledstrip(effect, start_millis, duration);
   score_onleds();
