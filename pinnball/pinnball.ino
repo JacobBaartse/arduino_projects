@@ -322,6 +322,24 @@ void loop(){
     }
   }
 
+  switch_nr = io_extender_check_switches2();
+  if (switch_nr > 0){
+    if (switch_nr == 9){
+      Play_mp3_file(TOE_OE_3X);
+      score_counter += 50;
+      effect = SPARKLING_COLORS;
+      start_millis = contact_timing2[HOLE_IN_GROUND];
+      duration = 5000;
+      delay(1500);
+      do_servo(1, 0);
+      delay(500);
+      do_servo(1, 45);
+    }
+    else{
+      Serial.println("extender 2 : ");
+      Serial.println(switch_nr);
+    }
+  }
 
   if (tilt){ // tilt contact
     delay(SKIP_CONTACT_BOUNCE);
@@ -350,11 +368,7 @@ void loop(){
     show_text_on_screen(get_top_scores());
   }
 
-  switch_nr = io_extender_check_switches2();
-  if (switch_nr > 0){
-    Serial.println("extender 2 : ");
-    Serial.println(switch_nr);
-  }
+
 
 
   pattern_on_ledstrip(effect, start_millis, duration);
