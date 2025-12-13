@@ -120,15 +120,15 @@ void showScore(){
 int rotary_switch = 1;
 
 void loop(){
-  int switch_nr = io_extender_check_switches();
-  if (switch_nr > 0){
+  int switch_nr1 = io_extender_check_switches();
+  if (switch_nr1 > 0){
     if (intro_melody){
       duration = 0;
       reset_mp3();
       intro_melody = false;
     } 
   }
-  if (switch_nr == LEFT_TOP_SWITCH){  // BALL in the top left corner
+  if (switch_nr1 == LEFT_TOP_SWITCH){  // BALL in the top left corner
     long speed = contact_timing[LEFT_TOP_SWITCH] - contact_timing[TUBE_END_SWITCH];
     debug("speed : ");
     debugln(speed);
@@ -144,19 +144,19 @@ void loop(){
     }
     score_counter += 50;
   }
-  if (switch_nr == HIGH_RAMP_SWITCH){  // high ramp
+  if (switch_nr1 == HIGH_RAMP_SWITCH){  // high ramp
     Play_mp3_file(DO_RE_MI);
     score_counter += 250;
     effect = SCROLING_RAINBOW;
     start_millis = contact_timing[HIGH_RAMP_SWITCH];
     duration = 4000;
   }
-  if (switch_nr == TUBE_END_SWITCH){  // CANNON 
+  if (switch_nr1 == TUBE_END_SWITCH){  // CANNON 
     Play_mp3_file(CANNON_SHOT);
     do_servo(0, 60);
     score_counter += 100;
   }  
-  if (switch_nr == BALL_OUT_SWITCH){
+  if (switch_nr1 == BALL_OUT_SWITCH){
     if (score_counter > 0){
       if (score_counter > prev_score_counter){
         nr_balls_left --;
@@ -180,7 +180,7 @@ void loop(){
       blink_all_leds_blue_red(5000);
     }
   }  
-  if (switch_nr ==RED_PUSH_BUTTON){  //red button
+  if (switch_nr1 ==RED_PUSH_BUTTON){  //red button
     Play_mp3_file(GUN_SHOT);
     reset_left_hit();
     reset_right_hit();
@@ -190,11 +190,11 @@ void loop(){
     nr_balls_left = NR_BALLS;
     show_text_on_screen(get_top_scores());
   }  
-  if (switch_nr == GREEN_PUSH_BUTTON){  //green button
+  if (switch_nr1 == GREEN_PUSH_BUTTON){  //green button
     next_player();
     // Play_mp3_file(KLIK_KLAK);
   }
-  if (switch_nr == LEFT_EDGE_TOP_BUTTON){  //left side button 1
+  if (switch_nr1 == LEFT_EDGE_TOP_BUTTON){  //left side button 1
     left1hit = true;
     left1blink_until = contact_timing[LEFT_EDGE_TOP_BUTTON] + 4000;  // delays also the reset of the servo
     Play_mp3_file(PRRRR);
@@ -203,7 +203,7 @@ void loop(){
     start_millis = contact_timing[LEFT_EDGE_TOP_BUTTON];
     duration = 4000;
   }
-  if (switch_nr == LEFT_EDGE_MIDDLE_BUTTON){  //left side button 2
+  if (switch_nr1 == LEFT_EDGE_MIDDLE_BUTTON){  //left side button 2
     left2hit = true;
     Play_mp3_file(HIGH_PING);
     left2blink_until = contact_timing[LEFT_EDGE_MIDDLE_BUTTON] + 4000;  // delays also the reset of the servo
@@ -212,7 +212,7 @@ void loop(){
     start_millis = contact_timing[LEFT_EDGE_MIDDLE_BUTTON];
     duration = 4000;
   }
-  if (switch_nr == LEFT_EDGE_BOTTOM_BUTTON){  //left side button 3
+  if (switch_nr1 == LEFT_EDGE_BOTTOM_BUTTON){  //left side button 3
     left3hit = true;
     Play_mp3_file(OLD_TELEPHONE_RING);
     left3blink_until = contact_timing[LEFT_EDGE_BOTTOM_BUTTON] + 4000;  // delays also the reset of the servo
@@ -221,7 +221,7 @@ void loop(){
     start_millis = contact_timing[LEFT_EDGE_BOTTOM_BUTTON];
     duration = 4000;
   }
-   if (switch_nr == TOP_BALL_FUNNEL){  // top ball 
+   if (switch_nr1 == TOP_BALL_FUNNEL){  // top ball 
     Play_mp3_file(KIP);
     score_counter += 25;
     effect = SPARKLING_COLORS;
@@ -229,7 +229,7 @@ void loop(){
     duration = 4000;
   }
   
-  if (switch_nr == RIGHT_BOTTOM_SWITCH_JOKER){  //right side button Joker
+  if (switch_nr1 == RIGHT_BOTTOM_SWITCH_JOKER){  //right side button Joker
     if (right4hit < 2) right4hit +=1;
     Play_mp3_file(TADI_TADIADI);
     right4blink_until = contact_timing[RIGHT_BOTTOM_SWITCH_JOKER] + 2000;
@@ -239,7 +239,7 @@ void loop(){
     duration = 4000;
   }
 
-  if (switch_nr == RIGHT_MIDDLE_SWITCH_CLOVER_TEN){   //right side button klaver 10
+  if (switch_nr1 == RIGHT_MIDDLE_SWITCH_CLOVER_TEN){   //right side button klaver 10
     if (right3hit < 2) right3hit +=1;
     right3blink_until = contact_timing[RIGHT_MIDDLE_SWITCH_CLOVER_TEN] + 2000;
     Play_mp3_file(PAARD);
@@ -248,7 +248,7 @@ void loop(){
     start_millis = contact_timing[RIGHT_MIDDLE_SWITCH_CLOVER_TEN];
     duration = 4000;
   }
-  if (switch_nr == RIGHT_MIDDLE_SWITCH_CLOVER_NINE){  //right side button klaver 9
+  if (switch_nr1 == RIGHT_MIDDLE_SWITCH_CLOVER_NINE){  //right side button klaver 9
     if (right2hit < 2) right2hit +=1;
     Play_mp3_file(KREKEL);
     right2blink_until = contact_timing[RIGHT_MIDDLE_SWITCH_CLOVER_NINE] + 2000;
@@ -257,7 +257,7 @@ void loop(){
     start_millis = contact_timing[RIGHT_MIDDLE_SWITCH_CLOVER_NINE];
     duration = 4000;
   }
-  if (switch_nr == RIGHT_TOP_SWITCH_CLOVER_EIGHT){  //right side button klaver 8
+  if (switch_nr1 == RIGHT_TOP_SWITCH_CLOVER_EIGHT){  //right side button klaver 8
     if (right1hit < 2) right1hit +=1;
     Play_mp3_file(KLONGNGNG);
     right1blink_until = contact_timing[RIGHT_TOP_SWITCH_CLOVER_EIGHT] + 2000;
@@ -268,7 +268,7 @@ void loop(){
   }
   
 
-  if (switch_nr == ROTARY_1){ // ROTARY SENSOR 1
+  if (switch_nr1 == ROTARY_1){ // ROTARY SENSOR 1
     if (rotary_switch == ROTARY_2)
     {
       rotary_switch = ROTARY_1;
@@ -279,7 +279,7 @@ void loop(){
       score_counter += 4;
     }
   }  
-  if (switch_nr == ROTARY_2){ // ROTARY SENSOR 16
+  if (switch_nr1 == ROTARY_2){ // ROTARY SENSOR 16
     if (rotary_switch == ROTARY_1)
     {
       rotary_switch = ROTARY_2;
@@ -322,9 +322,9 @@ void loop(){
     }
   }
 
-  switch_nr = io_extender_check_switches2();
-  if (switch_nr > 0){
-    if (switch_nr == 9){
+  int switch_nr2 = io_extender_check_switches2();
+  if (switch_nr2 > 0){
+    if (switch_nr2 == 9){
       Play_mp3_file(TOE_OE_3X);
       score_counter += 50;
       effect = SPARKLING_COLORS;
@@ -337,7 +337,7 @@ void loop(){
     }
     else{
       Serial.println("extender 2 : ");
-      Serial.println(switch_nr);
+      Serial.println(switch_nr2);
     }
   }
 
@@ -355,14 +355,16 @@ void loop(){
     tilt = false;
   }
 
-  if (switch_nr > 0){
-    debug("switch number: ");
-    debugln(switch_nr);
+  if (switch_nr1 > 0 || switch_nr2 > 0){
+    debug("switch number 1: ");
+    debugln(switch_nr1);
+    debug("switch number 2: ");
+    debugln(switch_nr2);
     showScore();
 
   }
 
-  if (switch_nr == 17)
+  if (switch_nr1 == 17)
   {
     do_menu();
     show_text_on_screen(get_top_scores());
