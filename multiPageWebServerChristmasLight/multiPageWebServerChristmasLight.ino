@@ -41,7 +41,7 @@ DHT dht22(DHT22_PIN, DHT22);
 
 const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
-const bool debug = false;
+const bool debug = true;
 
 const int lightSensorPin = A0;   // select the input pin of the light sensor.
 int sensorValue = 0;  // variable to store the value coming from the sensor
@@ -55,6 +55,10 @@ String lamp_state3 = "uit";
 String lamp_state4 = "uit";
 String lamp_state5 = "uit";
 String lamp_state6 = "uit";
+String lamp_state7 = "uit";
+String lamp_state8 = "uit";
+String lamp_state9 = "uit";
+String lamp_state0 = "uit";
 
 int status = WL_IDLE_STATUS;
 bool charging = false;
@@ -248,18 +252,26 @@ void webserver(){
       if (HTTP_req.indexOf("GET /temperature") > -1)                              page_id = PAGE_TEMPERATURE;
       if (HTTP_req.indexOf("GET /light") > -1)                                    page_id = PAGE_LIGHT;
 
-      if (HTTP_req.indexOf("GET /lamp?1") > -1) light(true, 1);
-      if (HTTP_req.indexOf("GET /lamp?2") > -1) light(false, 1);
-      if (HTTP_req.indexOf("GET /lamp?3") > -1) light(true, 2);
-      if (HTTP_req.indexOf("GET /lamp?4") > -1) light(false, 2);
-      if (HTTP_req.indexOf("GET /lamp?5") > -1) light(true, 3);
-      if (HTTP_req.indexOf("GET /lamp?6") > -1) light(false, 3);
-      if (HTTP_req.indexOf("GET /lamp?7") > -1) light(true, 4);
-      if (HTTP_req.indexOf("GET /lamp?8") > -1) light(false, 4);
-      if (HTTP_req.indexOf("GET /lamp?9") > -1) light(true, 5);
-      if (HTTP_req.indexOf("GET /lamp?A") > -1) light(false, 5);
-      if (HTTP_req.indexOf("GET /lamp?B") > -1) light(true, 6);
-      if (HTTP_req.indexOf("GET /lamp?C") > -1) light(false, 6);
+      if (HTTP_req.indexOf("GET /lamp?1aan") > -1) light(true, 1);
+      if (HTTP_req.indexOf("GET /lamp?1uit") > -1) light(false, 1);
+      if (HTTP_req.indexOf("GET /lamp?2aan") > -1) light(true, 2);
+      if (HTTP_req.indexOf("GET /lamp?2uit") > -1) light(false, 2);
+      if (HTTP_req.indexOf("GET /lamp?3aan") > -1) light(true, 3);
+      if (HTTP_req.indexOf("GET /lamp?3uit") > -1) light(false, 3);
+      if (HTTP_req.indexOf("GET /lamp?4aan") > -1) light(true, 4);
+      if (HTTP_req.indexOf("GET /lamp?4uit") > -1) light(false, 4);
+      if (HTTP_req.indexOf("GET /lamp?5aan") > -1) light(true, 5);
+      if (HTTP_req.indexOf("GET /lamp?5uit") > -1) light(false, 5);
+      if (HTTP_req.indexOf("GET /lamp?6aan") > -1) light(true, 6);
+      if (HTTP_req.indexOf("GET /lamp?6uit") > -1) light(false, 6);
+      if (HTTP_req.indexOf("GET /lamp?7aan") > -1) light(true, 7);
+      if (HTTP_req.indexOf("GET /lamp?7uit") > -1) light(false, 7);
+      if (HTTP_req.indexOf("GET /lamp?8aan") > -1) light(true, 8);
+      if (HTTP_req.indexOf("GET /lamp?8uit") > -1) light(false, 8);
+      if (HTTP_req.indexOf("GET /lamp?9aan") > -1) light(true, 9);
+      if (HTTP_req.indexOf("GET /lamp?9uit") > -1) light(false, 9);
+      if (HTTP_req.indexOf("GET /lamp?0aan") > -1) light(true, 0);
+      if (HTTP_req.indexOf("GET /lamp?0uit") > -1) light(false, 0);
 
       if (HTTP_req.indexOf("GET /lamp?D") > -1) all_lights(true);
       if (HTTP_req.indexOf("GET /lamp?E") > -1) all_lights(false);
@@ -268,8 +280,8 @@ void webserver(){
       
       if (HTTP_req.indexOf("GET /lamp") > -1 )                                   page_id = PAGE_LAMP;
 
-      if (HTTP_req.indexOf("GET /battery?1") > -1 ) battery_charge(true);
-      if (HTTP_req.indexOf("GET /battery?0") > -1 ) battery_charge(false);
+      if (HTTP_req.indexOf("GET /battery?aan") > -1 ) battery_charge(true);
+      if (HTTP_req.indexOf("GET /battery?uit") > -1 ) battery_charge(false);
       if (HTTP_req.indexOf("GET /battery") > -1 )                                page_id = PAGE_HOME;
     }
     if (page_id == PAGE_ERROR_404) client.println("HTTP/1.1 404 Not Found");
@@ -298,7 +310,7 @@ void webserver(){
         break;
       case PAGE_LAMP:
         html = String(HTML_CONTENT_LAMP);
-        lamp_state = String(" "+lamp_state1 + " " + lamp_state2 + " " + lamp_state3 + " </br>"+ lamp_state4 + " " + lamp_state5 + " " + lamp_state6);
+        lamp_state = String(" "+lamp_state1 + " " + lamp_state2 + " " + lamp_state3 + " </br>"+ lamp_state4 + " " + lamp_state5 + " " + lamp_state6 + " </br>"+ lamp_state7 + " " + lamp_state8 + " " + lamp_state9 + " </br>"+ lamp_state0);
         html.replace("LAMP_STATE_MARKER", lamp_state);  // replace the marker by a real value
         break;
       case PAGE_ERROR_404:
@@ -331,6 +343,10 @@ void light(bool turn_on, int light_id){
       case 4: send_code(RF_LIGHT_ON4);lamp_state4 = "aan"; break;
       case 5: send_code(RF_LIGHT_ON5);lamp_state5 = "aan"; break;
       case 6: send_code(RF_LIGHT_ON6);lamp_state6 = "aan"; break;
+      case 7: send_code(RF_LIGHT_ON7);lamp_state7 = "aan"; break;
+      case 8: send_code(RF_LIGHT_ON8);lamp_state8 = "aan"; break;
+      case 9: send_code(RF_LIGHT_ON9);lamp_state9 = "aan"; break;
+      case 0: send_code(RF_LIGHT_ON9);lamp_state0 = "aan"; break;
     }
   }
   else{
@@ -341,6 +357,10 @@ void light(bool turn_on, int light_id){
     case 4: send_code(RF_LIGHT_OFF4);lamp_state4 = "uit"; break;
     case 5: send_code(RF_LIGHT_OFF5);lamp_state5 = "uit"; break;
     case 6: send_code(RF_LIGHT_OFF6);lamp_state6 = "uit"; break;
+    case 7: send_code(RF_LIGHT_OFF7);lamp_state7 = "uit"; break;
+    case 8: send_code(RF_LIGHT_OFF8);lamp_state8 = "uit"; break;
+    case 9: send_code(RF_LIGHT_OFF9);lamp_state9 = "uit"; break;
+    case 0: send_code(RF_LIGHT_OFF9);lamp_state0 = "uit"; break;
     }
   }
 }
@@ -353,6 +373,10 @@ bool get_light_state(int light_id){
     case 4: if (lamp_state4 == "uit") return false; break;
     case 5: if (lamp_state5 == "uit") return false; break;
     case 6: if (lamp_state6 == "uit") return false; break;
+    case 7: if (lamp_state7 == "uit") return false; break;
+    case 8: if (lamp_state8 == "uit") return false; break;
+    case 9: if (lamp_state9 == "uit") return false; break;
+    case 0: if (lamp_state0 == "uit") return false; break;
   }
   return true;
 }
@@ -371,6 +395,10 @@ void all_lights(bool turn_on){
     lamp_state4 = "aan";
     lamp_state5 = "aan";
     lamp_state6 = "aan";
+    lamp_state7 = "aan";
+    lamp_state8 = "aan";
+    lamp_state9 = "aan";
+    lamp_state0 = "aan";
   }
   else{
     send_code(RF_LIGHT_ALL_OFF);
@@ -380,6 +408,10 @@ void all_lights(bool turn_on){
     lamp_state4 = "uit";
     lamp_state5 = "uit";
     lamp_state6 = "uit";
+    lamp_state7 = "uit";
+    lamp_state8 = "uit";
+    lamp_state9 = "uit";
+    lamp_state0 = "uit";
   }
 }
 
@@ -448,6 +480,10 @@ void businessLogic(){
       else if (ir_value == 0x83) toggle_light(4);
       else if (ir_value == 0x84) toggle_light(5);
       else if (ir_value == 0x85) toggle_light(6);
+      else if (ir_value == 0x86) toggle_light(7);
+      else if (ir_value == 0x87) toggle_light(8);
+      else if (ir_value == 0x88) toggle_light(9);
+      else if (ir_value == 0x89) toggle_light(0);
       else light(true, 1);
   }
 }

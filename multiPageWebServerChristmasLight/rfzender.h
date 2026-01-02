@@ -20,7 +20,19 @@ unsigned long RF_LIGHT_OFF5 = 0x90c40085;
 unsigned long RF_LIGHT_ON6 = 0x90c40096;
 unsigned long RF_LIGHT_OFF6 = 0x90c40086;
 
-unsigned long RF_LIGHT_ALL_ON = 0x90c40093;
+unsigned long RF_LIGHT_ON7 = 0x90c40097;
+unsigned long RF_LIGHT_OFF7 = 0x90c40087;
+
+unsigned long RF_LIGHT_ON8 = 0x90c40098;
+unsigned long RF_LIGHT_OFF8 = 0x90c40088;
+
+unsigned long RF_LIGHT_ON9 = 0x90c40099;
+unsigned long RF_LIGHT_OFF9 = 0x90c40089;
+
+unsigned long RF_LIGHT_ON0 = 0x90c4009A;
+unsigned long RF_LIGHT_OFF0 = 0x90c4008A;
+
+unsigned long RF_LIGHT_ALL_ON = 0x90c40093;  // all sockets are activated to listen to this as well.
 unsigned long RF_LIGHT_ALL_OFF = 0x90c40083;
 
 unsigned long RF_WISS_CONFIG = 0x90c400A0;

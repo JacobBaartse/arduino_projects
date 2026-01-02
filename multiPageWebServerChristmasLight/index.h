@@ -14,8 +14,8 @@ const char *HTML_CONTENT_HOME = R""""(<!DOCTYPE html>
         <li><a href="/lamp">Lampen</a></li>
         <li><a href="/light">Licht meting</a></li>
         <li><a href="/temperature">Temperatuur, vochtigheid woonkamer</a></li>
-        <li><a href="/battery?1">Batterij opladen AAN</a></li>
-        <li><a href="/battery?0">Batterij opladen UIT</a></li>
+        <li><a href="/battery?aan">Batterij opladen AAN</a></li>
+        <li><a href="/battery?uit">Batterij opladen UIT</a></li>
     </ul>
     </font>
 </body>
