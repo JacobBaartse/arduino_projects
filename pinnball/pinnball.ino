@@ -334,6 +334,13 @@ void loop(){
       do_servo(1, 0);
       delay(500);
       do_servo(1, 45);
+    }    
+    if (switch_nr2 == 10){
+      // Play_mp3_file(TOE_OE_3X);
+      score_counter += 11;
+      effect = ALL_WHITE;
+      start_millis = contact_timing2[BIKE_BELL];
+      duration = 200;
     }
     else{
       Serial.println("extender 2 : ");

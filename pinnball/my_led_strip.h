@@ -32,6 +32,7 @@ CRGB leds_2[NUM_LEDS_2];
 #define FADE_IN_OUT     5
 #define CANNON_SHOT_LEDS 6
 #define SPARKLING_COLORS 7
+#define ALL_WHITE 8
 
 long prev_millis_leds=0;
 void pattern_on_ledstrip(int pattern, long start_millis, long duration){
@@ -92,6 +93,13 @@ void pattern_on_ledstrip(int pattern, long start_millis, long duration){
             for (int i =0; i< num_leds; i++){
                 leds_1[43+i] = CRGB(255,255,255);
                 leds_1[43-i] = CRGB(255,255,255);
+            }
+            break;        
+        case ALL_WHITE:
+            num_leds = NUM_LEDS_1;
+            for (int i =0; i< num_leds; i++){
+                leds_1[i] = CRGB(255,255,255);
+                leds_1[i] = CRGB(255,255,255);
             }
             break;
 
