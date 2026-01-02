@@ -58,7 +58,7 @@ void send_code(long code){
     for (int k = 0; k<5; k++){
     //start = millis();
     prev_micros = micros();
-    send_times_t(27, LOW); // delay betwen codes. 9ms
+    send_times_t(27, LOW); // delay between codes. 9ms
 
     send_times_t(1, HIGH);// start sequence
     send_times_t(7, LOW);
@@ -79,7 +79,7 @@ void loop(){
   // while (true){
   //   start = micros();
   //   delay_370u(100);
-  //   stop = micros();  //shoul result in 33800 us
+  //   stop = micros();  // should result in 33800 us
   //   Serial.println(stop-start);
   // }
 
@@ -102,6 +102,6 @@ void loop(){
   send_code(0x90c40092);   // aan 3
 
   delay(2000);
-  send_code(0x90c400A0);  // alles uit
+  send_code(0x90c400A0);  // alles uit  during start-up of socket RF_WISS_CONFIG
   delay(2000);
 }
