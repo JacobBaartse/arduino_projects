@@ -3,3 +3,15 @@ ESP8266MOD
 ISM 2.4GHz
 PA +25dBm
 802.11b/g/n
+
+
+additional board managers:
+
+# https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+# WEMOS D1 MINI R32
+
+http://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+LOLIN(WEMOS) D1 R2 &mini
+
+
