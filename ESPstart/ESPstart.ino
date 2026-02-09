@@ -1,4 +1,7 @@
 
+http://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+LOLIN(WEMOS) D1 R2 &mini
 
 
 void setup() {
