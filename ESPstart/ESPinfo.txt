@@ -3,3 +3,7 @@ ESP8266MOD
 ISM 2.4GHz
 PA +25dBm
 802.11b/g/n
+
+Arduino IDE board setup:
+https://learn.hobye.dk/development/esp32/setup-the-board
+
