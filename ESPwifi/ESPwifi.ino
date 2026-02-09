@@ -63,6 +63,8 @@ void handleRoot() {
 void setup() {
   delay(1000);
   Serial.begin(115200);
+  Serial.println(F(" "));
+  Serial.println(F(" "));
   Serial.println(F("Starting ESP device"));
   Serial.flush();
   Serial.print(__FILE__);
