@@ -71,7 +71,6 @@ void setup() {
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
-  Serial.println();
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
   WiFi.softAP(ssid, password);
