@@ -1,0 +1,5 @@
+
+Collect usefull info for development projects
+
+https://www.espboards.dev/esp32/d1-mini32/
+
