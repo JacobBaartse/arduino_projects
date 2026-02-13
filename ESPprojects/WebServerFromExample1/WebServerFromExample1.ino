@@ -17,7 +17,7 @@ const int led = LED_BUILTIN;
 
 const String postForms = "<html>\
   <head>\
-    <title>ESP8266 Web Server POST handling</title>\
+    <title>Web Server SO148 trial-1</title>\
     <style>\
       body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
     </style>\
@@ -38,42 +38,42 @@ const String postForms = "<html>\
 //<input type=\"text\" name=\'{\"hello\": \"world\", \"trash\": \"\' value=\'\"}\'><br>&nbsp;<br>\
 
 void handleRoot() {
-  digitalWrite(led, 1);
-  server.send(200, "text/html", postForms);
   digitalWrite(led, 0);
+  server.send(200, "text/html", postForms);
+  digitalWrite(led, 1);
 }
 
 void handlePlain() {
   if (server.method() != HTTP_POST) {
-    digitalWrite(led, 1);
-    server.send(405, "text/plain", "Method Not Allowed");
     digitalWrite(led, 0);
-  } else {
+    server.send(405, "text/plain", "Method Not Allowed");
     digitalWrite(led, 1);
+  } else {
+    digitalWrite(led, 0);
     server.send(200, "text/plain", "POST body was:\n" + server.arg("plain"));
     // String message = " ";
     // for (uint8_t i = 0; i < server.args(); i++) { message += " " + server.argName(i) + ": " + server.arg(i) + "\n"; }
     // server.send(200, "text/plain", "POST body was:\n" + message);
-    digitalWrite(led, 0);
+    digitalWrite(led, 1);
   }
 }
 
 void handleForm() {
   if (server.method() != HTTP_POST) {
-    digitalWrite(led, 1);
-    server.send(405, "text/plain", "Method Not Allowed");
     digitalWrite(led, 0);
-  } else {
+    server.send(405, "text/plain", "Method Not Allowed");
     digitalWrite(led, 1);
+  } else {
+    digitalWrite(led, 0);
     String message = "POST form was:\n";
     for (uint8_t i = 0; i < server.args(); i++) { message += " " + server.argName(i) + ": " + server.arg(i) + "\n"; }
     server.send(200, "text/plain", message);
-    digitalWrite(led, 0);
+    digitalWrite(led, 1);
   }
 }
 
 void handleNotFound() {
-  digitalWrite(led, 1);
+  digitalWrite(led, 0);
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -84,12 +84,12 @@ void handleNotFound() {
   message += "\n";
   for (uint8_t i = 0; i < server.args(); i++) { message += " " + server.argName(i) + ": " + server.arg(i) + "\n"; }
   server.send(404, "text/plain", message);
-  digitalWrite(led, 0);
+  digitalWrite(led, 1);
 }
 
 void setup(void) {
   pinMode(led, OUTPUT);
-  digitalWrite(led, 0);
+  digitalWrite(led, 0); // turn LED on
   Serial.begin(115200);
 
   Serial.println(F(" "));
@@ -124,6 +124,7 @@ void setup(void) {
 
   server.begin();
   Serial.println("HTTP server started");
+  digitalWrite(led, 1); // turn LED off
 }
 
 void loop(void) {

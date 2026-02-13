@@ -18,7 +18,7 @@ const int led = 2;
 
 const String Homepage = "<html>\
   <head>\
-    <title>Web Server SO 148</title>\
+    <title>Web Server SO 148 trial-2</title>\
     <style>\
       body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
     </style>\
@@ -54,6 +54,8 @@ void handleLogin();
 void handleNotFound();
 
 void setup(void){
+  pinMode(led, OUTPUT);
+  digitalWrite(led, 0); // turn LED on
   Serial.begin(115200);         // Start the Serial communication to send messages to the computer
   Serial.println(F(" "));
   Serial.println(F(" "));
@@ -63,8 +65,6 @@ void setup(void){
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
-
-  pinMode(led, OUTPUT);
 
   wifiMulti.addAP("T24_optout", "T24T24T24");   // add Wi-Fi networks you want to connect to
   // wifiMulti.addAP("ssid_from_AP_2", "your_password_for_AP_2");
@@ -99,6 +99,7 @@ void setup(void){
   });
   server.begin();                           // Actually start the server
   Serial.println("HTTP server started");
+  digitalWrite(led, 1); // turn LED off
 }
 
 void loop(void){
@@ -115,14 +116,14 @@ void handleLED() {                          // If a POST request is made to URI 
   server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
 }
 
-void handleLEDon() {                          // If a POST request is made to URI /LED
-  digitalWrite(led, 0);     // Change the state of the LED
+void handleLEDon() {                        // If a POST request is made to URI /LEDon
+  digitalWrite(led, 0);                     // LED on
   server.sendHeader("Location", "/");       // Add a header to respond with a new location for the browser to go to the home page again
   server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
 }
 
-void handleLEDoff() {                          // If a POST request is made to URI /LED
-  digitalWrite(led, 1);     // Change the state of the LED
+void handleLEDoff() {                       // If a POST request is made to URI /LEDoff
+  digitalWrite(led, 1);                     // LED off
   server.sendHeader("Location", "/");       // Add a header to respond with a new location for the browser to go to the home page again
   server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
 }
