@@ -114,15 +114,24 @@ void setup(void) {
   pinMode(led, OUTPUT);
   digitalWrite(led, 0);
   Serial.begin(115200);
+
+  Serial.println(F(" "));
+  Serial.println(F(" "));
+  Serial.println(F("Starting ESP device"));
+  Serial.flush();
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
+
   WiFi.mode(WIFI_STA);
-  // WiFi.begin(ssid, password);
-  WiFi.begin(ssid);
-  Serial.println("");
+  WiFi.begin(ssid, password);
+  Serial.println(F(" "));
 
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.print(F("."));
   }
 
   Serial.println("");
@@ -131,7 +140,9 @@ void setup(void) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  if (MDNS.begin("esp8266")) { Serial.println("MDNS responder started"); }
+  if (MDNS.begin("esp8266")) { 
+    Serial.println("MDNS responder started"); 
+  }
 
   server.on("/", handleRoot);
   server.on("/test.svg", drawGraph);

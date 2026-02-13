@@ -1,5 +1,10 @@
 
 Collect usefull info for development projects
 
+
 https://www.espboards.dev/esp32/d1-mini32/
+
+
+https://docs.platformio.org/en/latest/boards/espressif32/wemos_d1_mini32.htm
+
 
