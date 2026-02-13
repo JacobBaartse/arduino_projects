@@ -23,18 +23,19 @@ const String postForms = "<html>\
     </style>\
   </head>\
   <body>\
-    <h1>POST plain text to /postplain/</h1><br>\
+    <h1>POST plain text</h1><br>\
     <form method=\"post\" enctype=\"text/plain\" action=\"/postplain/\">\
-      <input type=\"text\" name=\'{\"hello\": \"world\", \"trash\": \"\' value=\'\"}\'><br>\
+      <input type=\"text\" name=\"plain\": value=\"plain text\"><br>&nbsp;<br>\
       <input type=\"submit\" value=\"Submit\">\
     </form>\
-    <h1>POST form data to /postform/</h1><br>\
+    <h1>POST form data</h1><br>\
     <form method=\"post\" enctype=\"application/x-www-form-urlencoded\" action=\"/postform/\">\
-      <input type=\"text\" name=\"hello\" value=\"world\"><br>\
+      <input type=\"text\" name=\"hello\" value=\"world\"><br>&nbsp;<br>\
       <input type=\"submit\" value=\"Submit\">\
     </form>\
   </body>\
 </html>";
+//<input type=\"text\" name=\'{\"hello\": \"world\", \"trash\": \"\' value=\'\"}\'><br>&nbsp;<br>\
 
 void handleRoot() {
   digitalWrite(led, 1);
@@ -50,6 +51,9 @@ void handlePlain() {
   } else {
     digitalWrite(led, 1);
     server.send(200, "text/plain", "POST body was:\n" + server.arg("plain"));
+    // String message = " ";
+    // for (uint8_t i = 0; i < server.args(); i++) { message += " " + server.argName(i) + ": " + server.arg(i) + "\n"; }
+    // server.send(200, "text/plain", "POST body was:\n" + message);
     digitalWrite(led, 0);
   }
 }
@@ -114,11 +118,8 @@ void setup(void) {
   if (MDNS.begin("esp8266")) { Serial.println("MDNS responder started"); }
 
   server.on("/", handleRoot);
-
   server.on("/postplain/", handlePlain);
-
   server.on("/postform/", handleForm);
-
   server.onNotFound(handleNotFound);
 
   server.begin();
