@@ -57,14 +57,14 @@ void handleRoot() {
   temp.printf("\
 <html>\
   <head>\
-    <meta http-equiv='refresh' content='5'/>\
+    <meta http-equiv='refresh' content='6'/>\
     <title>ESP8266 Demo</title>\
     <style>\
       body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
     </style>\
   </head>\
   <body>\
-    <h1>Hello from ESP8266!</h1>\
+    <h1>Hello from Advanced Server</h1>\
     <p>Uptime: %02d:%02d:%02d</p>\
     <img src=\"/test.svg\" />\
   </body>\
@@ -135,7 +135,7 @@ void setup(void) {
   }
 
   Serial.println("");
-  Serial.print("Connected to ");
+  Serial.print("Connected to: ");
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
