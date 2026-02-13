@@ -35,8 +35,8 @@
 #include <StreamString.h>
 
 #ifndef STASSID
-#define STASSID "ESP_advanced"
-#define STAPSK "no-password"
+#define STASSID "T24_optout"
+#define STAPSK "T24T24T24"
 #endif
 
 const char *ssid = STASSID;
@@ -44,7 +44,7 @@ const char *password = STAPSK;
 
 ESP8266WebServer server(80);
 
-const int led = LED_BUILTIN;
+const int led = LED_BUILTIN; // 13;
 
 void handleRoot() {
   digitalWrite(led, 1);
