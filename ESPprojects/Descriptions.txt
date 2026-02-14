@@ -14,5 +14,6 @@ WebServerFromExample3    AccessPoint and internet connection trial
 
 WebServerFromExample4
 
-
-
+  Dual-Mode Web Server: AP & Station Simultaneously 
+  
+  Webserver using form(s) and links
