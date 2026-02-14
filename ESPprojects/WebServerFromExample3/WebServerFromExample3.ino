@@ -1,15 +1,24 @@
+/*
+
+ https://medium.com/engineering-iot/building-a-dual-mode-web-server-with-esp32-ap-and-station-simultaneously-eda403eb1ee4
+
+
+ https://github.com/ESP32-Work/ESP32_Webserver/tree/main/ESP32_WebServer
+
+ */
+
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-#ifndef STASSID
-#define STASSID "T24_optout"
-#define STAPSK "T24T24T24"
-#endif
+// Station Mode Credentials
+const char* sta_ssid = "T24_optout";
+const char* sta_password = "T24T24T24";
 
-const char* ssid = STASSID;
-const char* password = STAPSK;
+// AP Mode Credentials
+const char* ap_ssid = "ESP_AP";
+const char* ap_password = "12345678";
 
 ESP8266WebServer server(80);
 
@@ -101,7 +110,13 @@ void setup(void) {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
-  WiFi.begin(ssid, password);
+  WiFi.mode(WIFI_AP_STA);  // Enable both AP and Station modes
+  WiFi.softAP(ap_ssid, ap_password);  // Start the access point
+  IPAddress local_ip(192,168,4,1);
+  IPAddress gateway(192,168,4,1);
+  IPAddress subnet(255,255,255,0);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
+  WiFi.begin(sta_ssid, sta_password); // Connect to existing network
   Serial.println("");
 
   // Wait for connection
@@ -110,10 +125,18 @@ void setup(void) {
     Serial.print(".");
   }
   Serial.println("");
+  Serial.println("");
   Serial.print("Connected to: ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
+  Serial.print(sta_ssid);
+  Serial.print(", IP address: ");
   Serial.println(WiFi.localIP());
+  Serial.println(" ");
+
+  Serial.print("Local Access Point: ");
+  Serial.print(ap_ssid);
+  Serial.print(", IP address: ");
+  Serial.println(local_ip);
+  Serial.println(" ");
 
   if (MDNS.begin("esp8266")) { Serial.println("MDNS responder started"); }
 
