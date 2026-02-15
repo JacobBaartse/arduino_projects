@@ -146,7 +146,9 @@ void setup(void) {
   Serial.println(local_ip);
   Serial.println(" ");
 
-  if (MDNS.begin("esp8266")) { Serial.println("MDNS responder started"); }
+  if (MDNS.begin("esp8266")) { 
+    Serial.println("MDNS responder started"); 
+  }
 
   server.on("/", handleRoot);
   server.on("/led=1", handleRoot);
