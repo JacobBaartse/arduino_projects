@@ -33,27 +33,58 @@ const String homeLinks = "<html>\
     </style>\
   </head>\
   <h1>On board LED control</h1>\
-    &nbsp;<a href=\"/?led0=0\">Turn local LED on!</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led0=1\">Turn locaL LED off!</a>&nbsp;<br>\
-    &nbsp;<a href=\"/?led1=0\">Turn LED 1 on!</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led1=1\">Turn LED 1 off!</a>&nbsp;<br>\
-    &nbsp;<a href=\"/?led2=0\">Turn LED 2 on!</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off!</a>&nbsp;<br>\
-    &nbsp;<a href=\"/?led3=0\">Turn LED 3 on!</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off!</a>&nbsp;<br>\
+  <br><br>\
+    &nbsp;<a href=\"/?led0=0\">Turn local LED on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led0=1\">Turn locaL LED off</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led1=0\">Turn LED 1 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led1=1\">Turn LED 1 off</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led2=0\">Turn LED 2 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?ledallon\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledalloff\">Turn all LEDs off</a>&nbsp;<br><br>\
   </body>\
 </html>";
 
 void handleRoot() {
-  Serial.println(F("handleRoot"));
+  Serial.print(F("handleRoot: "));
+  if (server.hasArg("ledallon")) {
+    led0_val = 0;
+    led1_val = 0;
+    led2_val = 0;
+    led3_val = 0;
+  }
+  if (server.hasArg("ledalloff")) {
+    led0_val = 1;
+    led1_val = 1;
+    led2_val = 1;
+    led3_val = 1;
+  }
   if (server.hasArg("led0")) {
     led0_val = server.arg("led0").toInt();
-    digitalWrite(led, led0_val);
   }
+  //Serial.print("led 0: ");
+  Serial.print("leds: ");
+  Serial.print(led0_val);
   if (server.hasArg("led1")) {
     led1_val = server.arg("led1").toInt();
   }
+  //Serial.print(", led 1: ");
+  Serial.print(", ");
+  Serial.print(led1_val);
   if (server.hasArg("led2")) {
     led2_val = server.arg("led2").toInt();
   }
+  //Serial.print(", led 2: ");
+  Serial.print(", ");
+  Serial.print(led2_val);  
   if (server.hasArg("led3")) {
     led3_val = server.arg("led3").toInt();
+  }
+  //Serial.print(", led 3: ");
+  Serial.print(", ");
+  Serial.print(led3_val);
+  Serial.println(F(" !"));
+  Serial.println(F(" "));
+
+  if (led0_val < 2){
+    digitalWrite(led, led0_val);
   }
   server.send(200, "text/html", homeLinks);
 }
