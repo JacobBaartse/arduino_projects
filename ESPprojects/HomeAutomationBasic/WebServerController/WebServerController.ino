@@ -92,23 +92,23 @@ void handleRoot() {
 void handleLED() {
   Serial.println(F("handleLED"));
 
-  String response = "";
+  String response = "-*-";
   if (server.hasArg("led1")) {
     if (led1_val < 2){
-
+      response = "led1=" + String(led1_val);
     }
   }  
   if (server.hasArg("led2")) {
     if (led2_val < 2){
-
+      response = "led2=" + String(led2_val);
     }
   }
   if (server.hasArg("led3")) {
     if (led3_val < 2){
-
+      response = "led3=" + String(led3_val);
     }
   }
-  //server.print(response);
+  server.send(200, "text/plain", response);
 }
 
 void handleNotFound() {

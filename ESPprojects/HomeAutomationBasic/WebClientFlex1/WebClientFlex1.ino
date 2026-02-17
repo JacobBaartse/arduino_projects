@@ -18,6 +18,16 @@ ESP8266WiFiMulti WiFiMulti;
 const int led = LED_BUILTIN;
 int led_val = 2;
 int clientid = 1;
+unsigned long runningtime = 0;
+
+bool timelapsed(unsigned long timestamp, unsigned long duration){
+  static unsigned long tracktime = 0;
+  if(timestamp < tracktime) return false;
+  tracktime = millis() + duration;
+  Serial.print(F("Setting next request "));
+  Serial.println(tracktime);
+  return true;
+}
 
 void setup() {
   pinMode(led, OUTPUT);
@@ -47,51 +57,51 @@ void setup() {
   digitalWrite(led, 1); // turn onboard LED off
 }
 
+bool dorequest = false; // request updates regurarly
+WiFiClient client;
+HTTPClient http;
+String ledrequest = "http://192.168.4.1/led?led1=a";
+
 void loop() {
-  // wait for WiFi connection
-  if ((WiFiMulti.run() == WL_CONNECTED)) {
 
-    WiFiClient client;
+  runningtime = millis();
 
-    HTTPClient http;
+  dorequest = timelapsed(runningtime, 10000);
 
-    Serial.print("[HTTP] begin...\n");
-    // configure traged server and url
+  if (dorequest){
 
+    // wait for WiFi connection
+    if ((WiFiMulti.run() == WL_CONNECTED)) {
 
-    http.begin(client, "http://guest:guest@jigsaw.w3.org/HTTP/Basic/");
+      Serial.print("[HTTP] begin...\n");
+      // configure traged server and url
 
-    /*
-      // or
-      http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
-      http.setAuthorization("guest", "guest");
+      http.begin(client, ledrequest);
 
-      // or
-      http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
-      http.setAuthorization("Z3Vlc3Q6Z3Vlc3Q=");
-    */
+      Serial.print("[HTTP] GET...\n");
+      // start connection and send HTTP header
+      int httpCode = http.GET();
 
+      // httpCode will be negative on error
+      if (httpCode > 0) {
+        // HTTP header has been send and Server response header has been handled
+        Serial.printf("[HTTP] GET... code: %d\n", httpCode);
 
-    Serial.print("[HTTP] GET...\n");
-    // start connection and send HTTP header
-    int httpCode = http.GET();
-
-    // httpCode will be negative on error
-    if (httpCode > 0) {
-      // HTTP header has been send and Server response header has been handled
-      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-
-      // file found at server
-      if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        Serial.println(payload);
+        // file found at server
+        if (httpCode == HTTP_CODE_OK) {
+          String payload = http.getString();
+          Serial.print(F("Received payload: '"));
+          Serial.print(payload);
+          Serial.println(F("'"));
+        }
+      } else {
+        Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
       }
-    } else {
-      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-    }
 
-    http.end();
+      http.end();
+
+    }
   }
 
-  delay(10000);
+
 }
