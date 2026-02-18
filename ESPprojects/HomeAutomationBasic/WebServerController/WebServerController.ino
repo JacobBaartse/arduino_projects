@@ -179,6 +179,11 @@ void setup(void) {
   digitalWrite(led, 1); // turn onboard LED off
 }
 
+unsigned long runningtime = 0;
+
 void loop(void) {
+
+  runningtime = millis();
+
   server.handleClient();
 }
