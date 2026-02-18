@@ -57,7 +57,7 @@ void setup() {
   digitalWrite(led, 1); // turn onboard LED off
 }
 
-bool dorequest = false; // request updates regurarly
+bool dorequest = false; // request updates regularly
 WiFiClient client;
 HTTPClient http;
 String ledrequest = "http://192.168.4.1/led?led1=a";
@@ -66,16 +66,14 @@ void loop() {
 
   runningtime = millis();
 
-  dorequest = timelapsed(runningtime, 10000);
+  dorequest = timelapsed(runningtime, 5000);
 
   if (dorequest){
-
-    // wait for WiFi connection
+    // check WiFi connection
     if ((WiFiMulti.run() == WL_CONNECTED)) {
 
       Serial.print("[HTTP] begin...\n");
       // configure traged server and url
-
       http.begin(client, ledrequest);
 
       Serial.print("[HTTP] GET...\n");
@@ -87,7 +85,7 @@ void loop() {
         // HTTP header has been send and Server response header has been handled
         Serial.printf("[HTTP] GET... code: %d\n", httpCode);
 
-        // file found at server
+        // data found at server
         if (httpCode == HTTP_CODE_OK) {
           String payload = http.getString();
           Serial.print(F("Received payload: '"));
@@ -100,8 +98,7 @@ void loop() {
 
       http.end();
 
-    }
-  }
-
+    } // WiFi connection
+  } // dorequest
 
 }
