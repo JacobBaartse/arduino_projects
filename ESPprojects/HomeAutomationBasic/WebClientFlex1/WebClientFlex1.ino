@@ -12,24 +12,68 @@
 #include <ESP8266HTTPClient.h>
 
 #include <WiFiClient.h>
+#include <Arduino_JSON.h>
+
 
 ESP8266WiFiMulti WiFiMulti;
 
 const int led = LED_BUILTIN;
 int led_val = 2;
 int clientid = 1;
-unsigned long runningtime = 0;
+
+int parseresult(int clientnumber, String payloadstring){
+  int rvalue = 2;
+  JSONVar myObject = JSON.parse(payloadstring);
+
+  // JSON.typeof(jsonVar) can be used to get the type of the var
+  if (JSON.typeof(myObject) == "undefined") {
+    Serial.print(F("Received payload: '"));
+    Serial.print(payloadstring);
+    Serial.println(F("'"));
+    Serial.println("Parsing input failed!");
+    return rvalue;
+  }
+
+  if (clientnumber == int(myObject["led"])){
+    rvalue = int(myObject["value"]);
+  }
+  else{
+    Serial.print("JSON object = ");
+    Serial.println(myObject);
+    Serial.println(F("Wrong message received, not intended for this client"));
+  }
+
+  // // myObject.keys() can be used to get an array of all the keys in the object
+  // JSONVar keys = myObject.keys();
+  // for (int i = 0; i < keys.length(); i++) {
+  //   JSONVar value = myObject[keys[i]];
+    
+  //   Serial.print(keys[i]);
+  //   Serial.print(" = ");
+  //   Serial.println(value);
+  //   if (keys[i] == "led"){ // 1st item
+  //     correctclient = clientnumber == value;
+  //   }
+  //   else { // 2nd item
+  //     if (correctclient){
+  //       rvalue = value;
+  //     }
+  //   }
+  // }
+  return rvalue;
+}
 
 bool timelapsed(unsigned long timestamp, unsigned long duration){
   static unsigned long tracktime = 0;
   if(timestamp < tracktime) return false;
-  tracktime = millis() + duration;
-  Serial.print(F("Setting next request "));
+  tracktime = millis() + duration; // make sure to get 'fresh' timestamp to avoid processing time influences
+  Serial.print(F("Scheduling request for: "));
   Serial.println(tracktime);
   return true;
 }
 
 void setup() {
+
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
@@ -43,15 +87,15 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
-  Serial.println();
-  for (uint8_t t = 4; t > 0; t--) {
-    Serial.printf("[SETUP] WAIT %d...\n", t);
-    Serial.flush();
-    delay(1000);
-  }
+  // Serial.println();
+  // for (uint8_t t = 4; t > 0; t--) {
+  //   Serial.printf("[SETUP] WAIT %d...\n", t);
+  //   Serial.flush();
+  //   delay(1000);
+  // }
 
   WiFi.mode(WIFI_STA);
-  WiFiMulti.addAP("SSID", "PASSWORD");
+  WiFiMulti.addAP("Local_AP", "local_148_AP"); // local Ap from controller
 
   Serial.println("HTTP client started");
   digitalWrite(led, 1); // turn onboard LED off
@@ -62,42 +106,48 @@ WiFiClient client;
 HTTPClient http;
 String ledrequest = "http://192.168.4.1/led?led1=a";
 
+unsigned long runningtime = 0;
+unsigned long pollinginterval = 5000;
+int remledval = led_val;
+
 void loop() {
 
   runningtime = millis();
 
-  dorequest = timelapsed(runningtime, 5000);
+  dorequest = timelapsed(runningtime, pollinginterval);
 
   if (dorequest){
-    // check WiFi connection
-    if ((WiFiMulti.run() == WL_CONNECTED)) {
-
-      Serial.print("[HTTP] begin...\n");
-      // configure traged server and url
+    if ((WiFiMulti.run() == WL_CONNECTED)) { // check WiFi connection
       http.begin(client, ledrequest);
-
-      Serial.print("[HTTP] GET...\n");
-      // start connection and send HTTP header
       int httpCode = http.GET();
-
-      // httpCode will be negative on error
-      if (httpCode > 0) {
+      if (httpCode > 0) { // httpCode will be negative on error
         // HTTP header has been send and Server response header has been handled
-        Serial.printf("[HTTP] GET... code: %d\n", httpCode);
 
-        // data found at server
+        // data found in response from server
         if (httpCode == HTTP_CODE_OK) {
           String payload = http.getString();
-          Serial.print(F("Received payload: '"));
-          Serial.print(payload);
-          Serial.println(F("'"));
+
+          remledval = led_val;
+          led_val = parseresult(clientid, payload);
+          if (led_val != remledval){
+            //pollingtime = 1000;
+            Serial.print(F("Changed led to: "));
+            Serial.println(led_val);
+          }
+          // else {
+          //   if (pollingtime < 5000){
+          //     pollingtime += 1000;
+          //   }
+          // }
+          if (led_val < 2){ // local LED on this client board
+            digitalWrite(led, led_val);
+          }
         }
       } else {
-        Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+        Serial.printf("[HTTP] GET... code: %d, error: %s\n", httpCode, http.errorToString(httpCode).c_str());
       }
 
       http.end();
-
     } // WiFi connection
   } // dorequest
 

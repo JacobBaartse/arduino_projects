@@ -24,6 +24,9 @@ int led0_val = 2;
 int led1_val = 2;
 int led2_val = 2;
 int led3_val = 2;
+int led4_val = 2;
+unsigned long runningtime = 0;
+unsigned long requesttime = 0;
 
 const String homeLinks = "<html>\
   <head>\
@@ -38,6 +41,7 @@ const String homeLinks = "<html>\
     &nbsp;<a href=\"/?led1=0\">Turn LED 1 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led1=1\">Turn LED 1 off</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?led2=0\">Turn LED 2 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led4=0\">Turn LED 4 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led4=1\">Turn LED 4 off</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?ledallon\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledalloff\">Turn all LEDs off</a>&nbsp;<br><br>\
   </body>\
 </html>";
@@ -49,12 +53,14 @@ void handleRoot() {
     led1_val = 0;
     led2_val = 0;
     led3_val = 0;
+    led4_val = 0;
   }
   if (server.hasArg("ledalloff")) {
     led0_val = 1;
     led1_val = 1;
     led2_val = 1;
     led3_val = 1;
+    led4_val = 1;
   }
   if (server.hasArg("led0")) {
     led0_val = server.arg("led0").toInt();
@@ -65,32 +71,35 @@ void handleRoot() {
   if (server.hasArg("led1")) {
     led1_val = server.arg("led1").toInt();
   }
-  //Serial.print(", led 1: ");
   Serial.print(", ");
   Serial.print(led1_val);
   if (server.hasArg("led2")) {
     led2_val = server.arg("led2").toInt();
   }
-  //Serial.print(", led 2: ");
   Serial.print(", ");
   Serial.print(led2_val);  
   if (server.hasArg("led3")) {
     led3_val = server.arg("led3").toInt();
   }
-  //Serial.print(", led 3: ");
   Serial.print(", ");
-  Serial.print(led3_val);
+  Serial.print(led3_val);  
+  if (server.hasArg("led4")) {
+    led4_val = server.arg("led4").toInt();
+  }
+  Serial.print(", ");
+  Serial.print(led4_val);
   Serial.println(F(" !"));
-  Serial.println(F(" "));
 
-  if (led0_val < 2){
+  if (led0_val < 2){ // local LED on this server board
     digitalWrite(led, led0_val);
   }
+  Serial.println(F("Server homepage"));
   server.send(200, "text/html", homeLinks);
+  Serial.println(F(" "));
 }
 
-void handleLED() {
-  Serial.println(F("handleLED"));
+void handleLEDplan() {
+  Serial.print(F("handleLED, "));
 
   String response = "-*-";
   if (server.hasArg("led1")) {
@@ -108,7 +117,44 @@ void handleLED() {
       response = "led3=" + String(led3_val);
     }
   }
+  Serial.print(F("response: '"));
+  Serial.print(response);
+  Serial.print(F("', runningtime: "));
+  Serial.println(runningtime);
   server.send(200, "text/plain", response);
+  requesttime = runningtime;
+}
+
+void handleLEDjson() {
+  Serial.print(F("handleLED, "));
+
+  String response = "{\"led\" : 9, \"value\" : 2 }"; // invalid client id
+  if (server.hasArg("led1")) {
+    if (led1_val < 3){
+      response = "{\"led\" : 1, \"value\" : " + String(led1_val) + "}";
+    }
+  }  
+  if (server.hasArg("led2")) {
+    if (led2_val < 3){
+      response = "{\"led\" : 2, \"value\" : " + String(led2_val) + "}";
+    }
+  }
+  if (server.hasArg("led3")) {
+    if (led3_val < 3){
+      response = "{\"led\" : 3, \"value\" : " + String(led3_val) + "}";
+    }
+  }
+  if (server.hasArg("led4")) {
+    if (led4_val < 3){
+      response = "{\"led\" : 4, \"value\" : " + String(led4_val) + "}";
+    }
+  }
+  Serial.print(F("response: '"));
+  Serial.print(response);
+  Serial.print(F("', runningtime: "));
+  Serial.println(runningtime);
+  server.send(200, "application/json", response);
+  requesttime = runningtime;
 }
 
 void handleNotFound() {
@@ -120,11 +166,25 @@ void handleNotFound() {
   message += "\nArguments: ";
   message += server.args();
   message += "\n";
-  for (uint8_t i = 0; i < server.args(); i++) { message += " " + server.argName(i) + ": " + server.arg(i) + "\n"; }
+  for (uint8_t i = 0; i < server.args(); i++) { 
+    message += " " + server.argName(i) + ": " + server.arg(i) + "\n"; 
+  }
+  Serial.print(F("Response from server (unexpected request): '*'"));
+  Serial.print(message);
+  Serial.println(F("'*'"));
   server.send(404, "text/plain", message);
 }
 
+bool requesttimelapsed(unsigned long duration){
+  if(runningtime < requesttime + duration) return false;
+  Serial.print(F("No timely request received: "));
+  Serial.println(runningtime);
+  requesttime = runningtime; // set the printing as request time, to get 1 message per duration
+  return true;
+}
+
 void setup(void) {
+
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
@@ -171,7 +231,7 @@ void setup(void) {
   }
 
   server.on("/", handleRoot);
-  server.on("/led", handleLED);
+  server.on("/led", handleLEDjson);
   server.onNotFound(handleNotFound);
 
   server.begin();
@@ -179,11 +239,14 @@ void setup(void) {
   digitalWrite(led, 1); // turn onboard LED off
 }
 
-unsigned long runningtime = 0;
+bool norequest = false;
 
 void loop(void) {
 
   runningtime = millis();
 
   server.handleClient();
+
+  norequest = requesttimelapsed(60000);
+
 }
