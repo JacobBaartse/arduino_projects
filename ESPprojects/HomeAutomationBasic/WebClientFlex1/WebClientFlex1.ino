@@ -101,10 +101,14 @@ void setup() {
   digitalWrite(led, 1); // turn onboard LED off
 }
 
+String composerequest(int composeval){
+  return "http://192.168.4.1/led?led" + String(clientid) + "=" + String(composeval);
+}
+
 bool dorequest = false; // request updates regularly
 WiFiClient client;
 HTTPClient http;
-String ledrequest = "http://192.168.4.1/led?led1=a";
+String ledrequest = ""; // composerequest(9); // "http://192.168.4.1/led?led" + String(clientid) + "=9";
 
 unsigned long runningtime = 0;
 unsigned long pollinginterval = 5000;
@@ -118,6 +122,10 @@ void loop() {
 
   if (dorequest){
     if ((WiFiMulti.run() == WL_CONNECTED)) { // check WiFi connection
+      ledrequest = composerequest(led_val);
+      Serial.print(F("Request to server: "));
+      Serial.println(ledrequest);
+      
       http.begin(client, ledrequest);
       int httpCode = http.GET();
       if (httpCode > 0) { // httpCode will be negative on error

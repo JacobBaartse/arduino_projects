@@ -42,26 +42,27 @@ const String homeLinks = "<html>\
     &nbsp;<a href=\"/?led2=0\">Turn LED 2 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?led4=0\">Turn LED 4 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led4=1\">Turn LED 4 off</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?ledallon\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledalloff\">Turn all LEDs off</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?ledall=0\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledall=1\">Turn all LEDs off</a>&nbsp;<br><br>\
   </body>\
 </html>";
 
 void handleRoot() {
   Serial.print(F("handleRoot: "));
-  if (server.hasArg("ledallon")) {
-    led0_val = 0;
-    led1_val = 0;
-    led2_val = 0;
-    led3_val = 0;
-    led4_val = 0;
+  if (server.hasArg("ledall")) {
+    int valnow = server.arg("ledall").toInt();
+    led0_val = valnow;
+    led1_val = valnow;
+    led2_val = valnow;
+    led3_val = valnow;
+    led4_val = valnow;
   }
-  if (server.hasArg("ledalloff")) {
-    led0_val = 1;
-    led1_val = 1;
-    led2_val = 1;
-    led3_val = 1;
-    led4_val = 1;
-  }
+  // if (server.hasArg("ledalloff")) {
+  //   led0_val = 1;
+  //   led1_val = 1;
+  //   led2_val = 1;
+  //   led3_val = 1;
+  //   led4_val = 1;
+  // }
   if (server.hasArg("led0")) {
     led0_val = server.arg("led0").toInt();
   }
@@ -98,7 +99,7 @@ void handleRoot() {
   Serial.println(F(" "));
 }
 
-void handleLEDplan() {
+void handleLEDplain() {
   Serial.print(F("handleLED, "));
 
   String response = "-*-";
@@ -130,6 +131,9 @@ void handleLEDjson() {
 
   String response = "{\"led\" : 9, \"value\" : 2 }"; // invalid client id
   if (server.hasArg("led1")) {
+    // int Mode = server.arg("led1").toInt();
+    // Serial.println(Mode);
+
     if (led1_val < 3){
       response = "{\"led\" : 1, \"value\" : " + String(led1_val) + "}";
     }
