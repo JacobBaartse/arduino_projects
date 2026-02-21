@@ -8,3 +8,18 @@ https://www.espboards.dev/esp32/d1-mini32/
 https://docs.platformio.org/en/latest/boards/espressif32/wemos_d1_mini32.htm
 
 
+
+
+Soft AP related:
+
+https://forum.arduino.cc/t/softap-based-wifi-setup/973336
+
+https://techtutorialsx.wordpress.com/2021/01/04/esp32-soft-ap-and-station-modes/
+
+
+
+
+Config and permanent storage
+https://lonelybinary.com/blogs/learn/persistent-data-storage-on-esp32-leveraging-eeprom-and-preferences-for-permanent-data-retention
+
+

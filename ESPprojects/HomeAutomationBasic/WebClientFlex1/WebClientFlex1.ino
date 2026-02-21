@@ -21,6 +21,11 @@ const int led = LED_BUILTIN;
 int led_val = 2;
 int clientid = 1;
 
+unsigned long runningtime = 0;
+unsigned long pollinginterval = 5000;
+unsigned long pollingfromserver = 5000;
+unsigned long servertime = 0;
+
 int parseresult(int clientnumber, String payloadstring){
   int rvalue = 2;
   JSONVar myObject = JSON.parse(payloadstring);
@@ -36,6 +41,8 @@ int parseresult(int clientnumber, String payloadstring){
 
   if (clientnumber == int(myObject["led"])){
     rvalue = int(myObject["value"]);
+    servertime = (unsigned long)(myObject["servertime"]);
+    pollingfromserver = (unsigned long)(myObject["pollingtime"]);
   }
   else{
     Serial.print("JSON object = ");
@@ -63,10 +70,15 @@ int parseresult(int clientnumber, String payloadstring){
   return rvalue;
 }
 
-bool timelapsed(unsigned long timestamp, unsigned long duration){
+bool timelapsed(unsigned long timestamp, bool newval=false){
   static unsigned long tracktime = 0;
-  if(timestamp < tracktime) return false;
-  tracktime = millis() + duration; // make sure to get 'fresh' timestamp to avoid processing time influences
+  if (newval){
+    pollinginterval = pollingfromserver;
+  }
+  else {
+    if(timestamp < tracktime) return false;
+  }
+  tracktime = millis() + pollinginterval; // make sure to get 'fresh' timestamp to avoid processing time influences
   Serial.print(F("Scheduling request for: "));
   Serial.println(tracktime);
   return true;
@@ -110,15 +122,13 @@ WiFiClient client;
 HTTPClient http;
 String ledrequest = ""; // composerequest(9); // "http://192.168.4.1/led?led" + String(clientid) + "=9";
 
-unsigned long runningtime = 0;
-unsigned long pollinginterval = 5000;
-int remledval = led_val;
+int remledval = 9;
 
 void loop() {
 
   runningtime = millis();
 
-  dorequest = timelapsed(runningtime, pollinginterval);
+  dorequest = timelapsed(runningtime, false);
 
   if (dorequest){
     if ((WiFiMulti.run() == WL_CONNECTED)) { // check WiFi connection
@@ -156,6 +166,11 @@ void loop() {
       }
 
       http.end();
+      if (pollinginterval != pollingfromserver){ // if value update, calculate new request time
+        Serial.print(F("Changed polling to: "));
+        Serial.println(pollingfromserver);
+        dorequest = timelapsed(runningtime, true);
+      }
     } // WiFi connection
   } // dorequest
 
