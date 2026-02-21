@@ -25,8 +25,12 @@ int led1_val = 2;
 int led2_val = 2;
 int led3_val = 2;
 int led4_val = 2;
+int rootresponse = 0;
+
 unsigned long runningtime = 0;
 unsigned long requesttime = 0;
+unsigned long pollingtime = 5000;
+unsigned long norequesttime = pollingtime * 4.5;
 
 const String homeLinks = "<html>\
   <head>\
@@ -43,11 +47,16 @@ const String homeLinks = "<html>\
     &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?led4=0\">Turn LED 4 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led4=1\">Turn LED 4 off</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?ledall=0\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledall=1\">Turn all LEDs off</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?poll=1\">1 second</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=5\">5 seconds</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?poll=10\">10 seconds</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=60\">1 minute</a>&nbsp;<br><br>\
   </body>\
 </html>";
 
 void handleRoot() {
   Serial.print(F("handleRoot: "));
+  if (server.hasArg("poll")) {
+    rootresponse = server.arg("poll").toInt();
+  }
   if (server.hasArg("ledall")) {
     int valnow = server.arg("ledall").toInt();
     led0_val = valnow;
@@ -130,14 +139,14 @@ void handleLEDjson() {
   int qval = 3;
   Serial.print(F("handleLED, "));
 
-  String response = "{\"led\" : 9, \"value\" : 2 }"; // invalid client id
+  String response = "{\"led\" : 9, \"value\" : 2"; // }"; // unknown client id
   if (server.hasArg("led1")) {
     if (led1_val > 1){
       qval = server.arg("led1").toInt();
       led1_val = qval;
     }
     if (led1_val < 3){
-      response = "{\"led\" : 1, \"value\" : " + String(led1_val) + "}";
+      response = "{\"led\" : 1, \"value\" : " + String(led1_val); // + "}";
     }
 
   }  
@@ -147,7 +156,7 @@ void handleLEDjson() {
       led2_val = qval;
     }
     if (led2_val < 3){
-      response = "{\"led\" : 2, \"value\" : " + String(led2_val) + "}";
+      response = "{\"led\" : 2, \"value\" : " + String(led2_val); // + "}";
     }
   }
   if (server.hasArg("led3")) {
@@ -156,7 +165,7 @@ void handleLEDjson() {
       led3_val = qval;
     }    
     if (led3_val < 3){
-      response = "{\"led\" : 3, \"value\" : " + String(led3_val) + "}";
+      response = "{\"led\" : 3, \"value\" : " + String(led3_val); // + "}";
     }
   }
   if (server.hasArg("led4")) {
@@ -165,13 +174,15 @@ void handleLEDjson() {
       led4_val = qval;
     }    
     if (led4_val < 3){
-      response = "{\"led\" : 4, \"value\" : " + String(led4_val) + "}";
+      response = "{\"led\" : 4, \"value\" : " + String(led4_val); // + "}";
     }
   }
+  response += ", \"servertime\" : " + String(runningtime) + ", \"pollingtime\" : " + String(pollingtime) + " }";
+
   Serial.print(F("response: '"));
-  Serial.print(response);
-  Serial.print(F("', runningtime: "));
-  Serial.println(runningtime);
+  Serial.println(response);
+  // Serial.print(F("', runningtime: "));
+  // Serial.println(runningtime);
   server.send(200, "application/json", response);
   requesttime = runningtime;
 }
@@ -199,7 +210,7 @@ bool requesttimelapsed(unsigned long duration){
   Serial.print(F("No timely request received: "));
   Serial.println(runningtime);
   requesttime = runningtime; // set the printing as request time, to get 1 message per duration
-  return true;
+  return true; 
 }
 
 void setup(void) {
@@ -265,7 +276,14 @@ void loop(void) {
   runningtime = millis();
 
   server.handleClient();
+  if(rootresponse > 0){
+    Serial.print("Root responsing: ");
+    Serial.println(rootresponse);
+    pollingtime = rootresponse * 1000;
+    norequesttime = pollingtime * 4.5;
+    rootresponse = 0; // handle once
+  }
 
-  norequest = requesttimelapsed(60000);
+  norequest = requesttimelapsed(norequesttime);
 
 }
