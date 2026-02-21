@@ -27,6 +27,7 @@ unsigned long pollingfromserver = 5000;
 unsigned long servertime = 0;
 
 int parseresult(int clientnumber, String payloadstring){
+  static unsigned long prevservertime = 0;
   int rvalue = 2;
   JSONVar myObject = JSON.parse(payloadstring);
 
@@ -39,10 +40,14 @@ int parseresult(int clientnumber, String payloadstring){
     return rvalue;
   }
 
-  if (clientnumber == int(myObject["led"])){
+  if (clientnumber == int(myObject["led"])){ // check if the response is for this client
     rvalue = int(myObject["value"]);
     servertime = (unsigned long)(myObject["servertime"]);
     pollingfromserver = (unsigned long)(myObject["pollingtime"]);
+    Serial.print(F("Time between sned server messages (on server): "));
+    Serial.print((servertime - prevservertime));
+    Serial.println(F(" milliseconds"));
+    prevservertime = servertime;
   }
   else{
     Serial.print("JSON object = ");
@@ -79,7 +84,7 @@ bool timelapsed(unsigned long timestamp, bool newval=false){
     if(timestamp < tracktime) return false;
   }
   tracktime = millis() + pollinginterval; // make sure to get 'fresh' timestamp to avoid processing time influences
-  Serial.print(F("Scheduling request for: "));
+  Serial.print(F("Scheduling next request for: "));
   Serial.println(tracktime);
   return true;
 }
@@ -128,7 +133,7 @@ void loop() {
 
   runningtime = millis();
 
-  dorequest = timelapsed(runningtime, false);
+  dorequest = timelapsed(runningtime);
 
   if (dorequest){
     if ((WiFiMulti.run() == WL_CONNECTED)) { // check WiFi connection
