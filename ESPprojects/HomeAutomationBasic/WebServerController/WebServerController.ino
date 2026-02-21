@@ -127,28 +127,43 @@ void handleLEDplain() {
 }
 
 void handleLEDjson() {
+  int qval = 3;
   Serial.print(F("handleLED, "));
 
   String response = "{\"led\" : 9, \"value\" : 2 }"; // invalid client id
   if (server.hasArg("led1")) {
-    // int Mode = server.arg("led1").toInt();
-    // Serial.println(Mode);
-
+    if (led1_val > 1){
+      qval = server.arg("led1").toInt();
+      led1_val = qval;
+    }
     if (led1_val < 3){
       response = "{\"led\" : 1, \"value\" : " + String(led1_val) + "}";
     }
+
   }  
   if (server.hasArg("led2")) {
+    if (led2_val > 1){
+      qval = server.arg("led2").toInt();
+      led2_val = qval;
+    }
     if (led2_val < 3){
       response = "{\"led\" : 2, \"value\" : " + String(led2_val) + "}";
     }
   }
   if (server.hasArg("led3")) {
+    if (led3_val > 1){
+      qval = server.arg("led3").toInt();
+      led3_val = qval;
+    }    
     if (led3_val < 3){
       response = "{\"led\" : 3, \"value\" : " + String(led3_val) + "}";
     }
   }
   if (server.hasArg("led4")) {
+    if (led4_val > 1){
+      qval = server.arg("led4").toInt();
+      led4_val = qval;
+    }    
     if (led4_val < 3){
       response = "{\"led\" : 4, \"value\" : " + String(led4_val) + "}";
     }
