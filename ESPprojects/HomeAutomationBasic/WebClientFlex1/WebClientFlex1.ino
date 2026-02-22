@@ -44,7 +44,7 @@ int parseresult(int clientnumber, String payloadstring){
     rvalue = int(myObject["value"]);
     servertime = (unsigned long)(myObject["servertime"]);
     pollingfromserver = (unsigned long)(myObject["pollingtime"]);
-    Serial.print(F("Time between sned server messages (on server): "));
+    Serial.print(F("Time between send server messages (on server): "));
     Serial.print((servertime - prevservertime));
     Serial.println(F(" milliseconds"));
     prevservertime = servertime;
