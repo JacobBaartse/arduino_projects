@@ -89,6 +89,13 @@ bool timelapsed(unsigned long timestamp, bool newval=false){
   return true;
 }
 
+void ledflashing(unsigned long timestamp, unsigned long duration){
+  static unsigned long ledtime = 0;
+  if(timestamp < ledtime) return;
+  ledtime = millis() + duration; // make sure to get 'fresh' timestamp to avoid processing time influences
+  digitalWrite(led, !digitalRead(led)); // toggle onboard LED
+}
+
 void setup() {
 
   pinMode(led, OUTPUT);
@@ -128,12 +135,16 @@ HTTPClient http;
 String ledrequest = ""; // composerequest(9); // "http://192.168.4.1/led?led" + String(clientid) + "=9";
 
 int remledval = 9;
+bool ledflash = false;
 
 void loop() {
 
   runningtime = millis();
 
   dorequest = timelapsed(runningtime);
+  if (ledflash){
+    ledflashing(runningtime, 1000);
+  }
 
   if (dorequest){
     if ((WiFiMulti.run() == WL_CONNECTED)) { // check WiFi connection

@@ -7,8 +7,6 @@ https://www.espboards.dev/esp32/d1-mini32/
 
 https://docs.platformio.org/en/latest/boards/espressif32/wemos_d1_mini32.htm
 
-<<<<<<< HEAD
-=======
 
 
 
@@ -25,4 +23,4 @@ Config and permanent storage
 https://lonelybinary.com/blogs/learn/persistent-data-storage-on-esp32-leveraging-eeprom-and-preferences-for-permanent-data-retention
 
 
->>>>>>> c49e7cc789feace9013955c74a01a277261d0e93
+

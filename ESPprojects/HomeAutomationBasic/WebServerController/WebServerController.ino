@@ -213,6 +213,13 @@ bool requesttimelapsed(unsigned long duration){
   return true; 
 }
 
+void ledflashing(unsigned long timestamp, unsigned long duration){
+  static unsigned long ledtime = 0;
+  if(timestamp < ledtime) return;
+  ledtime = millis() + duration; // make sure to get 'fresh' timestamp to avoid processing time influences
+  digitalWrite(led, !digitalRead(led)); // toggle onboard LED
+}
+
 void setup(void) {
 
   pinMode(led, OUTPUT);
@@ -270,10 +277,15 @@ void setup(void) {
 }
 
 bool norequest = false;
+bool ledflash = false;
 
 void loop(void) {
 
   runningtime = millis();
+
+  if (ledflash){
+    ledflashing(runningtime, 1000);
+  }
 
   server.handleClient();
   if(rootresponse > 0){
