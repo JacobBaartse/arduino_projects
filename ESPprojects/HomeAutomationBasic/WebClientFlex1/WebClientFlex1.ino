@@ -18,7 +18,7 @@
 ESP8266WiFiMulti WiFiMulti;
 
 const int led = LED_BUILTIN;
-int led_val = 2;
+int led_val = 3;
 int clientid = 1;
 
 unsigned long runningtime = 0;

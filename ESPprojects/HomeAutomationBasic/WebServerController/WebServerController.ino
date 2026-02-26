@@ -115,77 +115,54 @@ void handleRoot() {
   Serial.println(F(" "));
 }
 
-void handleLEDplain() {
-  Serial.print(F("handleLED, "));
-
-  String response = "-*-";
-  if (server.hasArg("led1")) {
-    if (led1_val < 3){
-      response = "led1=" + String(led1_val);
-    }
-  }  
-  if (server.hasArg("led2")) {
-    if (led2_val < 3){
-      response = "led2=" + String(led2_val);
-    }
-  }
-  if (server.hasArg("led3")) {
-    if (led3_val < 3){
-      response = "led3=" + String(led3_val);
-    }
-  }
-  if (server.hasArg("led4")) {
-    if (led4_val < 3){
-      response = "led4=" + String(led4_val);
-    }
-  }
-  Serial.print(F("response: '"));
-  Serial.print(response);
-  Serial.print(F("', runningtime: "));
-  Serial.println(runningtime);
-  server.send(200, "text/plain", response);
-  requesttime = runningtime;
-}
-
 void handleLEDjson() {
   int qval = 9;
   Serial.print(F("handleLED, "));
+  // Serial.print("URI: "); 
+  // Serial.print(server.uri()); 
+  // Serial.print(", method: "); 
+  // Serial.print(server.method() == HTTP_GET ? "GET" : "POST"); 
+  // Serial.print(", arguments:"); 
+  // for (uint8_t i = 0; i < server.args(); i++){ 
+  //   Serial.printf(" %s = %s", server.argName(i).c_str(), server.arg(i).c_str()); 
+  // }
+  // Serial.println(F(" "));
 
   String response = "{\"led\" : 9, \"value\" : 9"; // }"; // unknown client id
   if (server.hasArg("led1")) {
-    if (led1_val > 1){
+    if (led1_val > 2){
       qval = server.arg("led1").toInt();
       led1_val = qval;
     }
-    if (led1_val < 4){
+    if (led1_val < 3){
       response = "{\"led\" : 1, \"value\" : " + String(led1_val); // + "}";
     }
 
   }  
   if (server.hasArg("led2")) {
-    if (led2_val > 1){
+    if (led2_val > 2){
       qval = server.arg("led2").toInt();
       led2_val = qval;
     }
-    if (led2_val < 4){
+    if (led2_val < 3){
       response = "{\"led\" : 2, \"value\" : " + String(led2_val); // + "}";
     }
   }
   if (server.hasArg("led3")) {
-    if (led3_val > 1){
+    if (led3_val > 2){
       qval = server.arg("led3").toInt();
       led3_val = qval;
     }    
-    if (led3_val < 4){
+    if (led3_val < 3){
       response = "{\"led\" : 3, \"value\" : " + String(led3_val); // + "}";
     }
   }
   if (server.hasArg("led4")) {
-    if (led4_val > 1){
+    if (led4_val > 2){
       qval = server.arg("led4").toInt();
       led4_val = qval;
     }    
-    if (led4_val < 4){
+    if (led4_val < 3){
       response = "{\"led\" : 4, \"value\" : " + String(led4_val); // + "}";
     }
   }
