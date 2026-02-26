@@ -18,7 +18,7 @@
 ESP8266WiFiMulti WiFiMulti;
 
 const int led = LED_BUILTIN;
-int led_val = 3;
+int led_val = 8;
 int clientid = 1;
 
 unsigned long runningtime = 0;
@@ -43,11 +43,38 @@ int parseresult(int clientnumber, String payloadstring){
 
   if (clientnumber == int(myObject["led"])){ // check if the response is for this client
     rvalue = int(myObject["value"]);
-    servertime = (unsigned long)(myObject["servertime"]);
     pollingfromserver = (unsigned long)(myObject["pollingtime"]);
-    Serial.print(F("Time between send server messages (on server): "));
-    Serial.print((servertime - prevservertime));
-    Serial.println(F(" milliseconds"));
+    servertime = (unsigned long)(myObject["servertime"]); // can be used as nonce or sequence number (checking)
+
+    unsigned long serverdiff = 0;
+    bool suspect = false;
+    int poldiff = 1000;
+    if (servertime > prevservertime){
+      serverdiff = servertime - prevservertime;
+    }
+    else {
+      suspect = true; // wrapping of time or a reset of the webserver/client
+    }
+    if (serverdiff < pollinginterval){
+      poldiff = pollinginterval - serverdiff;
+    }
+    else{
+      poldiff = serverdiff - pollinginterval;
+    }
+    if (poldiff > 150){ // diff more than 150 ms
+      suspect = true;
+    }
+    if (suspect){
+      Serial.print(F("Time between send server messages (on server): "));
+      Serial.print(serverdiff);
+      Serial.print(F(" milliseconds, polling time: "));
+      Serial.print(pollinginterval);
+      Serial.print(F(" milliseconds, servertime: "));
+      Serial.print(servertime);
+      Serial.print(F(" milliseconds, local time: "));
+      Serial.print(millis());
+      Serial.println(F(" milliseconds"));
+    }
     prevservertime = servertime;
   }
   else{
@@ -85,8 +112,8 @@ bool timelapsed(unsigned long timestamp, bool newval=false){
     if(timestamp < tracktime) return false;
   }
   tracktime = millis() + pollinginterval; // make sure to get 'fresh' timestamp to avoid processing time influences
-  Serial.print(F("Scheduling next request for: "));
-  Serial.println(tracktime);
+  // Serial.print(F("Scheduling next request for local time: "));
+  // Serial.println(tracktime);
   return true;
 }
 
@@ -127,13 +154,16 @@ void setup() {
 }
 
 String composerequest(int composeval){
-  return "http://192.168.4.1/led?led" + String(clientid) + "=" + String(composeval);
+  return "http://192.168.4.1/led?cid=" + String(clientid) + "&cstat=" + String(composeval);
 }
 
 bool dorequest = false; // request updates regularly
 WiFiClient client;
 HTTPClient http;
 String ledrequest = ""; // composerequest(9); // "http://192.168.4.1/led?led" + String(clientid) + "=9";
+String remledrequest = "";
+String payload = "";
+String rempayload = "";
 
 int remledval = 9;
 
@@ -149,8 +179,11 @@ void loop() {
   if (dorequest){
     if ((WiFiMulti.run() == WL_CONNECTED)) { // check WiFi connection
       ledrequest = composerequest(led_val);
-      Serial.print(F("Request to server: "));
-      Serial.println(ledrequest);
+      if (ledrequest != remledrequest){
+        Serial.print(F("Request to server: "));
+        Serial.println(ledrequest);
+        remledrequest = ledrequest;
+      }
       
       http.begin(client, ledrequest);
       int httpCode = http.GET();
@@ -159,28 +192,31 @@ void loop() {
 
         // data found in response from server
         if (httpCode == HTTP_CODE_OK) {
-          String payload = http.getString();
+          payload = http.getString();
+          if (payload != rempayload){
+            remledval = led_val;
+            led_val = parseresult(clientid, payload);
+            if (led_val != remledval){
+              //pollingtime = 1000;
+              Serial.print(F("Changed led to: "));
+              Serial.println(led_val);
+              if (led_val < 3){ // local LED on this client board
+                if (led_val < 2){ // local LED on this client board
+                  ledflash = false;
+                  digitalWrite(led, led_val);
+                }
+                else{ // value 2 means flashing
+                  ledflash = true;
+                }
+              }
+            }
+            // else {
+            //   if (pollingtime < 5000){
+            //     pollingtime += 1000;
+            //   }
+            // }
 
-          remledval = led_val;
-          led_val = parseresult(clientid, payload);
-          if (led_val != remledval){
-            //pollingtime = 1000;
-            Serial.print(F("Changed led to: "));
-            Serial.println(led_val);
-          }
-          // else {
-          //   if (pollingtime < 5000){
-          //     pollingtime += 1000;
-          //   }
-          // }
-          if (led_val < 3){ // local LED on this client board
-            if (led_val < 2){ // local LED on this client board
-              ledflash = false;
-              digitalWrite(led, led_val);
-            }
-            else{ // value 2 means flashing
-              ledflash = true;
-            }
+            rempayload = payload; // remember payload to process only once when response is changed
           }
         }
       } else {

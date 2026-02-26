@@ -17,6 +17,10 @@ const char* sta_password = "T24T24T24";
 const char* ap_ssid = "Local_AP";
 const char* ap_password = "local_148_AP";
 
+// login credentials
+const char* http_username = "so148";
+const char* http_password = "pietcarla";
+
 ESP8266WebServer server(80);
 
 const int led = LED_BUILTIN;
@@ -33,70 +37,121 @@ unsigned long requesttime = 0;
 unsigned long pollingtime = 5000;
 unsigned long norequesttime = pollingtime * 4.5;
 
-const String homeLinks = "<html>\
-  <head>\
-    <title>Home controller SO-148</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <h1>Home network, LED control (onboard LEDs)</h1>\
-  <br><br>\
-    &nbsp;<a href=\"/?led0=0\">Turn local LED on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led0=1\">Turn locaL LED off</a>&nbsp;<a href=\"/?led0=2\">Flash local LED</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?led1=0\">Turn LED 1 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led1=1\">Turn LED 1 off</a>&nbsp;<a href=\"/?led1=2\">Flash LED 1</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?led2=0\">Turn LED 2 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off</a>&nbsp;<a href=\"/?led2=2\">Flash LED 2</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<a href=\"/?led3=2\">Flash LED 3</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?led4=0\">Turn LED 4 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led4=1\">Turn LED 4 off</a>&nbsp;<a href=\"/?led4=2\">Flash LED 4</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?ledall=0\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledall=1\">Turn all LEDs off</a>&nbsp;<a href=\"/?ledall=2\">Flash all LEDs</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?poll=1\">1 second</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=5\">5 seconds</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?poll=10\">10 seconds</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=60\">1 minute</a>&nbsp;<br><br>\
-  </body>\
+const String homeLinks = "<!DOCTYPE HTML><html> \
+  <head> \
+    <title>Home controller for Sickengaoord 148</title> \
+    <style> \
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; } \
+    </style> \
+  </head> \
+  <h1>Home network, LED control (onboard LEDs)</h1> \
+  <br><br> \
+  <table> \
+  <tr><th>on</th><th>off</th><th>flash</th></tr> \
+  <tr><td><a href=\"/?id=0&stat=0\">server</a></td><td><a href=\"/?id=0&stat=1\">server</a></td><td><a href=\"/?id=0&stat=2\">server</a></td></tr> \
+  <tr><td><a href=\"/?id=1&stat=0\">client 1</a></td><td><a href=\"/?id=1&stat=1\">client 1</a></td><td><a href=\"/?id=1&stat=2\">client 1</a></td></tr> \
+  <tr><td><a href=\"/?id=2&stat=0\">client 2</a></td><td><a href=\"/?id=2&stat=1\">client 2</a></td><td><a href=\"/?id=2&stat=2\">client 2</a></td></tr> \
+  <tr><td><a href=\"/?id=3&stat=0\">client 3</a></td><td><a href=\"/?id=3&stat=1\">client 3</a></td><td><a href=\"/?id=3&stat=2\">client 3</a></td></tr> \
+  <tr><td><a href=\"/?id=4&stat=0\">client 4</a></td><td><a href=\"/?id=4&stat=1\">client 4</a></td><td><a href=\"/?id=4&stat=2\">client 4</a></td></tr> \
+  <tr><td><a href=\"/?id=999&stat=0\">all</a></td><td><a href=\"/?id=999&stat=1\">all</a></td><td><a href=\"/?id=999&stat=2\">all</a></td></tr> \
+  </table> \
+  <table> \
+  <tr><th>polling</th></tr> \
+  <tr><td><a href=\"/?poll=2\">2 sec</a></td></tr> \
+  <tr><td><a href=\"/?poll=5\">5 sec</a></td></tr> \
+  <tr><td><a href=\"/?poll=10\">10 sec</a></td></tr> \
+  <tr><td><a href=\"/?poll=60\">1 min</a></td></tr> \
+  </table> \
+  </body> \
 </html>";
 
+    // &nbsp;<a href=\"/?led0=0\">Turn local LED on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led0=1\">Turn locaL LED off</a>&nbsp;<a href=\"/?led0=2\">Flash local LED</a>&nbsp;<br><br> \
+    // &nbsp;<a href=\"/?led1=0\">Turn LED 1 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led1=1\">Turn LED 1 off</a>&nbsp;<a href=\"/?led1=2\">Flash LED 1</a>&nbsp;<br><br> \
+    // &nbsp;<a href=\"/?led2=0\">Turn LED 2 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off</a>&nbsp;<a href=\"/?led2=2\">Flash LED 2</a>&nbsp;<br><br> \
+    // &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<a href=\"/?led3=2\">Flash LED 3</a>&nbsp;<br><br> \
+    // &nbsp;<a href=\"/?led4=0\">Turn LED 4 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led4=1\">Turn LED 4 off</a>&nbsp;<a href=\"/?led4=2\">Flash LED 4</a>&nbsp;<br><br> \
+    // &nbsp;<a href=\"/?ledall=0\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledall=1\">Turn all LEDs off</a>&nbsp;<a href=\"/?ledall=2\">Flash all LEDs</a>&nbsp;<br><br> \
+    // &nbsp;<a href=\"/?poll=1\">1 second</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=5\">5 seconds</a>&nbsp;<br><br> \
+    // &nbsp;<a href=\"/?poll=10\">10 seconds</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=60\">1 minute</a>&nbsp;<br><br> \
+
 void handleRoot() {
+  int valnow = 9;
+  int idval = 9;
+
+  // Check if client credentials match
+  if (!server.authenticate(http_username, http_password)) {
+    // If not authenticated, request authentication
+    Serial.println("Authentication failed, requesting credentials.");
+    // Send 401 Unauthorized response with WWW-Authenticate header
+    return server.requestAuthentication(BASIC_AUTH, "Sickengaoord 148 thuis netwerk");
+  }
+
   Serial.print(F("handleRoot: "));
+  // Serial.print("URI: "); 
+  // Serial.print(server.uri()); 
+  // Serial.print(", method: "); 
+  // Serial.print(server.method() == HTTP_GET ? "GET" : "POST"); 
+  // Serial.print(", arguments:"); 
+  // for (uint8_t i = 0; i < server.args(); i++){ 
+  //   Serial.printf(" %s = %s", server.argName(i).c_str(), server.arg(i).c_str()); 
+  // }
+  // Serial.println(F(" "));
+
   if (server.hasArg("poll")) {
     rootresponse = server.arg("poll").toInt();
   }
-  if (server.hasArg("ledall")) {
-    int valnow = server.arg("ledall").toInt();
-    led0_val = valnow;
-    led1_val = valnow;
-    led2_val = valnow;
-    led3_val = valnow;
-    led4_val = valnow;
+  if (server.hasArg("stat")) {
+    valnow = server.arg("stat").toInt();
   }
-  // if (server.hasArg("ledalloff")) {
-  //   led0_val = 1;
-  //   led1_val = 1;
-  //   led2_val = 1;
-  //   led3_val = 1;
-  //   led4_val = 1;
+  if (server.hasArg("id")) {
+    idval = server.arg("id").toInt();
+    if (idval > 10){ // all (clients and the server)
+      led0_val = valnow;
+      led1_val = valnow;
+      led2_val = valnow;
+      led3_val = valnow;
+      led4_val = valnow;
+    }
+    if (idval == 0){ // web server
+      led0_val = valnow;
+    }
+    if (idval == 1){ // client 1
+      led1_val = valnow;
+    }
+    if (idval == 2){ // client 2
+      led2_val = valnow;
+    }
+    if (idval == 3){ // client 3
+      led3_val = valnow;
+    }
+    if (idval == 4){ // client 4
+      led4_val = valnow;
+    }
+  }
+  // if (server.hasArg("led0")) {
+  //   led0_val = server.arg("led0").toInt();
   // }
-  if (server.hasArg("led0")) {
-    led0_val = server.arg("led0").toInt();
-  }
   //Serial.print("led 0: ");
   Serial.print("leds: ");
   Serial.print(led0_val);
-  if (server.hasArg("led1")) {
-    led1_val = server.arg("led1").toInt();
-  }
+  // if (server.hasArg("led1")) {
+  //   led1_val = server.arg("led1").toInt();
+  // }
   Serial.print(", ");
   Serial.print(led1_val);
-  if (server.hasArg("led2")) {
-    led2_val = server.arg("led2").toInt();
-  }
+  // if (server.hasArg("led2")) {
+  //   led2_val = server.arg("led2").toInt();
+  // }
   Serial.print(", ");
   Serial.print(led2_val);  
-  if (server.hasArg("led3")) {
-    led3_val = server.arg("led3").toInt();
-  }
+  // if (server.hasArg("led3")) {
+  //   led3_val = server.arg("led3").toInt();
+  // }
   Serial.print(", ");
   Serial.print(led3_val);  
-  if (server.hasArg("led4")) {
-    led4_val = server.arg("led4").toInt();
-  }
+  // if (server.hasArg("led4")) {
+  //   led4_val = server.arg("led4").toInt();
+  // }
   Serial.print(", ");
   Serial.print(led4_val);
   Serial.println(F(" !"));
@@ -116,7 +171,11 @@ void handleRoot() {
 }
 
 void handleLEDjson() {
-  int qval = 9;
+  int clientval = 9;
+  int clientstat = 9;
+  int clientresp = 9;
+  //int qval = 9;
+  runningtime = millis();
   Serial.print(F("handleLED, "));
   // Serial.print("URI: "); 
   // Serial.print(server.uri()); 
@@ -128,50 +187,49 @@ void handleLEDjson() {
   // }
   // Serial.println(F(" "));
 
-  String response = "{\"led\" : 9, \"value\" : 9"; // }"; // unknown client id
-  if (server.hasArg("led1")) {
-    if (led1_val > 2){
-      qval = server.arg("led1").toInt();
-      led1_val = qval;
-    }
-    if (led1_val < 3){
-      response = "{\"led\" : 1, \"value\" : " + String(led1_val); // + "}";
-    }
+  String response = ""; // "{\"led\" : 9, \"value\" : 9"; // }"; // unknown client id
 
-  }  
-  if (server.hasArg("led2")) {
+  if (server.hasArg("cid")) {
+    clientval = server.arg("cid").toInt();
+  } 
+  if (server.hasArg("cstat")) {
+    clientstat = server.arg("cstat").toInt();
+  } 
+  // Serial.print("clientstat: "); 
+  // Serial.println(clientstat); 
+
+  if (clientval == 1){ // client 1
+    if (led1_val > 2){
+      led1_val = clientstat;
+    }
+    clientresp = led1_val; 
+  }
+  if (clientval == 2){ // client 2
     if (led2_val > 2){
-      qval = server.arg("led2").toInt();
-      led2_val = qval;
+      led2_val = clientstat;
     }
-    if (led2_val < 3){
-      response = "{\"led\" : 2, \"value\" : " + String(led2_val); // + "}";
-    }
+    clientresp = led2_val; 
   }
-  if (server.hasArg("led3")) {
+  if (clientval == 3){ // client 3
     if (led3_val > 2){
-      qval = server.arg("led3").toInt();
-      led3_val = qval;
-    }    
-    if (led3_val < 3){
-      response = "{\"led\" : 3, \"value\" : " + String(led3_val); // + "}";
+      led3_val = clientstat;
     }
+    clientresp = led3_val; 
   }
-  if (server.hasArg("led4")) {
+  if (clientval == 4){ // client 4
     if (led4_val > 2){
-      qval = server.arg("led4").toInt();
-      led4_val = qval;
-    }    
-    if (led4_val < 3){
-      response = "{\"led\" : 4, \"value\" : " + String(led4_val); // + "}";
+      led4_val = clientstat;
     }
+    clientresp = led4_val; 
   }
+  
+  response = "{\"led\" : " + String(clientval) + ", \"value\" : " + String(clientresp); // + "}";
+
   response += ", \"servertime\" : " + String(runningtime) + ", \"pollingtime\" : " + String(pollingtime) + " }";
 
   Serial.print(F("response: '"));
-  Serial.println(response);
-  // Serial.print(F("', runningtime: "));
-  // Serial.println(runningtime);
+  Serial.print(response);
+  Serial.println(F("'"));
   server.send(200, "application/json", response);
   requesttime = runningtime;
 }
@@ -195,11 +253,20 @@ void handleNotFound() {
 }
 
 bool requesttimelapsed(unsigned long duration){
-  if(runningtime < requesttime + duration) return false;
-  Serial.print(F("No timely request received: "));
-  Serial.println(runningtime);
+  static int lapsed = 0;
+  if(runningtime < requesttime + duration){ 
+    lapsed = 0;
+    return lapsed;
+  }
+  if (lapsed > 0){
+    Serial.print(F("No timely request received: "));
+    Serial.print(lapsed);
+    Serial.print(F(", "));
+    Serial.println(runningtime);
+  }
+  lapsed += 1;
   requesttime = runningtime; // set the printing as request time, to get 1 message per duration
-  return true; 
+  return lapsed; 
 }
 
 void ledflashing(unsigned long timestamp, unsigned long duration){
@@ -265,7 +332,7 @@ void setup(void) {
   digitalWrite(led, 1); // turn onboard LED off
 }
 
-bool norequest = false;
+int norequest = 0;
 
 void loop(void) {
 
@@ -285,5 +352,8 @@ void loop(void) {
   }
 
   norequest = requesttimelapsed(norequesttime);
+  // if (norequest > 0){ // no request received within time period
+  //   pollingtime = 2000;
+  // }
 
 }
