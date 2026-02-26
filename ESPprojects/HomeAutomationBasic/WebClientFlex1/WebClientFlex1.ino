@@ -25,10 +25,11 @@ unsigned long runningtime = 0;
 unsigned long pollinginterval = 5000;
 unsigned long pollingfromserver = 5000;
 unsigned long servertime = 0;
+bool ledflash = false;
 
 int parseresult(int clientnumber, String payloadstring){
   static unsigned long prevservertime = 0;
-  int rvalue = 2;
+  int rvalue = 9;
   JSONVar myObject = JSON.parse(payloadstring);
 
   // JSON.typeof(jsonVar) can be used to get the type of the var
@@ -135,7 +136,6 @@ HTTPClient http;
 String ledrequest = ""; // composerequest(9); // "http://192.168.4.1/led?led" + String(clientid) + "=9";
 
 int remledval = 9;
-bool ledflash = false;
 
 void loop() {
 
@@ -173,8 +173,14 @@ void loop() {
           //     pollingtime += 1000;
           //   }
           // }
-          if (led_val < 2){ // local LED on this client board
-            digitalWrite(led, led_val);
+          if (led_val < 3){ // local LED on this client board
+            if (led_val < 2){ // local LED on this client board
+              ledflash = false;
+              digitalWrite(led, led_val);
+            }
+            else{ // value 2 means flashing
+              ledflash = true;
+            }
           }
         }
       } else {

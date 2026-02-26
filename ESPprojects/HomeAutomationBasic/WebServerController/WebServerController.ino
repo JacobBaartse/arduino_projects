@@ -20,12 +20,13 @@ const char* ap_password = "local_148_AP";
 ESP8266WebServer server(80);
 
 const int led = LED_BUILTIN;
-int led0_val = 2;
-int led1_val = 2;
-int led2_val = 2;
-int led3_val = 2;
-int led4_val = 2;
+int led0_val = 9;
+int led1_val = 9;
+int led2_val = 9;
+int led3_val = 9;
+int led4_val = 9;
 int rootresponse = 0;
+bool ledflash = false;
 
 unsigned long runningtime = 0;
 unsigned long requesttime = 0;
@@ -41,12 +42,12 @@ const String homeLinks = "<html>\
   </head>\
   <h1>Home network, LED control (onboard LEDs)</h1>\
   <br><br>\
-    &nbsp;<a href=\"/?led0=0\">Turn local LED on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led0=1\">Turn locaL LED off</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?led1=0\">Turn LED 1 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led1=1\">Turn LED 1 off</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?led2=0\">Turn LED 2 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?led4=0\">Turn LED 4 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led4=1\">Turn LED 4 off</a>&nbsp;<br><br>\
-    &nbsp;<a href=\"/?ledall=0\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledall=1\">Turn all LEDs off</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led0=0\">Turn local LED on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led0=1\">Turn locaL LED off</a>&nbsp;<a href=\"/?led0=2\">Flash local LED</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led1=0\">Turn LED 1 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led1=1\">Turn LED 1 off</a>&nbsp;<a href=\"/?led1=2\">Flash LED 1</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led2=0\">Turn LED 2 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off</a>&nbsp;<a href=\"/?led2=2\">Flash LED 2</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<a href=\"/?led3=2\">Flash LED 3</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?led4=0\">Turn LED 4 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led4=1\">Turn LED 4 off</a>&nbsp;<a href=\"/?led4=2\">Flash LED 4</a>&nbsp;<br><br>\
+    &nbsp;<a href=\"/?ledall=0\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledall=1\">Turn all LEDs off</a>&nbsp;<a href=\"/?ledall=2\">Flash all LEDs</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?poll=1\">1 second</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=5\">5 seconds</a>&nbsp;<br><br>\
     &nbsp;<a href=\"/?poll=10\">10 seconds</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=60\">1 minute</a>&nbsp;<br><br>\
   </body>\
@@ -100,8 +101,14 @@ void handleRoot() {
   Serial.print(led4_val);
   Serial.println(F(" !"));
 
-  if (led0_val < 2){ // local LED on this server board
-    digitalWrite(led, led0_val);
+  if (led0_val < 3){ // local LED on this server board
+    if (led0_val < 2){ // local LED on this server board
+      ledflash = false;
+      digitalWrite(led, led0_val);
+    }
+    else{ // value 2 means flashing
+      ledflash = true;
+    }
   }
   Serial.println(F("Server homepage"));
   server.send(200, "text/html", homeLinks);
@@ -113,18 +120,23 @@ void handleLEDplain() {
 
   String response = "-*-";
   if (server.hasArg("led1")) {
-    if (led1_val < 2){
+    if (led1_val < 3){
       response = "led1=" + String(led1_val);
     }
   }  
   if (server.hasArg("led2")) {
-    if (led2_val < 2){
+    if (led2_val < 3){
       response = "led2=" + String(led2_val);
     }
   }
   if (server.hasArg("led3")) {
-    if (led3_val < 2){
+    if (led3_val < 3){
       response = "led3=" + String(led3_val);
+    }
+  }
+  if (server.hasArg("led4")) {
+    if (led4_val < 3){
+      response = "led4=" + String(led4_val);
     }
   }
   Serial.print(F("response: '"));
@@ -136,16 +148,16 @@ void handleLEDplain() {
 }
 
 void handleLEDjson() {
-  int qval = 3;
+  int qval = 9;
   Serial.print(F("handleLED, "));
 
-  String response = "{\"led\" : 9, \"value\" : 2"; // }"; // unknown client id
+  String response = "{\"led\" : 9, \"value\" : 9"; // }"; // unknown client id
   if (server.hasArg("led1")) {
     if (led1_val > 1){
       qval = server.arg("led1").toInt();
       led1_val = qval;
     }
-    if (led1_val < 3){
+    if (led1_val < 4){
       response = "{\"led\" : 1, \"value\" : " + String(led1_val); // + "}";
     }
 
@@ -155,7 +167,7 @@ void handleLEDjson() {
       qval = server.arg("led2").toInt();
       led2_val = qval;
     }
-    if (led2_val < 3){
+    if (led2_val < 4){
       response = "{\"led\" : 2, \"value\" : " + String(led2_val); // + "}";
     }
   }
@@ -164,7 +176,7 @@ void handleLEDjson() {
       qval = server.arg("led3").toInt();
       led3_val = qval;
     }    
-    if (led3_val < 3){
+    if (led3_val < 4){
       response = "{\"led\" : 3, \"value\" : " + String(led3_val); // + "}";
     }
   }
@@ -173,7 +185,7 @@ void handleLEDjson() {
       qval = server.arg("led4").toInt();
       led4_val = qval;
     }    
-    if (led4_val < 3){
+    if (led4_val < 4){
       response = "{\"led\" : 4, \"value\" : " + String(led4_val); // + "}";
     }
   }
@@ -277,7 +289,6 @@ void setup(void) {
 }
 
 bool norequest = false;
-bool ledflash = false;
 
 void loop(void) {
 
