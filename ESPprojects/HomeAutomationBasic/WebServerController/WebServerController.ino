@@ -24,11 +24,6 @@ const char* http_password = "pietcarla";
 ESP8266WebServer server(80);
 
 const int led = LED_BUILTIN;
-int led0_val = 9;
-int led1_val = 9;
-int led2_val = 9;
-int led3_val = 9;
-int led4_val = 9;
 int rootresponse = 0;
 bool ledflash = false;
 
@@ -37,42 +32,61 @@ unsigned long requesttime = 0;
 unsigned long pollingtime = 5000;
 unsigned long norequesttime = pollingtime * 4.5;
 
-const String homeLinks = "<!DOCTYPE HTML><html> \
-  <head> \
-    <title>Home controller for Sickengaoord 148</title> \
-    <style> \
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; } \
-    </style> \
-  </head> \
-  <h1>Home network, LED control (onboard LEDs)</h1> \
-  <br><br> \
-  <table> \
-  <tr><th>on</th><th>off</th><th>flash</th></tr> \
-  <tr><td><a href=\"/?id=0&stat=0\">server</a></td><td><a href=\"/?id=0&stat=1\">server</a></td><td><a href=\"/?id=0&stat=2\">server</a></td></tr> \
-  <tr><td><a href=\"/?id=1&stat=0\">client 1</a></td><td><a href=\"/?id=1&stat=1\">client 1</a></td><td><a href=\"/?id=1&stat=2\">client 1</a></td></tr> \
-  <tr><td><a href=\"/?id=2&stat=0\">client 2</a></td><td><a href=\"/?id=2&stat=1\">client 2</a></td><td><a href=\"/?id=2&stat=2\">client 2</a></td></tr> \
-  <tr><td><a href=\"/?id=3&stat=0\">client 3</a></td><td><a href=\"/?id=3&stat=1\">client 3</a></td><td><a href=\"/?id=3&stat=2\">client 3</a></td></tr> \
-  <tr><td><a href=\"/?id=4&stat=0\">client 4</a></td><td><a href=\"/?id=4&stat=1\">client 4</a></td><td><a href=\"/?id=4&stat=2\">client 4</a></td></tr> \
-  <tr><td><a href=\"/?id=999&stat=0\">all</a></td><td><a href=\"/?id=999&stat=1\">all</a></td><td><a href=\"/?id=999&stat=2\">all</a></td></tr> \
-  </table> \
-  <table> \
-  <tr><th>polling</th></tr> \
-  <tr><td><a href=\"/?poll=2\">2 sec</a></td></tr> \
-  <tr><td><a href=\"/?poll=5\">5 sec</a></td></tr> \
-  <tr><td><a href=\"/?poll=10\">10 sec</a></td></tr> \
-  <tr><td><a href=\"/?poll=60\">1 min</a></td></tr> \
-  </table> \
-  </body> \
-</html>";
+// array of server and clients (server has id 0, clients starting from 1 and up)
+int devices[] = {9, 9, 999}; // last one is 999, referring to 'all' in webpage
+int pollsamples[] = {2, 5, 10, 30, 60, 999};
 
-    // &nbsp;<a href=\"/?led0=0\">Turn local LED on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led0=1\">Turn locaL LED off</a>&nbsp;<a href=\"/?led0=2\">Flash local LED</a>&nbsp;<br><br> \
-    // &nbsp;<a href=\"/?led1=0\">Turn LED 1 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led1=1\">Turn LED 1 off</a>&nbsp;<a href=\"/?led1=2\">Flash LED 1</a>&nbsp;<br><br> \
-    // &nbsp;<a href=\"/?led2=0\">Turn LED 2 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led2=1\">Turn LED 2 off</a>&nbsp;<a href=\"/?led2=2\">Flash LED 2</a>&nbsp;<br><br> \
-    // &nbsp;<a href=\"/?led3=0\">Turn LED 3 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led3=1\">Turn LED 3 off</a>&nbsp;<a href=\"/?led3=2\">Flash LED 3</a>&nbsp;<br><br> \
-    // &nbsp;<a href=\"/?led4=0\">Turn LED 4 on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?led4=1\">Turn LED 4 off</a>&nbsp;<a href=\"/?led4=2\">Flash LED 4</a>&nbsp;<br><br> \
-    // &nbsp;<a href=\"/?ledall=0\">Turn all LEDs on</a>&nbsp;&nbsp;&nbsp;<a href=\"/?ledall=1\">Turn all LEDs off</a>&nbsp;<a href=\"/?ledall=2\">Flash all LEDs</a>&nbsp;<br><br> \
-    // &nbsp;<a href=\"/?poll=1\">1 second</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=5\">5 seconds</a>&nbsp;<br><br> \
-    // &nbsp;<a href=\"/?poll=10\">10 seconds</a>&nbsp;&nbsp;&nbsp;<a href=\"/?poll=60\">1 minute</a>&nbsp;<br><br> \
+const String startsection = "<!DOCTYPE HTML><html><head><title>Home controller for Sickengaoord 148</title> \
+      <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
+      </head><h1>Home network SO 148</h1>LED control (onboard LEDs)<br><br>";
+const String middlesection1 = "<br><br><table><tr><th>on</th><th>off</th><th>flash</th></tr>";
+const String middlesection2 = "</table><br><table><tr><th>polling</th></tr>";
+const String endsection = "</table></body></html>";
+
+String clientline(int clientid){
+  String cidstring = String(clientid);
+  String cidref = cidstring;
+  if (clientid == 0){
+    cidref = "ctrl"; // "controller"; // "server/controller";
+  }
+  if (devices[clientid] > 900){
+    cidref = "all"; // "all devices";
+    cidstring = "999";
+  }
+  String linehere = "<tr><td><a href=\"/?id="+cidstring+"&stat=0\">"+cidref+"</a></td><td><a href=\"/?id="+cidstring+"&stat=1\">"+cidref+"</a></td><td><a href=\"/?id="+cidstring+"&stat=2\">"+cidref+"</a></td></tr>";
+  return linehere;
+}
+
+String pollline(int polinterval){
+  String linehere = "<tr><td><a href=\"/?poll="+String(polinterval)+"\">"+String(polinterval)+" sec</a></td></tr>";
+  return linehere;
+}
+
+String makewebpagehtml(String statusString){ // to be enhanced, array processing
+  String htmlpage = startsection;
+  String specificline = "";
+
+  htmlpage += statusString;
+  htmlpage += middlesection1;
+  int i = 0;
+  while (true){
+    specificline = clientline(i);
+    htmlpage += specificline;
+    if (devices[i] > 900) break; // last line indicates 'all'
+    i += 1;
+  }
+  htmlpage += middlesection2;
+  i = 0;
+  while (true){
+    specificline = pollline(pollsamples[i]);
+    htmlpage += specificline;
+    i += 1;
+    if (pollsamples[i] > 900) break; // nextline indicates end of array
+  }
+  htmlpage += endsection;
+  
+  return htmlpage;
+}
 
 void handleRoot() {
   int valnow = 9;
@@ -81,12 +95,13 @@ void handleRoot() {
   // Check if client credentials match
   if (!server.authenticate(http_username, http_password)) {
     // If not authenticated, request authentication
-    Serial.println("Authentication failed, requesting credentials.");
+    Serial.println(F("Requesting credentials."));
     // Send 401 Unauthorized response with WWW-Authenticate header
     return server.requestAuthentication(BASIC_AUTH, "Sickengaoord 148 thuis netwerk");
   }
 
-  Serial.print(F("handleRoot: "));
+  Serial.print(millis());
+  Serial.print(F(", handleRoot: "));
   // Serial.print("URI: "); 
   // Serial.print(server.uri()); 
   // Serial.print(", method: "); 
@@ -106,77 +121,51 @@ void handleRoot() {
   if (server.hasArg("id")) {
     idval = server.arg("id").toInt();
     if (idval > 10){ // all (clients and the server)
-      led0_val = valnow;
-      led1_val = valnow;
-      led2_val = valnow;
-      led3_val = valnow;
-      led4_val = valnow;
+      int i = 0;
+      while (true){
+        devices[i] = valnow;
+        i += 1;
+        if (devices[i] > 900) break;
+      }
     }
-    if (idval == 0){ // web server
-      led0_val = valnow;
-    }
-    if (idval == 1){ // client 1
-      led1_val = valnow;
-    }
-    if (idval == 2){ // client 2
-      led2_val = valnow;
-    }
-    if (idval == 3){ // client 3
-      led3_val = valnow;
-    }
-    if (idval == 4){ // client 4
-      led4_val = valnow;
+    else {
+      devices[idval] = valnow;
     }
   }
-  // if (server.hasArg("led0")) {
-  //   led0_val = server.arg("led0").toInt();
-  // }
-  //Serial.print("led 0: ");
-  Serial.print("leds: ");
-  Serial.print(led0_val);
-  // if (server.hasArg("led1")) {
-  //   led1_val = server.arg("led1").toInt();
-  // }
-  Serial.print(", ");
-  Serial.print(led1_val);
-  // if (server.hasArg("led2")) {
-  //   led2_val = server.arg("led2").toInt();
-  // }
-  Serial.print(", ");
-  Serial.print(led2_val);  
-  // if (server.hasArg("led3")) {
-  //   led3_val = server.arg("led3").toInt();
-  // }
-  Serial.print(", ");
-  Serial.print(led3_val);  
-  // if (server.hasArg("led4")) {
-  //   led4_val = server.arg("led4").toInt();
-  // }
-  Serial.print(", ");
-  Serial.print(led4_val);
+
+  String ledString = "leds: ";
+  int i = 0;
+  String Split = "";
+  while (devices[i] < 900){
+    ledString += Split;
+    ledString += String(devices[i]);
+    i += 1;
+    Split = ", ";
+  }
+  Serial.print(ledString);
   Serial.println(F(" !"));
 
-  if (led0_val < 3){ // local LED on this server board
-    if (led0_val < 2){ // local LED on this server board
+  if (devices[0] < 3){ // local LED on this server board
+    if (devices[0] < 2){ // local LED on this server board
       ledflash = false;
-      digitalWrite(led, led0_val);
+      digitalWrite(led, devices[0]);
     }
     else{ // value 2 means flashing
       ledflash = true;
     }
   }
-  Serial.println(F("Server homepage"));
-  server.send(200, "text/html", homeLinks);
+  Serial.println(F("Server html page"));
+  String webpage = makewebpagehtml(ledString); // include the current status information
+  server.send(200, "text/html", webpage);
   Serial.println(F(" "));
 }
 
 void handleLEDjson() {
+  static String remresponse = "";
   int clientval = 9;
   int clientstat = 9;
   int clientresp = 9;
-  //int qval = 9;
-  runningtime = millis();
-  Serial.print(F("handleLED, "));
+  
   // Serial.print("URI: "); 
   // Serial.print(server.uri()); 
   // Serial.print(", method: "); 
@@ -198,38 +187,26 @@ void handleLEDjson() {
   // Serial.print("clientstat: "); 
   // Serial.println(clientstat); 
 
-  if (clientval == 1){ // client 1
-    if (led1_val > 2){
-      led1_val = clientstat;
-    }
-    clientresp = led1_val; 
+  if (devices[clientval] > 2){
+    devices[clientval] = clientstat;
   }
-  if (clientval == 2){ // client 2
-    if (led2_val > 2){
-      led2_val = clientstat;
-    }
-    clientresp = led2_val; 
-  }
-  if (clientval == 3){ // client 3
-    if (led3_val > 2){
-      led3_val = clientstat;
-    }
-    clientresp = led3_val; 
-  }
-  if (clientval == 4){ // client 4
-    if (led4_val > 2){
-      led4_val = clientstat;
-    }
-    clientresp = led4_val; 
-  }
+  clientresp = devices[clientval]; 
   
   response = "{\"led\" : " + String(clientval) + ", \"value\" : " + String(clientresp); // + "}";
+  // response += ", \"servertime\" : " + String(runningtime) + ", \"pollingtime\" : " + String(pollingtime) + "}";
+  response += ", \"pollingtime\" : " + String(pollingtime);
+  bool printhere = (remresponse != response); // keep server time out of the printing
+  remresponse = response;
+  runningtime = millis();
+  response += ", \"servertime\" : " + String(runningtime)  + "}"; // keep server time out of the printing
 
-  response += ", \"servertime\" : " + String(runningtime) + ", \"pollingtime\" : " + String(pollingtime) + " }";
-
-  Serial.print(F("response: '"));
-  Serial.print(response);
-  Serial.println(F("'"));
+  if (printhere){
+    Serial.print(runningtime);
+    Serial.print(F(", handleLED, "));
+    Serial.print(F("response: '"));
+    Serial.print(response);
+    Serial.println(F("'"));
+  }
   server.send(200, "application/json", response);
   requesttime = runningtime;
 }

@@ -65,14 +65,13 @@ int parseresult(int clientnumber, String payloadstring){
       suspect = true;
     }
     if (suspect){
-      Serial.print(F("Time between send server messages (on server): "));
+      Serial.print(millis());
+      Serial.print(F(", time between send server messages (on server): "));
       Serial.print(serverdiff);
       Serial.print(F(" milliseconds, polling time: "));
       Serial.print(pollinginterval);
       Serial.print(F(" milliseconds, servertime: "));
       Serial.print(servertime);
-      Serial.print(F(" milliseconds, local time: "));
-      Serial.print(millis());
       Serial.println(F(" milliseconds"));
     }
     prevservertime = servertime;
@@ -180,7 +179,8 @@ void loop() {
     if ((WiFiMulti.run() == WL_CONNECTED)) { // check WiFi connection
       ledrequest = composerequest(led_val);
       if (ledrequest != remledrequest){
-        Serial.print(F("Request to server: "));
+        Serial.print(runningtime);
+        Serial.print(F(", request to server: "));
         Serial.println(ledrequest);
         remledrequest = ledrequest;
       }
@@ -198,7 +198,8 @@ void loop() {
             led_val = parseresult(clientid, payload);
             if (led_val != remledval){
               //pollingtime = 1000;
-              Serial.print(F("Changed led to: "));
+              Serial.print(runningtime);
+              Serial.print(F(", change led to: "));
               Serial.println(led_val);
               if (led_val < 3){ // local LED on this client board
                 if (led_val < 2){ // local LED on this client board
@@ -225,7 +226,8 @@ void loop() {
 
       http.end();
       if (pollinginterval != pollingfromserver){ // if value update, calculate new request time
-        Serial.print(F("Changed polling to: "));
+        Serial.print(runningtime);
+        Serial.print(F(", changed polling to: "));
         Serial.println(pollingfromserver);
         dorequest = timelapsed(runningtime, true);
       }
