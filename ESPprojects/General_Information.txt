@@ -24,3 +24,7 @@ https://lonelybinary.com/blogs/learn/persistent-data-storage-on-esp32-leveraging
 
 
 
+
+PINOUT information
+https://lastminuteengineers.com/wemos-d1-mini-pinout-reference/
+
