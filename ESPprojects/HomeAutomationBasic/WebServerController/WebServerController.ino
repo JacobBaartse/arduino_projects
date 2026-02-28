@@ -33,7 +33,7 @@ unsigned long pollingtime = 5000;
 unsigned long norequesttime = pollingtime * 4.5;
 
 // array of server and clients (server has id 0, clients starting from 1 and up)
-int devices[] = {9, 9, 999}; // last one is 999, referring to 'all' in webpage
+int devices[] = {9, 9, 9, 9, 999}; // last one is 999, referring to 'all' in webpage
 int pollsamples[] = {2, 5, 10, 30, 60, 999};
 
 const String startsection = "<!DOCTYPE HTML><html><head><title>Home controller for Sickengaoord 148</title> \
@@ -51,7 +51,7 @@ String clientline(int clientid){
   }
   if (devices[clientid] > 900){
     cidref = "all"; // "all devices";
-    cidstring = "999";
+    cidstring = String(devices[clientid]);
   }
   String linehere = "<tr><td><a href=\"/?id="+cidstring+"&stat=0\">"+cidref+"</a></td><td><a href=\"/?id="+cidstring+"&stat=1\">"+cidref+"</a></td><td><a href=\"/?id="+cidstring+"&stat=2\">"+cidref+"</a></td></tr>";
   return linehere;
