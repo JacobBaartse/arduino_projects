@@ -1,0 +1,18 @@
+
+ESP-NOW explanation
+
+https://dronebotworkshop.com/esp-now/
+
+
+ESP8266, can use STA and SoftAP
+
+MAC adres is used as device address
+
+maximum 250 bytes per packet
+
+
+Issues getting esp_now.h :
+
+https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+isntall esp32 by Espressif Systems
