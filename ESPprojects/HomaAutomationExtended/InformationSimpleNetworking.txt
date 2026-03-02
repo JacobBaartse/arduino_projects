@@ -15,4 +15,16 @@ Issues getting esp_now.h :
 
 https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-isntall esp32 by Espressif Systems
+install esp32 by Espressif Systems
+
+https://jihulab.com/esp-mirror/espressif/arduino-esp32/-/raw/gh-pages/package_esp32_index_cn.json
+
+install ESP32 package
+
+
+For ESP8266
+
+https://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+
+
