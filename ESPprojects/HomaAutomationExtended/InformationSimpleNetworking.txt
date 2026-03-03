@@ -27,4 +27,52 @@ For ESP8266
 https://arduino.esp8266.com/stable/package_esp8266com_index.json
 
 
+// Include Libraries
+//#include <WiFi.h>
+//#include <esp_now.h>
 
+#include <ESP8266WiFi.h>
+#include <espnow.h>
+
+
+----
+📌 Useful reminders for ESP8266 ESP‑NOW
+1. Use the correct includes
+cpp
+extern "C" {
+  #include <espnow.h>
+}
+#include <ESP8266WiFi.h>
+
+2. Set Wi‑Fi to station mode before initializing ESP‑NOW
+cpp
+WiFi.mode(WIFI_STA);
+if (esp_now_init() != 0) {
+  Serial.println("ESP-NOW init failed");
+  return;
+}
+
+
+3. ESP8266 uses a different callback structure
+For example:
+
+cpp
+void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
+  Serial.print("Received: ");
+  Serial.write(data, len);
+  Serial.println();
+}
+And you register it like this:
+
+cpp
+esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
+esp_now_register_recv_cb(onDataRecv);
+
+
+4. Peer registration is also different
+cpp
+uint8_t peer[] = {0x24, 0x6F, 0x28, 0xAA, 0xBB, 0xCC};
+
+esp_now_add_peer(peer, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
+
+----
