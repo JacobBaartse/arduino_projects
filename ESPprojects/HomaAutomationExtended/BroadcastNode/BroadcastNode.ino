@@ -118,10 +118,18 @@ void broadcast(const String &message)
 
 void setup()
 {
-
   // Set up Serial Monitor
   Serial.begin(115200);
   delay(1000);
+
+  Serial.println(F(" "));
+  Serial.println(F(" "));
+  Serial.println(F("Starting ESP device"));
+  Serial.flush();
+  Serial.print(__FILE__);
+  Serial.print(F(", creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
 
   // Set ESP32 in STA mode to begin with
   WiFi.mode(WIFI_STA);
