@@ -2,20 +2,19 @@ extern "C" {
   #include <espnow.h>
 }
 #include <ESP8266WiFi.h>
-#include <PubSubClient.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+
+const int led = LED_BUILTIN;
 
 // --------------------
 // WiFi + MQTT Settings
 // --------------------
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
+const char* ssid = "T24_optout";
+const char* password = "T24T24T24";
 
-const char* mqtt_server = "192.168.1.10";   // Your MQTT broker IP
-const int   mqtt_port   = 1883;
-const char* mqtt_topic  = "espnow/incoming";
-
-WiFiClient espClient;
-PubSubClient client(espClient);
+ESP8266WebServer server(80);
 
 // --------------------
 // ESP-NOW Receive Callback
@@ -29,35 +28,20 @@ void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
   Serial.print(" | Data: ");
   Serial.write(data, len);
   Serial.println();
-
-  // Build MQTT topic: espnow/incoming/<MAC>
-  String topic = String(mqtt_topic) + "/" + macStr;
-
-  // Publish raw data to MQTT
-  client.publish(topic.c_str(), data, len);
 }
 
-// --------------------
-// MQTT Reconnect
-// --------------------
-void reconnectMQTT() {
-  while (!client.connected()) {
-    Serial.print("Connecting to MQTT...");
-    if (client.connect("ESP8266_Gateway")) {
-      Serial.println("connected");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" retrying in 3 seconds");
-      delay(3000);
-    }
-  }
+// Callback when data is sent
+void onDataSent(uint8_t *mac_addr, uint8_t status) {
+  Serial.print("Send Status: ");
+  Serial.println(status == 0 ? "Success" : "Fail");
 }
 
 // --------------------
 // Setup
 // --------------------
 void setup() {
+  pinMode(led, OUTPUT);
+  digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
 
   Serial.println(F(" "));
@@ -71,19 +55,17 @@ void setup() {
 
   // WiFi STA mode (required for ESP-NOW)
   WiFi.mode(WIFI_STA);
+  //WiFi.mode(WIFI_AP_STA);  // Enable both AP and Station modes
   WiFi.disconnect();
 
-  // Connect to WiFi for MQTT
-  Serial.print("Connecting to WiFi");
+  // Connect to WiFi for webserver
+  Serial.print("Connecting to WiFi ");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(300);
     Serial.print(".");
   }
   Serial.println("\nWiFi connected");
-
-  // MQTT setup
-  client.setServer(mqtt_server, mqtt_port);
 
   // ESP-NOW init
   if (esp_now_init() != 0) {
@@ -93,16 +75,20 @@ void setup() {
 
   esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
   esp_now_register_recv_cb(onDataRecv);
+  esp_now_register_send_cb(onDataSent);
+
+   // Add broadcast peer (improves reliability)
+  esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
 
   Serial.println("ESP-NOW Gateway Ready");
+  digitalWrite(led, 1); // turn onboard LED off
 }
 
 // --------------------
 // Main Loop
 // --------------------
 void loop() {
-  if (!client.connected()) {
-    reconnectMQTT();
-  }
-  client.loop();
+  const char msg[] = "Hello from Gateway ";
+  esp_now_send(broadcastAddress, (uint8_t *)msg, sizeof(msg));
+  delay(5000);
 }

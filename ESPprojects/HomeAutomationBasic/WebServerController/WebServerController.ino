@@ -254,7 +254,6 @@ void ledflashing(unsigned long timestamp, unsigned long duration){
 }
 
 void setup(void) {
-
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
