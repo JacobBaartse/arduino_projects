@@ -3,15 +3,20 @@ extern "C" {
 }
 #include <ESP8266WiFi.h>
 
+const int led = LED_BUILTIN;
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 // Callback when data is received
 void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
-  Serial.print("Received from ");
-  for (int i = 0; i < 6; i++) {
-    Serial.printf("%02X", mac[i]);
-    if (i < 5) Serial.print(":");
-  }
+  static unsigned long rcount = 0;
+  rcount += 1;  
+  Serial.print("ESP-NOW Received ");
+  Serial.print(rcount);
+  Serial.print(" from ");
+  char macStr[18];
+  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  Serial.print(macStr);
   Serial.print(" | Data: ");
   Serial.write(data, len);
   Serial.println();
@@ -19,11 +24,17 @@ void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
 
 // Callback when data is sent
 void onDataSent(uint8_t *mac_addr, uint8_t status) {
-  Serial.print("Send Status: ");
+  static unsigned long scount = 0;
+  scount += 1;
+  Serial.print("Send Status ");
+  Serial.print(scount);
+  Serial.print(": ");
   Serial.println(status == 0 ? "Success" : "Fail");
 }
 
 void setup() {
+  pinMode(led, OUTPUT);
+  digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
 
   Serial.println(F(" "));
@@ -53,6 +64,7 @@ void setup() {
   esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
 
   Serial.println("ESP-NOW Transceiver Ready");
+  digitalWrite(led, 1); // turn onboard LED off
 }
 
 void loop() {

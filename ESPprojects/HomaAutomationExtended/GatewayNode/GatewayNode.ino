@@ -7,9 +7,10 @@ extern "C" {
 #include <ESP8266mDNS.h>
 
 const int led = LED_BUILTIN;
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 // --------------------
-// WiFi + MQTT Settings
+// WiFi Settings
 // --------------------
 const char* ssid = "T24_optout";
 const char* password = "T24T24T24";
@@ -20,7 +21,11 @@ ESP8266WebServer server(80);
 // ESP-NOW Receive Callback
 // --------------------
 void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
-  Serial.print("ESP-NOW Received from ");
+  static unsigned long rcount = 0;
+  rcount += 1;
+  Serial.print("ESP-NOW Received ");
+  Serial.print(rcount);
+  Serial.print(" from ");
   char macStr[18];
   snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
@@ -32,7 +37,11 @@ void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
 
 // Callback when data is sent
 void onDataSent(uint8_t *mac_addr, uint8_t status) {
-  Serial.print("Send Status: ");
+  static unsigned long scount = 0;
+  scount += 1;
+  Serial.print("Send Status ");
+  Serial.print(scount);
+  Serial.print(": ");
   Serial.println(status == 0 ? "Success" : "Fail");
 }
 
@@ -77,8 +86,8 @@ void setup() {
   esp_now_register_recv_cb(onDataRecv);
   esp_now_register_send_cb(onDataSent);
 
-   // Add broadcast peer (improves reliability)
-  esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
+  // Add broadcast peer (improves reliability)
+  //esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
 
   Serial.println("ESP-NOW Gateway Ready");
   digitalWrite(led, 1); // turn onboard LED off
@@ -88,7 +97,7 @@ void setup() {
 // Main Loop
 // --------------------
 void loop() {
-  const char msg[] = "Hello from Gateway ";
+  const char msg[] = "Hello from Gateway !";
   esp_now_send(broadcastAddress, (uint8_t *)msg, sizeof(msg));
   delay(5000);
 }
