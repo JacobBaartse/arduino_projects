@@ -31,8 +31,9 @@ void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   Serial.print(macStr);
   Serial.print(" | Data: ");
-  Serial.write(data, len);
-  Serial.println();
+  Serial.write(data, len - 1);
+  Serial.print(" at: ");
+  Serial.println(millis());
 }
 
 // Callback when data is sent
@@ -42,7 +43,16 @@ void onDataSent(uint8_t *mac_addr, uint8_t status) {
   Serial.print("Send Status ");
   Serial.print(scount);
   Serial.print(": ");
-  Serial.println(status == 0 ? "Success" : "Fail");
+  Serial.print(status == 0 ? "Success" : "Fail");
+  Serial.print(" at: ");
+  Serial.println(millis());
+}
+
+bool timepassing(unsigned long curtime, unsigned long duration){
+  static unsigned long rtime = 0;
+  if(rtime + duration > curtime) return false;
+  rtime = millis();
+  return true;
 }
 
 // --------------------
@@ -93,11 +103,19 @@ void setup() {
   digitalWrite(led, 1); // turn onboard LED off
 }
 
+const char msg[] = "Hello from Gateway !";
+unsigned long runningtime = 0;
+bool action = false;
+
 // --------------------
 // Main Loop
 // --------------------
 void loop() {
-  const char msg[] = "Hello from Gateway !";
-  esp_now_send(broadcastAddress, (uint8_t *)msg, sizeof(msg));
-  delay(5000);
+
+  runningtime = millis();
+
+  action = timepassing(runningtime, 5000);
+  if (action){
+    esp_now_send(broadcastAddress, (uint8_t *)msg, sizeof(msg));
+  }
 }
