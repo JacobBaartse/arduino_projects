@@ -5,7 +5,9 @@ extern "C" {
 
 const int led = LED_BUILTIN;
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t gateWayAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+//uint8_t gateWayAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+const char ackmsg[] = "Acknowledge!";
 
 // Callback when data is received
 void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
@@ -22,6 +24,9 @@ void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
   Serial.write(data, len - 1);
   Serial.print(" at: ");
   Serial.println(millis());
+
+  // send acknowledge message
+  esp_now_send(mac, (uint8_t *)ackmsg, sizeof(ackmsg));
 }
 
 // Callback when data is sent
@@ -92,7 +97,7 @@ void loop() {
 
   runningtime = millis();
 
-  action = timepassing(runningtime, 3000);
+  action = timepassing(runningtime, 9000);
   if (action){
     esp_now_send(broadcastAddress, (uint8_t *)msg, sizeof(msg));
   }

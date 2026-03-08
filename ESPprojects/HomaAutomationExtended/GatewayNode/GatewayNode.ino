@@ -43,7 +43,7 @@ void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
 void onDataSent(uint8_t *mac_addr, uint8_t status) {
   static unsigned long scount = 0;
   scount += 1;
-  Serial.print("Send Status ");
+  Serial.print("ESP-NOW Send Status ");
   Serial.print(scount);
   Serial.print(": ");
   Serial.print(status == 0 ? "Success" : "Fail");
@@ -123,7 +123,7 @@ void loop() {
 
   runningtime = millis();
 
-  action = timepassing(runningtime, 5000);
+  action = timepassing(runningtime, 30000);
   if (action){
     esp_now_send(broadcastAddress, (uint8_t *)msg, sizeof(msg));
   }
