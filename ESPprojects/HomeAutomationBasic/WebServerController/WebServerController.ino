@@ -13,6 +13,9 @@
 const char* sta_ssid = "T24_optout";
 const char* sta_password = "T24T24T24";
 
+// const char* sta_ssid = "T24_optout";
+// const char* sta_password = "T24T24T24";
+
 // AP Mode Credentials
 const char* ap_ssid = "Local_AP";
 const char* ap_password = "local_148_AP";
@@ -286,8 +289,9 @@ void setup(void) {
   Serial.print("Connected to: ");
   Serial.print(sta_ssid);
   Serial.print(", IP address: ");
-  Serial.println(WiFi.localIP());
-  Serial.println(" ");
+  Serial.print(WiFi.localIP());
+  uint8_t ch = WiFi.channel();
+  Serial.printf(", router channel: %d\n", ch);
 
   Serial.print("Local Access Point: ");
   Serial.print(ap_ssid);

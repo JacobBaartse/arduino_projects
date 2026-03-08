@@ -15,6 +15,9 @@ uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 const char* ssid = "T24_optout";
 const char* password = "T24T24T24";
 
+// const char* ssid = "T24_optout";
+// const char* password = "T24T24T24";
+
 ESP8266WebServer server(80);
 
 // --------------------
@@ -79,12 +82,18 @@ void setup() {
 
   // Connect to WiFi for webserver
   Serial.print("Connecting to WiFi ");
+  Serial.print(ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(300);
     Serial.print(".");
   }
   Serial.println("\nWiFi connected");
+  Serial.print(", IP address: ");
+  Serial.println(WiFi.localIP());
+  uint8_t ch = WiFi.channel();
+  Serial.printf(", router channel: %d\n", ch);
+  //Serial.println(" ");
 
   // ESP-NOW init
   if (esp_now_init() != 0) {
