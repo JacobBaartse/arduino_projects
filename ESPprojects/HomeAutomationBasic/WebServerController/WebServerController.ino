@@ -9,12 +9,12 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-// Station Mode Credentials
+// // Station Mode Credentials
 const char* sta_ssid = "T24_optout";
 const char* sta_password = "T24T24T24";
 
-// const char* sta_ssid = "T24_optout";
-// const char* sta_password = "T24T24T24";
+// const char* sta_ssid = "PietLebara";
+// const char* sta_password = "piet1234";
 
 // AP Mode Credentials
 const char* ap_ssid = "Local_AP";

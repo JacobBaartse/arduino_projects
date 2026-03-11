@@ -15,8 +15,8 @@ uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 const char* ssid = "T24_optout";
 const char* password = "T24T24T24";
 
-// const char* ssid = "T24_optout";
-// const char* password = "T24T24T24";
+// const char* ssid = "PietLebara";
+// const char* password = "piet1234";
 
 ESP8266WebServer server(80);
 
@@ -110,6 +110,7 @@ void setup() {
 
   Serial.println("ESP-NOW Gateway Ready");
   digitalWrite(led, 1); // turn onboard LED off
+  delay(30000);
 }
 
 const char msg[] = "Hello from Gateway !";
@@ -120,7 +121,7 @@ bool action = false;
 // Main Loop
 // --------------------
 void loop() {
-
+  
   runningtime = millis();
 
   action = timepassing(runningtime, 30000);

@@ -25,6 +25,8 @@ void setup(void) {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
+  delay(30000);
+
   digitalWrite(led, 1); // turn onboard LED off
 }
 
