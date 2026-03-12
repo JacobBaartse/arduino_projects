@@ -84,7 +84,8 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
 
   // Add broadcast peer (improves reliability)
-  //esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 1, NULL, 0);
+  uint8_t ch = 1; // from the gateway node WiFi.channel();
+  esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, ch, NULL, 0);
 
   Serial.println("ESP-NOW Transceiver Ready");
   digitalWrite(led, 1); // turn onboard LED off
