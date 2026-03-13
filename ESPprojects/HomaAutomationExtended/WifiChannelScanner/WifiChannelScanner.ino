@@ -25,8 +25,6 @@ void setup(void) {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
-  delay(30000);
-
   digitalWrite(led, 1); // turn onboard LED off
 }
 
@@ -38,7 +36,11 @@ void loop(void) {
     Serial.print(F("SSID "));
     Serial.print(i);
     Serial.print(F(": "));
-    Serial.println(WiFi.SSID(i));
+    Serial.print(WiFi.SSID(i));
+    Serial.print(F(", "));
+    Serial.print(WiFi.RSSI(i)); // Power level
+    Serial.print(F(", channel "));
+    Serial.println(WiFi.channel(i));
   }
   Serial.println(F("----------------------"));
 

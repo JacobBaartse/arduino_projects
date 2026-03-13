@@ -15,16 +15,17 @@ void setup() {
 
   // Ensure WiFi is initialized
   WiFi.mode(WIFI_AP_STA);
+}
 
-  // Get Station MAC
+void loop() {
+  
+    // Get Station MAC
   Serial.print("Station MAC: ");
   Serial.println(WiFi.macAddress());
 
   // Get SoftAP MAC
   Serial.print("SoftAP MAC: ");
   Serial.println(WiFi.softAPmacAddress());
-}
 
-void loop() {
-  
+  delay(10000);
 }

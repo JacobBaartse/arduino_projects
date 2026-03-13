@@ -6,6 +6,8 @@ extern "C" {
 const int led = LED_BUILTIN;
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 //uint8_t gateWayAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
+uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
 
 const char ackmsg[] = "Acknowledge!";
 
@@ -67,11 +69,10 @@ void setup() {
 
   // ESP-NOW requires WiFi in STA mode
   WiFi.mode(WIFI_STA);
-  // wifi_promiscuous_enable(1);   // required to allow channel change
-  // wifi_set_channel(11);         // choose your channel (1–13)
-  // wifi_promiscuous_enable(0);
-
-  WiFi.disconnect();
+  wifi_promiscuous_enable(1);   // required to allow channel change
+  wifi_set_channel(4);         // choose your channel (1–13)
+  wifi_promiscuous_enable(0);
+  //WiFi.disconnect();
 
   if (esp_now_init() != 0) {
     Serial.println("ESP-NOW init failed");
@@ -84,10 +85,12 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
 
   // Add broadcast peer (improves reliability)
-  uint8_t ch = 1; // from the gateway node WiFi.channel();
-  esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, ch, NULL, 0);
+  //uint8_t ch = 1; // from the gateway node WiFi.channel();
+  //esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
+  esp_now_add_peer(GW1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
 
-  Serial.println("ESP-NOW Transceiver Ready");
+  Serial.print(F("ESP-NOW channel 4, "));
+  Serial.println(F("ESP-NOW Transceiver Ready"));
   digitalWrite(led, 1); // turn onboard LED off
 }
 
@@ -104,6 +107,6 @@ void loop() {
 
   action = timepassing(runningtime, 9000);
   if (action){
-    esp_now_send(broadcastAddress, (uint8_t *)msg, sizeof(msg));
+    esp_now_send(GW1_Address, (uint8_t *)msg, sizeof(msg));
   }
 }
