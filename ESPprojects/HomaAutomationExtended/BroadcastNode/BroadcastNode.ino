@@ -5,9 +5,11 @@ extern "C" {
 
 const int led = LED_BUILTIN;
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-//uint8_t gateWayAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
+// uint8_t gateWayAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+// uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
 uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
+uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
+//uint8_t BC1_Address[] = { 0x6A, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
 
 const char ackmsg[] = "Acknowledge!";
 
@@ -69,10 +71,11 @@ void setup() {
 
   // ESP-NOW requires WiFi in STA mode
   WiFi.mode(WIFI_STA);
+  //WiFi.mode(WIFI_AP_STA);
   wifi_promiscuous_enable(1);   // required to allow channel change
   wifi_set_channel(4);         // choose your channel (1–13)
   wifi_promiscuous_enable(0);
-  //WiFi.disconnect();
+  WiFi.disconnect();
 
   if (esp_now_init() != 0) {
     Serial.println("ESP-NOW init failed");

@@ -7,9 +7,11 @@ extern "C" {
 //#include <ESP8266mDNS.h>
 
 const int led = LED_BUILTIN;
-uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
+// uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+// uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
 uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
+uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
+// uint8_t BC1_Address[] = { 0x6A, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
 
 /*
 board GW1:
@@ -26,8 +28,8 @@ SoftAP MAC: 6A:C6:3A:FC:23:76
 // --------------------
 // WiFi Settings
 // --------------------
-// const char* ssid = "T24_optout";
-// const char* password = "T24T24T24";
+const char* ssid = "T24_optout";
+const char* password = "T24T24T24";
 
 // const char* ssid = "PietLebara";
 // const char* password = "piet1234";
@@ -65,16 +67,16 @@ void onDataSent(uint8_t *mac_addr, uint8_t status) {
   Serial.println(millis());
 }
 
-const String startsection = "<!DOCTYPE HTML><html><head><title>Home controller for Sickengaoord 148</title> \
+const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controller and webpage</title> \
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
       </head><h1>Home network SO 148</h1><br><br>";
 const String endsection = "</body></html>";
 
 String makewebpagehtml(){ // to be enhanced, array processing
   String htmlpage = startsection;
-
+  htmlpage += F("Text for the web page content");
   htmlpage += endsection;
-  
+  Serial.print(htmlpage);
   return htmlpage;
 }
 
@@ -174,19 +176,25 @@ void setup() {
 
   //WiFi.mode(WIFI_STA);
   WiFi.mode(WIFI_AP_STA);
+  // WiFi.mode(WIFI_AP);
+  WiFi.begin(ssid, password);
+  delay(2000);
+  WiFi.disconnect();
+
   wifi_promiscuous_enable(1);   // required to allow channel change
   wifi_set_channel(4);         // choose your channel (1–13)
   wifi_promiscuous_enable(0);
   //WiFi.disconnect();
-  WiFi.softAP("ESP_NOW_CH_4", "", 4, false, 8); // Start the local access point
-  WiFi.softAP("ESP_NOW_CH_4"); // Start the local access point
+
+  WiFi.softAP("ESP_NOW_CH_4", "ch4ch4ch4", 4); // Start the local access point
+  //WiFi.softAP("ESP_NOW_CH_4"); // Start the local access point
   IPAddress local_ip(192,168,4,1);
   IPAddress gateway(192,168,4,1);
   IPAddress subnet(255,255,255,0);
   WiFi.softAPConfig(local_ip, gateway, subnet);
   Serial.print(F("AP: "));
   Serial.println(WiFi.softAPIP());
-  Serial.println("");
+  Serial.println("");  
 
   // ESP-NOW init
   if (esp_now_init() != 0) {
@@ -201,7 +209,6 @@ void setup() {
   // Add broadcast peer (improves reliability)
   //esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
   esp_now_add_peer(BC1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
-
 
   // if (MDNS.begin("esp8266")) { 
   //   Serial.println("MDNS responder started"); 
