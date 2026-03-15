@@ -6,6 +6,8 @@ extern "C" {
 #include <ESP8266WebServer.h>
 
 const int led = LED_BUILTIN;
+const int buttonPin = D3; 
+
 // uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
 uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
 uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
@@ -129,6 +131,7 @@ bool timepassing(unsigned long curtime, unsigned long duration){
 // Setup
 // --------------------
 void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
@@ -174,12 +177,16 @@ void setup() {
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Gateway Ready"));
+
+  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+
   digitalWrite(led, 1); // turn onboard LED off
 }
 
 const char msg[] = "Hello from Gateway !";
 unsigned long runningtime = 0;
 bool action = false;
+bool buttonpressed = false;
 
 // --------------------
 // Main Loop
@@ -195,4 +202,12 @@ void loop() {
 
   server.handleClient();
 
+}
+
+void buttonPress(){
+  if (!buttonpressed){
+    buttonpressed = true;
+    Serial.print(F("Button press: "));
+    Serial.println(millis());
+  }
 }
