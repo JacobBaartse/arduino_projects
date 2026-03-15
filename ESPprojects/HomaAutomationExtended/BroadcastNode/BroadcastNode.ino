@@ -71,11 +71,11 @@ void setup() {
 
   // ESP-NOW requires WiFi in STA mode
   WiFi.mode(WIFI_STA);
-  //WiFi.mode(WIFI_AP_STA);
+  // WiFi.mode(WIFI_AP_STA);
   wifi_promiscuous_enable(1);   // required to allow channel change
   wifi_set_channel(4);         // choose your channel (1–13)
   wifi_promiscuous_enable(0);
-  WiFi.disconnect();
+  // WiFi.disconnect();
 
   if (esp_now_init() != 0) {
     Serial.println("ESP-NOW init failed");
