@@ -103,8 +103,39 @@ void setup() {
 }
 
 const char msg[] = "Hello from transceiver!";
+const char buttonmsg[] = "Button pressed (BC1).";
 unsigned long runningtime = 0;
 bool action = false;
+bool buttonpressed = false;
+
+void handle_button(bool pressed, unsigned long timing) {
+  static unsigned long btime = 0;
+  static bool buttonstate = false;
+
+  if(buttonstate){
+    int butstate = digitalRead(buttonPin); // check current status of the button
+    if (butstate == LOW) {  // button still pressed within the time period
+      btime = timing;
+      // Serial.println(F("Button press extension"));
+      return;
+    }
+    if (btime + 2000 < timing){
+      buttonpressed = false;
+      buttonstate = false;
+      Serial.print(F("Button can be pressed again "));
+      Serial.println(millis());
+    }
+  }
+  if (pressed) {
+    btime = timing;
+    buttonstate = true;
+    buttonpressed = true;
+    Serial.print(F("Button press: "));
+    Serial.println(millis());
+    esp_now_send(GW1_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
+    return;
+  }
+}
 
 // --------------------
 // Main Loop
@@ -117,13 +148,13 @@ void loop() {
   if (action){
     esp_now_send(GW1_Address, (uint8_t *)msg, sizeof(msg));
   }
+
+  handle_button(false, runningtime);
   
 }
 
-void buttonPress(){
-  if (!buttonpressed){
-    buttonpressed = true;
-    Serial.print(F("Button press: "));
-    Serial.println(millis());
-  }
+ICACHE_RAM_ATTR void buttonPress(){
+  // Serial.print(F("Button press: "));
+  // Serial.println(millis());
+  handle_button(true, millis());
 }
