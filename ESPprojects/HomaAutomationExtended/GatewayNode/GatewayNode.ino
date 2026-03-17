@@ -24,6 +24,13 @@ SoftAP MAC: 6A:C6:3A:FC:23:76
 
 */
 
+IPAddress local_ip(192,168,4,1);
+IPAddress gateway(192,168,4,1);
+IPAddress subnet(255,255,255,0);
+
+const char* ssidname = "ESP_NOW_CH_4";
+const char* ssidpassword = "ch4ch4ch4";
+
 ESP8266WebServer server(80);
 
 // --------------------
@@ -61,10 +68,18 @@ const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controlle
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
       </head><h1>Local esp-now network with AP</h1><br><br>";
 const String endsection = "</body></html>";
+const String GWhtml = "<a href=\"/GW\">GateWay</a>";
+const String BChtml = "<a href=\"/BC\">Remote Node</a>";
 
 String makewebpagehtml(){ // to be enhanced, array processing
   String htmlpage = startsection;
-  htmlpage += F("Text for the web page content");
+  htmlpage += F("Demo/trial/PoC<BR><BR>");
+  htmlpage += F("For now 2 links which can be clicked");
+  htmlpage += F("<BR><BR>");
+  htmlpage += GWhtml;
+  htmlpage += F("<BR><BR>");
+  htmlpage += BChtml;
+  htmlpage += F("<BR><HR>");
   htmlpage += endsection;
   // Serial.print(htmlpage);
   return htmlpage;
@@ -97,6 +112,28 @@ void handleRoot() {
   // Serial.println(F(" "));
 
   Serial.println(F("Server html page"));
+  String webpage = makewebpagehtml(); // include the current status information
+  server.send(200, "text/html", webpage);
+  Serial.println(F(" "));
+}
+
+void handleGW() {
+  Serial.println(F("handleGW"));
+
+  // toggle LED or so
+
+  String webpage = makewebpagehtml(); // include the current status information
+  server.send(200, "text/html", webpage);
+  Serial.println(F(" "));
+}
+
+const char webmsg[] = "webcontrol message";
+
+void handleBC() {
+  Serial.println(F("handleBC"));
+
+  esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
+
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
   Serial.println(F(" "));
@@ -145,12 +182,10 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
-  IPAddress local_ip(192,168,4,1);
-  IPAddress gateway(192,168,4,1);
-  IPAddress subnet(255,255,255,0);
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(local_ip, gateway, subnet);
-  WiFi.softAP("ESP_NOW_CH_4", "ch4ch4ch4", 4); // Start the local access point
+  // WiFi.softAP(ssidname, ssidpassword, 4); // Start the local access point
+  WiFi.softAP(ssidname, "", 4); // Start the local access point
 
   Serial.print(F("AP: "));
   Serial.println(WiFi.softAPIP());
@@ -170,6 +205,8 @@ void setup() {
   esp_now_add_peer(BC1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
 
   server.on("/", handleRoot);
+  server.on("/BC", handleBC);
+  server.on("/GW", handleGW);
   server.onNotFound(handleNotFound);
 
   server.begin();
@@ -213,7 +250,7 @@ void handle_button(bool pressed, unsigned long timing) {
     buttonpressed = true;
     Serial.print(F("Button press: "));
     Serial.println(millis());
-    esp_now_send(GW1_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
+    esp_now_send(BC1_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
     return;
   }
 }
