@@ -8,21 +8,52 @@ extern "C" {
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 
+enum MessageType {PAIRING, DATA, ACK};
+MessageType messageType;
+
 // uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
-uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
-uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
+//uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
+//uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
 // uint8_t BC1_Address[] = { 0x6A, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
+uint8_t Broadcast_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+//uint8_t clientMacAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 /*
-board GW1:
+board Server:
 Station MAC: 48:3F:DA:69:CB:61
 SoftAP MAC: 4A:3F:DA:69:CB:61
 
-board BC1:
+board Client1:
 Station MAC: 68:C6:3A:FC:23:76
 SoftAP MAC: 6A:C6:3A:FC:23:76
 
 */
+
+// Structure example to receive data
+// Must match the sender structure
+typedef struct struct_message {
+  uint8_t msgType;
+  uint8_t id;
+  float temp;
+  float hum;
+  unsigned int readingId;
+} struct_message;
+
+typedef struct struct_pairing { // structure for pairing
+    uint8_t msgType;
+    uint8_t id;
+    uint8_t ServermacAddr[6];
+    uint8_t ClientmacAddr[6];
+    uint8_t channel;
+} struct_pairing;
+
+typedef struct struct_ack { // structure for acknowledge
+    uint8_t msgType;
+    uint8_t id;
+} struct_ack;
+
+struct_pairing pairingData;
+
 
 IPAddress local_ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
@@ -33,32 +64,163 @@ const char* ssidpassword = "ch4ch4ch4";
 
 ESP8266WebServer server(80);
 
+
+void printMAC(const uint8_t * mac_addr){
+  char macStr[18];
+  snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
+           mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+  Serial.print(macStr);
+}
+
+bool addPeer(const uint8_t *peer_addr) {      // add pairing
+  esp_now_del_peer(peer_addr);
+  int res = esp_now_add_peer(peer_addr, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
+  if (res == 0){
+    Serial.println("PEER added");
+  }
+//   memset(&slave, 0, sizeof(slave));
+//   const esp_now_peer_info_t *peer = &slave;
+//   memcpy(slave.peer_addr, peer_addr, 6);
+  
+//   slave.channel = 4; // pick a channel
+//   slave.encrypt = 0; // no encryption
+//   // check if the peer exists
+//   bool exists = esp_now_is_peer_exist(slave.peer_addr);
+//   if (exists) {
+//     // Slave already paired.
+//     Serial.println("Already Paired");
+//     return true;
+//   }
+//   else {
+//     esp_err_t addStatus = esp_now_add_peer(peer);
+//     if (addStatus == 0) {
+//       // Pair success
+//       Serial.println("Pair success");
+//       return true;
+//     }
+//     else 
+//     {
+//       Serial.println("Pair failed");
+//       return false;
+//     }
+//   }
+  return false;
+}
+
+// function to send 1 single ESP-NOW message
+void sendonesp(u8 *da, u8 *data, int len){
+  // char macStr[18];
+  // snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+  //          da[0], da[1], da[2], da[3], da[4], da[5]);
+  // Serial.print(macStr);
+  printMAC(da);
+  esp_now_send(da, data, len);
+}
+
 // --------------------
 // ESP-NOW Receive Callback
 // --------------------
-void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
+void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   static unsigned long rcount = 0;
+  bool resppairing = true;
+
   rcount += 1;
   Serial.print("ESP-NOW Received ");
   Serial.print(rcount);
   Serial.print(" from ");
-  char macStr[18];
-  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
-           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-  Serial.print(macStr);
-  Serial.print(" | Data: ");
-  Serial.write(data, len - 1);
+  // char macStr[18];
+  // snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+  //          mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  // Serial.print(macStr);
+  printMAC(mac);
+
+  // Serial.print(" | Data: ");
+  // Serial.write(incomingData, len - 1);
   Serial.print(" at: ");
   Serial.println(millis());
+
+  uint8_t type = incomingData[0];       // first message byte is the type of message 
+  switch (type) {
+  case DATA :                           // the message is data type
+    Serial.println("DATA");
+    // memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
+    // // create a JSON document with received data and send it by event to the web page
+    // root["id"] = incomingReadings.id;
+    // root["temperature"] = incomingReadings.temp;
+    // root["humidity"] = incomingReadings.hum;
+    // root["readingId"] = String(incomingReadings.readingId);
+    // serializeJson(root, payload);
+    // Serial.print("event send :");
+    // serializeJson(root, Serial);
+    // events.send(payload.c_str(), "new_readings", millis());
+    // Serial.println();
+    break;
+
+  case PAIRING:                            // the message is a pairing request 
+    Serial.println("PAIRING");
+
+    memcpy(&pairingData, incomingData, sizeof(pairingData));
+    // Serial.println(pairingData.msgType);
+    Serial.print(pairingData.id);
+    Serial.print(" Pairing request from MAC Address: ");
+    printMAC(pairingData.ServermacAddr);
+    Serial.print(", ");
+    printMAC(pairingData.ClientmacAddr);
+    Serial.print(" on channel ");
+    Serial.println(pairingData.channel);
+
+    switch(pairingData.id){
+      case 0: // first message on pairing, reply with the Client Mac
+        pairingData.id = 1;
+        for ( int id = 0; id < 6; id++ ){
+          pairingData.ClientmacAddr[id] = mac[id];
+        }
+        addPeer(mac);
+      break;
+      // case 2: // second message on pairing, reply with ?
+      //   pairingData.id = 3;
+      //   // for ( int id = 0; id < 6; id++ ){
+      //   //   pairingData.ServermacAddr[id] = mac[id];
+      //   // }
+      // break;
+      default:
+        resppairing = false;
+    }
+    if (resppairing){
+      sendonesp(mac, (uint8_t *)&pairingData, sizeof(pairingData));
+    }
+
+    // if (pairingData.id > 0) {     // do not replay to server itself
+    //   if (pairingData.msgType == PAIRING) { 
+    //     pairingData.id = 0;       // 0 is server
+    //     // Server is in AP_STA mode: peers need to send data to server soft AP MAC address 
+    //     //WiFi.softAPmacAddress(pairingData.macAddr);
+    //     Serial.print("Pairing MAC Address: ");
+    //     printMAC(clientMacAddress);
+    //     pairingData.channel = 4;
+    //     Serial.println(" send response");
+    //     //esp_err_t result = esp_now_send(clientMacAddress, (uint8_t *) &pairingData, sizeof(pairingData));
+    //     addPeer(clientMacAddress);
+    //   }  
+    // }  
+    break; 
+  case ACK:                            // the message is an aknowledge message 
+    Serial.println("ACK");
+
+    break; 
+  default:
+    Serial.print("Unknown message type: ");
+    Serial.println(type);
+  }
 }
 
 // Callback when data is sent
 void onDataSent(uint8_t *mac_addr, uint8_t status) {
   static unsigned long scount = 0;
   scount += 1;
-  Serial.print("ESP-NOW Send Status ");
+  Serial.print(", message: ");
   Serial.print(scount);
-  Serial.print(": ");
+  Serial.print(", send status: ");
   Serial.print(status == 0 ? "Success" : "Fail");
   Serial.print(" at: ");
   Serial.println(millis());
@@ -132,7 +294,8 @@ const char webmsg[] = "webcontrol message";
 void handleBC() {
   Serial.println(F("handleBC"));
 
-  esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
+  sendonesp(Broadcast_Address, (uint8_t *)webmsg, sizeof(webmsg));
+  //esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
@@ -157,10 +320,11 @@ void handleNotFound() {
   server.send(404, "text/plain", message);
 }
 
+// function to indicate the passing of certain duration
 bool timepassing(unsigned long curtime, unsigned long duration){
   static unsigned long rtime = 0;
   if(rtime + duration > curtime) return false;
-  rtime = millis();
+  rtime = millis(); // get fresh time to base the new interval on
   return true;
 }
 
@@ -202,7 +366,7 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
 
   // Add broadcast peer (improves reliability)
-  esp_now_add_peer(BC1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
+  //esp_now_add_peer(BC1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
 
   server.on("/", handleRoot);
   server.on("/BC", handleBC);
@@ -212,25 +376,26 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
 
-  Serial.print(F("ESP-NOW channel 4, "));
-  Serial.println(F("ESP-NOW Gateway Ready"));
-
   attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
+  Serial.print(F("ESP-NOW channel 4, "));
+  Serial.println(F("ESP-NOW Server Ready"));
   digitalWrite(led, 1); // turn onboard LED off
 }
 
-const char msg[] = "Hello from Gateway !";
-const char buttonmsg[] = "Button pressed (GW1).";
+const char msg[] = "Hello from Server !";
+const char buttonmsg[] = "Button pressed (Server).";
 unsigned long runningtime = 0;
 bool action = false;
+int actionid = 0;
 bool buttonpressed = false;
 
 void handle_button(bool pressed, unsigned long timing) {
   static unsigned long btime = 0;
   static bool buttonstate = false;
+  bool bpress = pressed;
 
-  if(buttonstate){
+  if (buttonstate){
     int butstate = digitalRead(buttonPin); // check current status of the button
     if (butstate == LOW) {  // button still pressed within the time period
       btime = timing;
@@ -238,20 +403,23 @@ void handle_button(bool pressed, unsigned long timing) {
       return;
     }
     if (btime + 2000 < timing){
-      buttonpressed = false;
       buttonstate = false;
       Serial.print(F("Button can be pressed again "));
       Serial.println(millis());
+      buttonpressed = false;
+    }
+    else {
+      bpress = false;
     }
   }
-  if (pressed) {
-    btime = timing;
-    buttonstate = true;
+  if (bpress) {
     buttonpressed = true;
+    btime = millis();
+    buttonstate = true;
     Serial.print(F("Button press: "));
-    Serial.println(millis());
-    esp_now_send(BC1_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
-    return;
+    Serial.println(btime);
+    sendonesp(Broadcast_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
+    //esp_now_send(Broadcast_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
   }
 }
 
@@ -264,7 +432,8 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action){
-    esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
+    sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
+    //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
   }
 
   server.handleClient();
