@@ -11,12 +11,32 @@ const int buttonPin = D3;
 enum MessageType {PAIRING, DATA, ACK};
 MessageType messageType;
 
-// uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
-//uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
-//uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
-// uint8_t BC1_Address[] = { 0x6A, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
+uint8_t connectedclients[][6] = {
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
+  {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+}; 
+
+uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
 uint8_t Broadcast_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-//uint8_t clientMacAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+bool serverknown = false;
 
 /*
 board Server:
@@ -72,39 +92,12 @@ void printMAC(const uint8_t * mac_addr){
   Serial.print(macStr);
 }
 
-bool addPeer(const uint8_t *peer_addr) {      // add pairing
+void addPeer(uint8_t *peer_addr) {      // add pairing
   esp_now_del_peer(peer_addr);
   int res = esp_now_add_peer(peer_addr, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
   if (res == 0){
     Serial.println("PEER added");
   }
-//   memset(&slave, 0, sizeof(slave));
-//   const esp_now_peer_info_t *peer = &slave;
-//   memcpy(slave.peer_addr, peer_addr, 6);
-  
-//   slave.channel = 4; // pick a channel
-//   slave.encrypt = 0; // no encryption
-//   // check if the peer exists
-//   bool exists = esp_now_is_peer_exist(slave.peer_addr);
-//   if (exists) {
-//     // Slave already paired.
-//     Serial.println("Already Paired");
-//     return true;
-//   }
-//   else {
-//     esp_err_t addStatus = esp_now_add_peer(peer);
-//     if (addStatus == 0) {
-//       // Pair success
-//       Serial.println("Pair success");
-//       return true;
-//     }
-//     else 
-//     {
-//       Serial.println("Pair failed");
-//       return false;
-//     }
-//   }
-  return false;
 }
 
 // function to send 1 single ESP-NOW message
@@ -176,13 +169,22 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
           pairingData.ClientmacAddr[id] = mac[id];
         }
         addPeer(mac);
+        if (serverknown){
+          for ( int id = 0; id < 6; id++ ){
+            pairingData.ServermacAddr[id] = Server_Address[id];
+          }
+        }
       break;
-      // case 2: // second message on pairing, reply with ?
-      //   pairingData.id = 3;
-      //   // for ( int id = 0; id < 6; id++ ){
-      //   //   pairingData.ServermacAddr[id] = mac[id];
-      //   // }
-      // break;
+      case 2: // second message on pairing, capture server MAC (if not already known)
+        pairingData.id = 3;
+        if (!serverknown){
+          for ( int id = 0; id < 6; id++ ){
+            Server_Address[id] = pairingData.ServermacAddr[id];
+          }
+          serverknown = true;
+        }
+        resppairing = false;
+      break;
       default:
         resppairing = false;
     }
