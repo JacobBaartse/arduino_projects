@@ -11,7 +11,7 @@ const int buttonPin = D3;
 enum MessageType {PAIRING, DATA, ACK};
 MessageType messageType;
 
-uint8_t connectedclients[][6] = {
+uint8_t connectedclients[20][6] = {
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
@@ -90,6 +90,37 @@ void printMAC(const uint8_t * mac_addr){
   snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
            mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
   Serial.print(macStr);
+}
+
+int indexMAC(const uint8_t * mac_addr){
+  int index = 99;
+  int foundcount = 0;
+
+  for ( int row = 0; row < 20; row++ ){
+    foundcount = 0; 
+    for ( int id = 0; id < 6; id++ ){
+      if (mac_addr[id] == connectedclients[row][id]){
+        foundcount += 1;
+      }
+    }
+    if (foundcount == 6){
+      index = row;
+      break; // return index;
+    }
+  }
+  Serial.println(index);
+  return index;
+}
+
+int getindexMAC(const uint8_t * mac_addr){
+  int macindex = indexMAC(mac_addr);
+  if (macindex > 20){
+    macindex = indexMAC(Broadcast_Address); // this should be 0..19
+    for ( int id = 0; id < 6; id++ ){
+      connectedclients[macindex][id] = mac_addr[id];
+    }
+  }
+  return macindex;
 }
 
 void addPeer(uint8_t *peer_addr) {      // add pairing
