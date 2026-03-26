@@ -8,7 +8,7 @@ extern "C" {
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 
-enum MessageType {PAIRING, DATA, ACK};
+enum MessageType {PAIRING, DATA, ACK, TEXT};
 MessageType messageType;
 
 uint8_t connectedclients[20][6] = {
@@ -74,6 +74,15 @@ typedef struct struct_ack { // structure for acknowledge
 
 struct_pairing pairingData;
 
+typedef struct struct_string { // structure for acknowledge
+    uint8_t msgType;
+    uint8_t id;
+    uint8_t line;
+    char texting[101]; // 100 characters + terminator char
+} struct_string;
+
+struct_string textingData;
+
 
 IPAddress local_ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
@@ -127,7 +136,7 @@ void addPeer(uint8_t *peer_addr) {      // add pairing
   esp_now_del_peer(peer_addr);
   int res = esp_now_add_peer(peer_addr, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
   if (res == 0){
-    Serial.println("PEER added");
+    Serial.println("PEER added ");
   }
 }
 
@@ -165,7 +174,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
 
   uint8_t type = incomingData[0];       // first message byte is the type of message 
   switch (type) {
-  case DATA :                           // the message is data type
+  case DATA:                           // the message is data type
     Serial.println("DATA");
     // memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
     // // create a JSON document with received data and send it by event to the web page
@@ -361,6 +370,14 @@ bool timepassing(unsigned long curtime, unsigned long duration){
   return true;
 }
 
+// function to indicate the passing of certain duration
+bool timepassing2(unsigned long curtime, unsigned long duration){
+  static unsigned long rtime = 0;
+  if(rtime + duration > curtime) return false;
+  rtime = millis(); // get fresh time to base the new interval on
+  return true;
+}
+
 // --------------------
 // Setup
 // --------------------
@@ -456,6 +473,8 @@ void handle_button(bool pressed, unsigned long timing) {
   }
 }
 
+uint8_t textcount = 0;
+
 // --------------------
 // Main Loop
 // --------------------
@@ -467,6 +486,16 @@ void loop() {
   if (action){
     sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
     //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
+  }
+  action = timepassing2(runningtime, 35000);
+  if (action){
+    textingData.msgType = TEXT;
+    textingData.id = textcount;
+    textingData.line = 1;
+    textingData.texting[100] = '\0';
+    strcpy(textingData.texting, "tube "); 
+    sendonesp(Broadcast_Address, (uint8_t *)&textingData, sizeof(textingData));
+    textcount += 1;
   }
 
   server.handleClient();

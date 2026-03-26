@@ -8,7 +8,7 @@ const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 bool devicepaired = false;
 
-enum MessageType {PAIRING, DATA, ACK};
+enum MessageType {PAIRING, DATA, ACK, TEXT};
 MessageType messageType;
 
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
@@ -51,7 +51,7 @@ bool addPeer() {      // add pairing
   esp_now_del_peer(Server_Address);
   int res = esp_now_add_peer(Server_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
   devicepaired = res == 0;
-  Serial.println("PEER added");
+  Serial.println("PEER added ");
   return devicepaired;
 }
 
@@ -88,7 +88,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
 
   uint8_t type = incomingData[0];       // first message byte is the type of message 
   switch (type) {
-  case DATA :                           // the message is data type
+  case DATA:                           // the message is data type
     Serial.println("DATA");
 
     break;
@@ -130,6 +130,10 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.println("ACK");
 
     break; 
+  case TEXT:                           // the message is text type
+    Serial.println("TEXT");
+
+    break;
   default:
     Serial.print("Unknown message type: ");
     Serial.println(type);
