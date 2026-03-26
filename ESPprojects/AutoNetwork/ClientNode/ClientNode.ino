@@ -146,6 +146,9 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.print(F(" "));
     Serial.println(textingData.texting);
 
+    // reply with 'ack'
+    sendonesp((uint8_t *)&textingData, sizeof(textingData));
+
     break;
   default:
     Serial.print("Unknown message type: ");

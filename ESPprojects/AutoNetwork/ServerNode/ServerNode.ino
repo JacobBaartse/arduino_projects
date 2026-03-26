@@ -83,6 +83,7 @@ typedef struct struct_string { // structure for text
 } struct_string;
 
 struct_string textingData;
+uint8_t textackcount = 0;
 
 
 IPAddress local_ip(192,168,4,1);
@@ -252,6 +253,10 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.println("ACK");
 
     break; 
+  case TEXT:                           // the message is text type
+    Serial.println("TEXT");
+    textackcount += 1;
+    break;
   default:
     Serial.print("Unknown message type: ");
     Serial.println(type);
@@ -491,14 +496,16 @@ void loop() {
   }
   action = timepassing2(runningtime, 35000);
   if (action){
+    Serial.print(F(" text action: "));
+    Serial.println(textackcount);
+    textackcount = 0;
     textingData.msgType = TEXT;
     textingData.id = textcount;
     textingData.line = 1;
     textingData.texting[100] = '\0';
     strcpy(textingData.texting, "tube "); 
     sendonesp(Client_Address, (uint8_t *)&textingData, sizeof(textingData));
-    Serial.println(F("texting "));
-    textcount += 1;
+    Serial.print(F(" texting "));
   }
 
   server.handleClient();
