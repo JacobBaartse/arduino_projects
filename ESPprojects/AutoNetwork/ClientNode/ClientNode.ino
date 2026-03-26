@@ -73,6 +73,19 @@ void sendonesp(u8 *data, int len){
   esp_now_send(Server_Address, data, len);
 }
 
+// function to check the heartbeat of the server
+void heartbeat(unsigned long curtime, bool message){
+  static unsigned long htime = 0;
+  if (message){
+    htime = curtime;
+  }
+  else {
+    if (htime + 60000 > curtime){
+      devicepaired = false;
+    }
+  }
+}
+
 // Callback when data is received
 void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   static unsigned long rcount = 0;
@@ -90,7 +103,9 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   // Serial.print(" | Data: ");
   // Serial.write(incomingData, len - 1);
   Serial.print(" at: ");
-  Serial.println(millis());
+  unsigned long messagetime = millis();
+  Serial.println(messagetime);
+  heartbeat(messagetime, true);
   // String datahere(data);
   // Serial.println(datahere);
 
@@ -307,6 +322,8 @@ void loop() {
   }
 
   handle_button(false, runningtime);
+
+  heartbeat(runningtime, false);
   
 }
 

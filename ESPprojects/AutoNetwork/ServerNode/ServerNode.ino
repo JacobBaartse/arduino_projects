@@ -508,16 +508,18 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action){
-    if (connectedclientcount < 1){
-      pairingData.id = 33;
-      pairingData.msgType = PAIRING;
-      pairingData.channel = 4;
-      sendonesp(Broadcast_Address, (uint8_t *)&pairingData, sizeof(pairingData));
-    }
-    else {
-      sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
-      //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
-    }
+    sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
+
+    // if (connectedclientcount < 1){
+    //   pairingData.id = 33;
+    //   pairingData.msgType = PAIRING;
+    //   pairingData.channel = 4;
+    //   sendonesp(Broadcast_Address, (uint8_t *)&pairingData, sizeof(pairingData));
+    // }
+    // else {
+    //   sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
+    //   //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
+    // }
   }
   action = timepassing2(runningtime, 35000);
   if (action){
