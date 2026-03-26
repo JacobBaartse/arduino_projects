@@ -34,9 +34,10 @@ uint8_t connectedclients[20][6] = {
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 }; 
 
+uint8_t connectedclientcount = 0;
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
 uint8_t Broadcast_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-uint8_t Client_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+//uint8_t Client_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 bool serverknown = false;
 
 /*
@@ -130,6 +131,7 @@ int getindexMAC(const uint8_t * mac_addr){
     for ( int id = 0; id < 6; id++ ){
       connectedclients[macindex][id] = mac_addr[id];
     }
+    connectedclientcount = macindex + 1;
   }
   return macindex;
 }
@@ -209,7 +211,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
         pairingData.id = 1;
         for ( int id = 0; id < 6; id++ ){
           pairingData.ClientmacAddr[id] = mac[id];
-          Client_Address[id] = mac[id];
+          //Client_Address[id] = mac[id];
         }
         addPeer(mac);
         if (serverknown){
@@ -217,6 +219,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
             pairingData.ServermacAddr[id] = Server_Address[id];
           }
         }
+        getindexMAC(mac); // add to connected clients list
       break;
       case 2: // second message on pairing, capture server MAC (if not already known)
         pairingData.id = 3;
@@ -388,8 +391,8 @@ bool timepassing2(unsigned long curtime, unsigned long duration){
 char rmsg[101];
 void randomstringvalue(int numBytes){
   memset(rmsg, 0, sizeof(rmsg));
-  for(i = 0; i < numBytes; i++) {
-    randomValue = random(0, 37);
+  for(int i = 0; i < numBytes; i++) {
+    int randomValue = random(0, 37);
     rmsg[i] = randomValue + 'a';
     if(randomValue > 26) {
       rmsg[i] = (randomValue - 26) + '0';
@@ -494,6 +497,7 @@ void handle_button(bool pressed, unsigned long timing) {
 }
 
 uint8_t textcount = 0;
+uint8_t runningclient = 0;
 
 // --------------------
 // Main Loop
@@ -504,12 +508,20 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action){
-    sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
-    //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
+    if (connectedclientcount < 1){
+      pairingData.id = 33;
+      pairingData.msgType = PAIRING;
+      pairingData.channel = 4;
+      sendonesp(Broadcast_Address, (uint8_t *)&pairingData, sizeof(pairingData));
+    }
+    else {
+      sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
+      //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
+    }
   }
   action = timepassing2(runningtime, 35000);
   if (action){
-    Serial.print(F(" text action: "));
+    Serial.print(F("Text action: "));
     Serial.println(textackcount);
     textackcount = 0;
     textingData.msgType = TEXT;
@@ -517,10 +529,21 @@ void loop() {
     textingData.line = random(0, 3);
     // textingData.texting[100] = '\0';
     // strcpy(textingData.texting, "tube "); 
-    randomstringvalue(random(10, 100));
+    randomstringvalue(random(10, 101));
     strcpy(textingData.texting, rmsg); 
-    sendonesp(Client_Address, (uint8_t *)&textingData, sizeof(textingData));
+
+    // todo: loop all connected clients
+    //sendonesp(Client_Address, (uint8_t *)&textingData, sizeof(textingData));
+    //Serial.print(F(" texting "));
+
+    runningclient = connectedclientcount;
+  }
+
+  if (runningclient > 0){
+    runningclient -= 1;
     Serial.print(F(" texting "));
+    Serial.println(runningclient);
+    sendonesp(connectedclients[runningclient], (uint8_t *)&textingData, sizeof(textingData));
   }
 
   server.handleClient();
