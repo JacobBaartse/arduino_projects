@@ -80,8 +80,10 @@ void heartbeat(unsigned long curtime, bool message){
     htime = curtime;
   }
   else {
-    if (htime + 60000 > curtime){
-      devicepaired = false;
+    if (devicepaired){
+      if (htime + 60000 < curtime){
+        devicepaired = false;
+      }
     }
   }
 }
