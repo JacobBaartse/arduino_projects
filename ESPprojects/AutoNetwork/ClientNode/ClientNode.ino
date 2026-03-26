@@ -39,6 +39,14 @@ typedef struct struct_ack { // structure for acknowledge
 
 struct_pairing pairingData;
 
+typedef struct struct_string { // structure for text
+    uint8_t msgType;
+    uint8_t id;
+    uint8_t line;
+    char texting[101]; // 100 characters + terminator char
+} struct_string;
+
+struct_string textingData;
 
 void printMAC(const uint8_t * mac_addr){
   char macStr[18];
@@ -132,6 +140,11 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     break; 
   case TEXT:                           // the message is text type
     Serial.println("TEXT");
+
+    memcpy(&textingData, incomingData, sizeof(textingData));
+    Serial.print(textingData.line);
+    Serial.print(F(" "));
+    Serial.println(textingData.texting);
 
     break;
   default:

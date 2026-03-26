@@ -36,6 +36,7 @@ uint8_t connectedclients[20][6] = {
 
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
 uint8_t Broadcast_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t Client_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 bool serverknown = false;
 
 /*
@@ -74,7 +75,7 @@ typedef struct struct_ack { // structure for acknowledge
 
 struct_pairing pairingData;
 
-typedef struct struct_string { // structure for acknowledge
+typedef struct struct_string { // structure for text
     uint8_t msgType;
     uint8_t id;
     uint8_t line;
@@ -207,6 +208,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
         pairingData.id = 1;
         for ( int id = 0; id < 6; id++ ){
           pairingData.ClientmacAddr[id] = mac[id];
+          Client_Address[id] = mac[id];
         }
         addPeer(mac);
         if (serverknown){
@@ -494,7 +496,8 @@ void loop() {
     textingData.line = 1;
     textingData.texting[100] = '\0';
     strcpy(textingData.texting, "tube "); 
-    sendonesp(Broadcast_Address, (uint8_t *)&textingData, sizeof(textingData));
+    sendonesp(Client_Address, (uint8_t *)&textingData, sizeof(textingData));
+    Serial.println(F("texting "));
     textcount += 1;
   }
 
