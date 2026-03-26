@@ -385,6 +385,19 @@ bool timepassing2(unsigned long curtime, unsigned long duration){
   return true;
 }
 
+char rmsg[101];
+void randomstringvalue(int numBytes){
+  memset(rmsg, 0, sizeof(rmsg));
+  for(i = 0; i < numBytes; i++) {
+    randomValue = random(0, 37);
+    rmsg[i] = randomValue + 'a';
+    if(randomValue > 26) {
+      rmsg[i] = (randomValue - 26) + '0';
+    }
+  }
+  rmsg[numBytes] = '\0';
+}
+
 // --------------------
 // Setup
 // --------------------
@@ -501,9 +514,11 @@ void loop() {
     textackcount = 0;
     textingData.msgType = TEXT;
     textingData.id = textcount;
-    textingData.line = 1;
-    textingData.texting[100] = '\0';
-    strcpy(textingData.texting, "tube "); 
+    textingData.line = random(0, 3);
+    // textingData.texting[100] = '\0';
+    // strcpy(textingData.texting, "tube "); 
+    randomstringvalue(random(10, 100));
+    strcpy(textingData.texting, rmsg); 
     sendonesp(Client_Address, (uint8_t *)&textingData, sizeof(textingData));
     Serial.print(F(" texting "));
   }
