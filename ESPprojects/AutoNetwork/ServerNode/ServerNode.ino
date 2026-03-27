@@ -91,7 +91,7 @@ IPAddress local_ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
 IPAddress subnet(255,255,255,0);
 
-const char* ssidname = "ESP_NOW_CH_4";
+const char* ssidname = "CH4_192_168_4_1";
 const char* ssidpassword = "ch4ch4ch4";
 
 ESP8266WebServer server(80);
@@ -392,10 +392,10 @@ char rmsg[101];
 void randomstringvalue(int numBytes){
   memset(rmsg, 0, sizeof(rmsg));
   for(int i = 0; i < numBytes; i++) {
-    int randomValue = random(0, 37);
+    int randomValue = random(0, 36);
     rmsg[i] = randomValue + 'a';
-    if(randomValue > 26) {
-      rmsg[i] = (randomValue - 26) + '0';
+    if(randomValue > 25) {
+      rmsg[i] = (randomValue - 25) + '0';
     }
   }
   rmsg[numBytes] = '\0';
@@ -508,7 +508,7 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action){
-    sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
+    sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg)); // heartbeat message
 
     // if (connectedclientcount < 1){
     //   pairingData.id = 33;
@@ -521,6 +521,7 @@ void loop() {
     //   //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
     // }
   }
+  
   action = timepassing2(runningtime, 35000);
   if (action){
     Serial.print(F("Text action: "));

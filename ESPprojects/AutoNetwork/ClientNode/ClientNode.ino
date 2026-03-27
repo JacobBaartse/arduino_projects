@@ -81,7 +81,7 @@ void heartbeat(unsigned long curtime, bool message){
   }
   else {
     if (devicepaired){
-      if (htime + 60000 < curtime){
+      if (htime + 60000 < curtime){ // if not received a message for over 60 seconds, consider pairing dropped
         devicepaired = false;
       }
     }
@@ -164,6 +164,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.println(textingData.texting);
 
     // reply with 'ack'
+    textingData.texting = '\0';
     sendonesp((uint8_t *)&textingData, sizeof(textingData));
 
     break;
@@ -318,8 +319,6 @@ void loop() {
     }
     else{
       sendpairingsequence(0);
-      //sendonesp((uint8_t *)pairmsg, sizeof(pairmsg));
-      //esp_now_send(Server_Address, (uint8_t *)pairmsg, sizeof(pairmsg));
     }
   }
 
