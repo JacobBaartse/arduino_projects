@@ -540,6 +540,14 @@ void loop() {
     //Serial.print(F(" texting "));
 
     runningclient = connectedclientcount;
+
+    // print connected clients (+ 1 extra, showing clearly the end of the list)
+    Serial.println(F("Listing clients:"));
+    for ( int idn = 0; idn <= connectedclientcount; idn++ ){
+      printMAC(connectedclients[idn]);
+      Serial.println(F(" "));
+    }
+    Serial.println(F("------"));
   }
 
   if (runningclient > 0){
