@@ -58,6 +58,11 @@ void clear_display(){
   display.display();
 }
 
+String Lines[4] = {"Welcome George",
+                   "Demo {small display}", 
+                   "Whats up?",
+                   "Hello World"};  
+
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 bool devicepaired = false;
@@ -117,6 +122,24 @@ bool addPeer() {      // add pairing
   return devicepaired;
 }
 
+void updateDisplay(uint8_t line, String lineoftext){
+  if (line < 4){
+    //Lines[line] = lineoftext;
+  }
+  display_oled(true, 0, 16, Lines[0]); 
+  display_oled(false, 0, 32, Lines[1]); 
+  display_oled(false, 0, 48, Lines[2]);  
+  display_oled(false, 0, 64, Lines[3]); 
+}
+
+void updateDisplay(){
+  //uint8_t iline = 10;
+  //char itexting[] = {'\0'};
+  String jline = "";
+  //updateDisplay(iline, itexting);
+  updateDisplay(10, jline);
+}
+
 // function to send 1 single ESP-NOW message
 void sendonesp(u8 *data, int len){
   // char macStr[18];
@@ -146,6 +169,8 @@ void heartbeat(unsigned long curtime, bool message){
 void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   static unsigned long rcount = 0;
   bool resppairing = true;
+  String linetxt = "";
+  int ix = 0;
 
   rcount += 1;  
   Serial.print("ESP-NOW Received ");
@@ -217,6 +242,16 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.print(F(" "));
     Serial.println(textingData.texting);
 
+    while (textingData.texting[ix] != '\0'){
+      linetxt.concat(textingData.texting[ix]);
+      ix++;
+    }
+    Serial.print(F("String '"));
+    Serial.print(linetxt);
+    Serial.println(F("'"));
+
+    updateDisplay(textingData.line, linetxt);
+
     // reply with 'ack'
     textingData.texting[100] = '\0';
     textingData.texting[0] = '\0';
@@ -278,11 +313,6 @@ bool timepassing(unsigned long curtime, unsigned long duration){
   return true;
 }
 
-String Line1 = "Welcome George"; 
-String Line2 = "Demo {small display}"; 
-String Line3 = "Whats up?";  
-String Line4 = "Hello World!";  
-
 // --------------------
 // Setup
 // --------------------
@@ -330,10 +360,11 @@ void setup() {
   // use the button on an interrupt hadling
   //attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
-  display_oled(true, 0, 16, Line1); 
-  display_oled(false, 0, 32, Line2); 
-  display_oled(false, 0, 48, Line3);  
-  display_oled(false, 0, 64, Line4); 
+  updateDisplay();
+  // display_oled(true, 0, 16, Lines[0]); 
+  // display_oled(false, 0, 32, Lines[1]); 
+  // display_oled(false, 0, 48, Lines[2]);  
+  // display_oled(false, 0, 64, Lines[3]); 
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Transceiver Ready"));

@@ -48,6 +48,25 @@ typedef struct struct_string { // structure for text
 
 struct_string textingData;
 
+void handle_led(bool turnon, unsigned long ltiming, unsigned long duration) {
+  static unsigned long ltime = 0;
+  static bool ledon = false;
+
+  if (turnon){
+    digitalWrite(led, 0); // turn onboard LED on
+    ltime = millis() + duration;
+    ledon = true;
+  }
+  else{
+    if (ledon){
+      if (ltiming > ltime){ // received timing is 
+        digitalWrite(led, 1); // turn onboard LED off
+        ledon = false;
+      }
+    }
+  }
+}
+
 void printMAC(const uint8_t * mac_addr){
   char macStr[18];
   snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -157,6 +176,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     break; 
   case TEXT:                           // the message is text type
     Serial.println("TEXT");
+    handle_led(true, 0, 3000); // turn on board LED on for 3 seconds
 
     memcpy(&textingData, incomingData, sizeof(textingData));
     Serial.print(textingData.line);
@@ -259,7 +279,7 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
 
   // use the button on an interrupt hadling
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+  //attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Transceiver Ready"));
@@ -323,7 +343,9 @@ void loop() {
     }
   }
 
-  handle_button(false, runningtime);
+  //handle_button(false, runningtime);
+
+  handle_led(false, runningtime, 0);
 
   heartbeat(runningtime, false);
   

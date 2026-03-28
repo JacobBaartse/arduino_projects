@@ -120,6 +120,9 @@ int indexMAC(const uint8_t * mac_addr){
       break; // return index;
     }
   }
+  Serial.print(F("indexMAC "));
+  printMAC(mac_addr);
+  Serial.print(F(": "));
   Serial.println(index);
   return index;
 }
@@ -395,7 +398,13 @@ void randomstringvalue(int numBytes){
     int randomValue = random(0, 36);
     rmsg[i] = randomValue + 'a';
     if(randomValue > 25) {
-      rmsg[i] = (randomValue - 25) + '0';
+      rmsg[i] = (randomValue - 26) + '0';
+    }
+    else { // some change on a capital letter
+      int capitalValue = random(0, 101);
+      if (capitalValue < 30){
+        rmsg[i] = randomValue + 'A';
+      }
     }
   }
   rmsg[numBytes] = '\0';
@@ -532,7 +541,7 @@ void loop() {
     textingData.line = random(0, 3);
     // textingData.texting[100] = '\0';
     // strcpy(textingData.texting, "tube "); 
-    randomstringvalue(random(10, 101));
+    randomstringvalue(random(1, 15));
     strcpy(textingData.texting, rmsg); 
 
     // todo: loop all connected clients
@@ -542,6 +551,8 @@ void loop() {
     runningclient = connectedclientcount;
 
     // print connected clients (+ 1 extra, showing clearly the end of the list)
+    Serial.print(F("Message: "));
+    Serial.println(textingData.texting);
     Serial.println(F("Listing clients:"));
     for ( int idn = 0; idn <= connectedclientcount; idn++ ){
       printMAC(connectedclients[idn]);
