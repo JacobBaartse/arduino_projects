@@ -27,7 +27,6 @@ void display_oled(bool clear, int x, int y, String text) {
   display.display();
 }
 
-
 DisplayState setDisplay(DisplayState statustoset){
   static DisplayState displaystatus = DisplayState::Dim;
   switch(statustoset){
@@ -114,7 +113,7 @@ void printMAC(const uint8_t * mac_addr){
   Serial.print(macStr);
 }
 
-bool addPeer() {      // add pairing
+bool addPeer(){ // add pairing
   esp_now_del_peer(Server_Address);
   int res = esp_now_add_peer(Server_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
   devicepaired = res == 0;
@@ -122,22 +121,29 @@ bool addPeer() {      // add pairing
   return devicepaired;
 }
 
-void updateDisplay(uint8_t line, String lineoftext){
-  if (line < 4){
-    //Lines[line] = lineoftext;
-  }
+// //void updateDisplay(uint8_t line, char lineoftext[]){
+// void updateDisplay(uint8_t line){
+//   // if (line < 4){
+//   //   Lines[line][0] = '\0';
+//   //   //strcat(Lines[line], lineoftext);
+//   //   // for(int xj;xj<20;xj++){
+//   //   //   Lines[line][xj] = lineoftext[xj];      
+//   //   // }
+//   // }
+//   display_oled(true, 0, 16, Lines[0]); 
+//   display_oled(false, 0, 32, Lines[1]); 
+//   display_oled(false, 0, 48, Lines[2]);  
+//   display_oled(false, 0, 64, Lines[3]); 
+// }
+
+void updateDisplay(){
+  Serial.println("updateDisplay ");
+  delay(1000);
+
   display_oled(true, 0, 16, Lines[0]); 
   display_oled(false, 0, 32, Lines[1]); 
   display_oled(false, 0, 48, Lines[2]);  
   display_oled(false, 0, 64, Lines[3]); 
-}
-
-void updateDisplay(){
-  //uint8_t iline = 10;
-  //char itexting[] = {'\0'};
-  String jline = "";
-  //updateDisplay(iline, itexting);
-  updateDisplay(10, jline);
 }
 
 // function to send 1 single ESP-NOW message
@@ -166,11 +172,11 @@ void heartbeat(unsigned long curtime, bool message){
 }
 
 // Callback when data is received
-void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
+void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len){
   static unsigned long rcount = 0;
   bool resppairing = true;
-  String linetxt = "";
-  int ix = 0;
+  // String linetxt = "";
+  // int ix = 0;
 
   rcount += 1;  
   Serial.print("ESP-NOW Received ");
@@ -242,15 +248,20 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.print(F(" "));
     Serial.println(textingData.texting);
 
-    while (textingData.texting[ix] != '\0'){
-      linetxt.concat(textingData.texting[ix]);
-      ix++;
-    }
-    Serial.print(F("String '"));
-    Serial.print(linetxt);
-    Serial.println(F("'"));
+    // while (textingData.texting[ix] != '\0'){
+    //   linetxt.concat(textingData.texting[ix]);
+    //   ix++;
+    // }
+    // Serial.print(F("String '"));
+    // Serial.print(linetxt);
+    // Serial.println(F("'"));
 
-    updateDisplay(textingData.line, linetxt);
+    //updateDisplay(textingData.line);
+    // if (textingData.line < 4){
+    //   strcpy(, textingData.texting);
+    // }
+    //delay(1000);
+    //updateDisplay();
 
     // reply with 'ack'
     textingData.texting[100] = '\0';
@@ -316,7 +327,7 @@ bool timepassing(unsigned long curtime, unsigned long duration){
 // --------------------
 // Setup
 // --------------------
-void setup() {
+void setup(){
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
@@ -377,7 +388,7 @@ bool action = false;
 int actionid = 0;
 bool buttonpressed = false;
 
-void handle_button(bool pressed, unsigned long timing) {
+void handle_button(bool pressed, unsigned long timing){
   static unsigned long btime = 0;
   static bool buttonstate = false;
   bool bpress = pressed;
@@ -413,7 +424,7 @@ void handle_button(bool pressed, unsigned long timing) {
 // --------------------
 // Main Loop
 // --------------------
-void loop() {
+void loop(){
 
   runningtime = millis();
 
