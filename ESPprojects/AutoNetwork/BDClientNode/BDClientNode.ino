@@ -2,7 +2,38 @@ extern "C" {
   #include <espnow.h>
 }
 #include <ESP8266WiFi.h>
+#include <Wire.h>
+//#include <Adafruit_GFX.h> // already included from font file
+//#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+#include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
 
+enum DisplayState {
+    Off = 0,
+    Dim = 1,
+    On = 2,
+};
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
+//#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
+#define OLED_RESET -1
+
+Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+bool displaystatus = DisplayState::Off;
+void display_oled(bool clear, int x, int y, String text) {
+  if (displaystatus == DisplayState::Off) return;
+  if (clear) display.clearDisplay();
+  display.setCursor(x, y);
+  display.print(text);
+  display.display();
+}
+
+void clear_display(){
+  display.clearDisplay();
+  display.display();
+}
 
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
@@ -224,6 +255,10 @@ bool timepassing(unsigned long curtime, unsigned long duration){
   return true;
 }
 
+String Line1 = "Welcome a"; 
+String Line2 = "Demo B"; 
+String Line3 = "Whats c up?"; 
+
 // --------------------
 // Setup
 // --------------------
@@ -242,6 +277,18 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
+  //Wire.begin();
+  display.begin(i2c_Address, true); // Address 0x3C default
+  display.oled_command(SH110X_DISPLAYON);
+  display.setContrast(0); // dim display
+  displaystatus = DisplayState::Dim;
+  display.clearDisplay();
+  //display.setFont(&FreeSerif12pt7b);
+  display.setTextSize(2); // 3 lines of 10-12 chars
+  display.setTextColor(SH110X_WHITE);
+  display.setTextWrap(false);
+  display.display();
+
   // ESP-NOW requires WiFi in STA mode
   WiFi.mode(WIFI_STA);
   wifi_promiscuous_enable(1);   // required to allow channel change
@@ -259,7 +306,11 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
 
   // use the button on an interrupt hadling
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+  //attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+
+  display_oled(true, 0, 0, Line1); //16
+  display_oled(false, 2, 21, Line2); //38
+  display_oled(false, 4, 42, Line3); //60
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Transceiver Ready"));

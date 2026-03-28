@@ -2,13 +2,67 @@ extern "C" {
   #include <espnow.h>
 }
 #include <ESP8266WiFi.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h> 
+//#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+#include "font_16pix_high.h"
+#include <Adafruit_SSD1306.h> // Adafruit SSD 1306 by Adafruit
 
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
+//#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
+#define OLED_RESET -1
+
+Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+enum DisplayState { Off, Dim, On };
+
+uint8_t displaystatus = DisplayState::Off;
+void display_oled(bool clear, int x, int y, String text) {
+  if (displaystatus == DisplayState::Off) return;
+  if (clear) display.clearDisplay();
+  display.setCursor(x, y);
+  display.print(text);
+  display.display();
+}
+
+
+DisplayState setDisplay(DisplayState statustoset){
+  static DisplayState displaystatus = DisplayState::Dim;
+  switch(statustoset){
+    case DisplayState::Dim:
+      display.ssd1306_command(SSD1306_DISPLAYON);
+      //display.dim(true); // dim display
+      //displaystatus = DisplayState::Dim; // this display does not support dim
+      //displaystatus = DisplayState::On;
+      display.ssd1306_command(SSD1306_SETCONTRAST);
+      display.ssd1306_command(1);
+      displaystatus = DisplayState::Dim; // this display does not support dim ??
+      break;
+    case DisplayState::On:
+      display.ssd1306_command(SSD1306_DISPLAYON);
+      display.dim(false);
+      displaystatus = DisplayState::On;
+      break;
+    //case DisplayState::Off:
+    default:
+      display.ssd1306_command(SSD1306_DISPLAYOFF);
+      displaystatus = DisplayState::Off;
+  }
+  return displaystatus;
+}
+
+void clear_display(){
+  display.clearDisplay();
+  display.display();
+}
 
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 bool devicepaired = false;
 
-enum MessageType {PAIRING, DATA, ACK, TEXT};
+enum MessageType { PAIRING, DATA, ACK, TEXT };
 MessageType messageType;
 
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
@@ -224,6 +278,11 @@ bool timepassing(unsigned long curtime, unsigned long duration){
   return true;
 }
 
+String Line1 = "Welcome George"; 
+String Line2 = "Demo {small display}"; 
+String Line3 = "Whats up?";  
+String Line4 = "Hello World!";  
+
 // --------------------
 // Setup
 // --------------------
@@ -232,6 +291,16 @@ void setup() {
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
+
+  display.begin(SSD1306_SWITCHCAPVCC, i2c_Address);
+  displaystatus = setDisplay(DisplayState::Dim);
+  display.clearDisplay();
+  //display.setFont(&FreeSerif12pt7b);
+  display.setFont(&font_16_pix);
+  display.setTextSize(1); // 3 lines of 10-12 chars
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextWrap(false); 
+  display.display();
 
   Serial.println(F(" "));
   Serial.println(F(" "));
@@ -259,7 +328,12 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
 
   // use the button on an interrupt hadling
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+  //attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+
+  display_oled(true, 0, 16, Line1); 
+  display_oled(false, 0, 32, Line2); 
+  display_oled(false, 0, 48, Line3);  
+  display_oled(false, 0, 64, Line4); 
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Transceiver Ready"));
