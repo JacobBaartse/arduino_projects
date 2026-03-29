@@ -145,9 +145,9 @@ void updateDisplay(){
   //Serial.println("updateDisplay 1 ");
   //delay(1000);
   display.clearDisplay();
-  // for(int lin=0; lin < 4 ; lin++){
-  //   Serial.println(Lines[lin]);
-  // }
+  for(int lin=0; lin < 4 ; lin++){
+    Serial.println(Lines[lin]);
+  }
   //Serial.println("updateDisplay 2 ");
   //delay(5000);
   for(int lin=0; lin < 4 ; lin++){
@@ -190,9 +190,8 @@ void heartbeat(unsigned long curtime, bool message){
 // Callback when data is received
 void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len){
   static unsigned long rcount = 0;
+  static uint8_t runningline = 0;
   bool resppairing = true;
-  // String linetxt = "";
-  // int ix = 0;
 
   rcount += 1;  
   Serial.print("ESP-NOW Received ");
@@ -268,8 +267,22 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len){
     if (textingData.line < 4){
       memcpy(&Lines[textingData.line], textingData.texting, 101);
       upddisplay = 90; // update display in the main loop
+      runningline = 0; // reset static running line (if received from webserver form input)
     }
-
+    if (textingData.line == 99){
+      runningline = runningline % 4;
+      memcpy(&Lines[runningline++], textingData.texting, 101);
+      upddisplay = 90; // update display in the main loop
+    }
+    if (textingData.line == 95){
+      for(int lin=0; lin < 4 ; lin++){
+        Lines[lin][0] = '\0';
+        //memset(Lines[lin], 0, 101);
+      }
+      upddisplay = 90; // update display in the main loop
+      runningline = 0; // reset static running line (if received from webserver form input)
+    }
+    
     // reply with 'ack'
     textingData.texting[100] = '\0';
     textingData.texting[0] = '\0';

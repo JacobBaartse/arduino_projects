@@ -85,7 +85,8 @@ typedef struct struct_string { // structure for text
 
 struct_string textingData;
 uint8_t textackcount = 0;
-
+char forminput[101] = {'\0'};
+uint8_t textfromform = 0;
 
 IPAddress local_ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
@@ -287,6 +288,7 @@ const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controlle
 const String endsection = "</body></html>";
 const String GWhtml = "<a href=\"/GW\">GateWay</a>";
 const String BChtml = "<a href=\"/BC\">Remote Node</a>";
+const String FORMhtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"1\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/></FORM><a href=\"/cleardisplay\">Clear</a><BR><HR>";
 
 String makewebpagehtml(){ // to be enhanced, array processing
   String htmlpage = startsection;
@@ -297,6 +299,7 @@ String makewebpagehtml(){ // to be enhanced, array processing
   htmlpage += F("<BR><BR>");
   htmlpage += BChtml;
   htmlpage += F("<BR><HR>");
+  htmlpage += FORMhtml;
   htmlpage += endsection;
   // Serial.print(htmlpage);
   return htmlpage;
@@ -357,6 +360,32 @@ void handleBC() {
   Serial.println(F(" "));
 }
 
+void handleFORM() {
+  Serial.println(F("handleFORM"));
+
+  if (server.hasArg("textinput") && server.arg("textinput") != NULL){
+    //Serial.print("text input: ");
+    memset(forminput, 0, sizeof(forminput));
+    String serverstring = server.arg("textinput");
+    //Serial.println(serverstring);
+    serverstring.toCharArray(forminput, serverstring.length() + 1);
+    Serial.print("forminput: ");
+    Serial.println(forminput);
+    textfromform = 2;
+  }
+
+  String webpage = makewebpagehtml(); // include the current status information
+  server.send(200, "text/html", webpage);
+  Serial.println(F(" "));
+}
+void handleCLEAR() {
+  Serial.println(F("handleCLEAR"));
+  textfromform = 95;
+  String webpage = makewebpagehtml(); // include the current status information
+  server.send(200, "text/html", webpage);
+  Serial.println(F(" "));
+}
+
 void handleNotFound() {
   String message = "File Not Found\n\n";
   message += "URI: ";
@@ -384,9 +413,11 @@ bool timepassing(unsigned long curtime, unsigned long duration){
 }
 
 // function to indicate the passing of certain duration
-bool timepassing2(unsigned long curtime, unsigned long duration){
+bool timepassing2(unsigned long curtime, uint8_t inputval, unsigned long duration){
   static unsigned long rtime = 0;
-  if(rtime + duration > curtime) return false;
+  if (inputval < 2){ // skip time check if inputval > 1
+    if(rtime + duration > curtime) return false;
+  }
   rtime = millis(); // get fresh time to base the new interval on
   return true;
 }
@@ -453,6 +484,8 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/BC", handleBC);
   server.on("/GW", handleGW);
+  server.on("/post", handleFORM);
+  server.on("/cleardisplay", handleCLEAR);
   server.onNotFound(handleNotFound);
 
   server.begin();
@@ -531,24 +564,38 @@ void loop() {
     // }
   }
   
-  action = timepassing2(runningtime, 35000);
+  action = timepassing2(runningtime, textfromform, 35000);
   if (action){
     Serial.print(F("Text action: "));
     Serial.println(textackcount);
     textackcount = 0;
     textingData.msgType = TEXT;
     textingData.id = textcount++;
-    textingData.line = random(0, 4); // 4 lines of displays
-    // textingData.texting[100] = '\0';
-    // strcpy(textingData.texting, "tube "); 
-    randomstringvalue(random(1, 15));
-    strcpy(textingData.texting, rmsg); 
-
-    // todo: loop all connected clients
-    //sendonesp(Client_Address, (uint8_t *)&textingData, sizeof(textingData));
-    //Serial.print(F(" texting "));
-
-    runningclient = connectedclientcount;
+    if (textfromform > 1){ // only send if textfromform is 2
+      if (textfromform > 90){ // clear displays
+        textingData.line = textfromform; // send specific command to client 91..98, 99 is looping, 95 is clear displays
+      }
+      else {
+        textingData.line = 99;
+        memcpy(&textingData.texting, forminput, 101); 
+        Serial.print(F("Text textingData.texting: "));
+        Serial.println(textingData.texting);
+        memset(forminput, 0, sizeof(forminput));
+      }
+      textfromform = 1; // only send once (to all clients)
+      runningclient = connectedclientcount;
+    }
+    else{
+      if (textfromform == 0){
+        textingData.line = random(0, 4); // 4 lines of displays
+        // textingData.texting[100] = '\0';
+        // strcpy(textingData.texting, "tube "); 
+        randomstringvalue(random(1, 15));
+        //strcpy(textingData.texting, rmsg); 
+        memcpy(&textingData.texting, rmsg, 101); 
+        runningclient = connectedclientcount;
+      }
+    }
 
     // print connected clients (+ 1 extra, showing clearly the end of the list)
     Serial.print(F("Message: "));
