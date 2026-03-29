@@ -407,7 +407,7 @@ void randomstringvalue(int numBytes){
       }
     }
   }
-  rmsg[numBytes] = '\0';
+  //rmsg[numBytes] = '\0';
 }
 
 // --------------------
@@ -458,7 +458,7 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
 
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+  // attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Server Ready"));
@@ -470,40 +470,40 @@ const char buttonmsg[] = "Button pressed (Server).";
 unsigned long runningtime = 0;
 bool action = false;
 int actionid = 0;
-bool buttonpressed = false;
+// bool buttonpressed = false;
 
-void handle_button(bool pressed, unsigned long timing) {
-  static unsigned long btime = 0;
-  static bool buttonstate = false;
-  bool bpress = pressed;
+// void handle_button(bool pressed, unsigned long timing) {
+//   static unsigned long btime = 0;
+//   static bool buttonstate = false;
+//   bool bpress = pressed;
 
-  if (buttonstate){
-    int butstate = digitalRead(buttonPin); // check current status of the button
-    if (butstate == LOW) {  // button still pressed within the time period
-      btime = timing;
-      // Serial.println(F("Button press extension"));
-      return;
-    }
-    if (btime + 2000 < timing){
-      buttonstate = false;
-      Serial.print(F("Button can be pressed again "));
-      Serial.println(millis());
-      buttonpressed = false;
-    }
-    else {
-      bpress = false;
-    }
-  }
-  if (bpress) {
-    buttonpressed = true;
-    btime = millis();
-    buttonstate = true;
-    Serial.print(F("Button press: "));
-    Serial.println(btime);
-    sendonesp(Broadcast_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
-    //esp_now_send(Broadcast_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
-  }
-}
+//   if (buttonstate){
+//     int butstate = digitalRead(buttonPin); // check current status of the button
+//     if (butstate == LOW) {  // button still pressed within the time period
+//       btime = timing;
+//       // Serial.println(F("Button press extension"));
+//       return;
+//     }
+//     if (btime + 2000 < timing){
+//       buttonstate = false;
+//       Serial.print(F("Button can be pressed again "));
+//       Serial.println(millis());
+//       buttonpressed = false;
+//     }
+//     else {
+//       bpress = false;
+//     }
+//   }
+//   if (bpress) {
+//     buttonpressed = true;
+//     btime = millis();
+//     buttonstate = true;
+//     Serial.print(F("Button press: "));
+//     Serial.println(btime);
+//     sendonesp(Broadcast_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
+//     //esp_now_send(Broadcast_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
+//   }
+// }
 
 uint8_t textcount = 0;
 uint8_t runningclient = 0;
@@ -537,8 +537,8 @@ void loop() {
     Serial.println(textackcount);
     textackcount = 0;
     textingData.msgType = TEXT;
-    textingData.id = textcount;
-    textingData.line = random(0, 3);
+    textingData.id = textcount++;
+    textingData.line = random(0, 4); // 4 lines of displays
     // textingData.texting[100] = '\0';
     // strcpy(textingData.texting, "tube "); 
     randomstringvalue(random(1, 15));
@@ -570,12 +570,12 @@ void loop() {
 
   server.handleClient();
 
-  handle_button(false, runningtime);
+  //handle_button(false, runningtime);
 
 }
 
-ICACHE_RAM_ATTR void buttonPress(){
-  // Serial.print(F("Button press: "));
-  // Serial.println(millis());
-  handle_button(true, millis());
-}
+// ICACHE_RAM_ATTR void buttonPress(){
+//   // Serial.print(F("Button press: "));
+//   // Serial.println(millis());
+//   handle_button(true, millis());
+// }

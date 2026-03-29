@@ -7,11 +7,11 @@ extern "C" {
 //#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
 
-enum DisplayState {
-    Off = 0,
-    Dim = 1,
-    On = 2,
-};
+// enum DisplayState {
+//     Off = 0,
+//     Dim = 1,
+//     On = 2,
+// };
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -21,25 +21,33 @@ enum DisplayState {
 
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-bool displaystatus = DisplayState::Off;
-void display_oled(bool clear, int x, int y, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  if (clear) display.clearDisplay();
-  display.setCursor(x, y);
-  display.print(text);
-  display.display();
-}
+// bool displaystatus = DisplayState::Off;
+// void display_oled(bool clear, int x, int y, String text) {
+//   if (displaystatus == DisplayState::Off) return;
+//   if (clear) display.clearDisplay();
+//   display.setCursor(x, y);
+//   display.print(text);
+//   display.display();
+// }
 
-void clear_display(){
-  display.clearDisplay();
-  display.display();
-}
+// void clear_display(){
+//   display.clearDisplay();
+//   display.display();
+// }
+
+char Lines[3][101] = {
+  "Welcome a",
+  "Demo B",
+  "Whats c up?"
+};
+uint8_t LinesYPos[3] = { 0, 21, 42 };
+uint8_t upddisplay = 200;
 
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 bool devicepaired = false;
 
-enum MessageType {PAIRING, DATA, ACK, TEXT};
+enum MessageType { PAIRING, DATA, ACK, TEXT };
 MessageType messageType;
 
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
@@ -92,6 +100,28 @@ bool addPeer() {      // add pairing
   devicepaired = res == 0;
   Serial.println("PEER added ");
   return devicepaired;
+}
+
+void updateDisplay(){
+  //bool fresh = true;
+  //Serial.println("updateDisplay 1 ");
+  //delay(1000);
+  display.clearDisplay();
+  // for(int lin=0; lin < 4 ; lin++){
+  //   Serial.println(Lines[lin]);
+  // }
+  //Serial.println("updateDisplay 2 ");
+  //delay(5000);
+  for(int lin=0; lin < 3 ; lin++){
+    display.setCursor(0, LinesYPos[lin]);
+    display.print(Lines[lin]);
+  }
+  display.display();
+  //Serial.println("updateDisplay 3 ");
+  upddisplay = 0;
+  // display_oled(false, 0, 32, Lines[1]); 
+  // display_oled(false, 0, 48, Lines[2]);  
+  // display_oled(false, 0, 64, Lines[3]); 
 }
 
 // function to send 1 single ESP-NOW message
@@ -194,6 +224,12 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.print(F(" "));
     Serial.println(textingData.texting);
 
+    // updateDisplay();
+    if (textingData.line < 3){
+      memcpy(&Lines[textingData.line], textingData.texting, 101);
+      upddisplay = 90; // update display in the main loop
+    }
+
     // reply with 'ack'
     textingData.texting[100] = '\0';
     textingData.texting[0] = '\0';
@@ -255,10 +291,6 @@ bool timepassing(unsigned long curtime, unsigned long duration){
   return true;
 }
 
-String Line1 = "Welcome a"; 
-String Line2 = "Demo B"; 
-String Line3 = "Whats c up?"; 
-
 // --------------------
 // Setup
 // --------------------
@@ -281,7 +313,7 @@ void setup() {
   display.begin(i2c_Address, true); // Address 0x3C default
   display.oled_command(SH110X_DISPLAYON);
   display.setContrast(0); // dim display
-  displaystatus = DisplayState::Dim;
+  //displaystatus = DisplayState::Dim;
   display.clearDisplay();
   //display.setFont(&FreeSerif12pt7b);
   display.setTextSize(2); // 3 lines of 10-12 chars
@@ -308,9 +340,10 @@ void setup() {
   // use the button on an interrupt hadling
   //attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
-  display_oled(true, 0, 0, Line1); //16
-  display_oled(false, 2, 21, Line2); //38
-  display_oled(false, 4, 42, Line3); //60
+  // display_oled(true, 0, 0, Line1); //16
+  // display_oled(false, 2, 21, Line2); //38
+  // display_oled(false, 4, 42, Line3); //60
+  updateDisplay();
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Transceiver Ready"));
@@ -321,40 +354,40 @@ const char buttonmsg[] = "Button pressed (BC1).";
 unsigned long runningtime = 0;
 bool action = false;
 int actionid = 0;
-bool buttonpressed = false;
+// bool buttonpressed = false;
 
-void handle_button(bool pressed, unsigned long timing) {
-  static unsigned long btime = 0;
-  static bool buttonstate = false;
-  bool bpress = pressed;
+// void handle_button(bool pressed, unsigned long timing) {
+//   static unsigned long btime = 0;
+//   static bool buttonstate = false;
+//   bool bpress = pressed;
 
-  if (buttonstate){
-    int butstate = digitalRead(buttonPin); // check current status of the button
-    if (butstate == LOW) {  // button still pressed within the time period
-      btime = timing;
-      // Serial.println(F("Button press extension"));
-      return;
-    }
-    if (btime + 2000 < timing){
-      buttonstate = false;
-      Serial.print(F("Button can be pressed again "));
-      Serial.println(millis());
-      buttonpressed = false;
-    }
-    else {
-      bpress = false;
-    }
-  }
-  if (bpress) {
-    buttonpressed = true;
-    btime = millis();
-    buttonstate = true;
-    Serial.print(F("Button press: "));
-    Serial.println(btime);
-    sendonesp((uint8_t *)buttonmsg, sizeof(buttonmsg));
-    //esp_now_send(Server_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
-  }
-}
+//   if (buttonstate){
+//     int butstate = digitalRead(buttonPin); // check current status of the button
+//     if (butstate == LOW) {  // button still pressed within the time period
+//       btime = timing;
+//       // Serial.println(F("Button press extension"));
+//       return;
+//     }
+//     if (btime + 2000 < timing){
+//       buttonstate = false;
+//       Serial.print(F("Button can be pressed again "));
+//       Serial.println(millis());
+//       buttonpressed = false;
+//     }
+//     else {
+//       bpress = false;
+//     }
+//   }
+//   if (bpress) {
+//     buttonpressed = true;
+//     btime = millis();
+//     buttonstate = true;
+//     Serial.print(F("Button press: "));
+//     Serial.println(btime);
+//     sendonesp((uint8_t *)buttonmsg, sizeof(buttonmsg));
+//     //esp_now_send(Server_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
+//   }
+// }
 
 // --------------------
 // Main Loop
@@ -374,14 +407,20 @@ void loop() {
     }
   }
 
-  handle_button(false, runningtime);
+  //handle_button(false, runningtime);
+
+  if (upddisplay > 0){
+    if (++upddisplay > 100){
+      updateDisplay();
+    }
+  }
 
   heartbeat(runningtime, false);
   
 }
 
-ICACHE_RAM_ATTR void buttonPress(){
-  // Serial.print(F("Button press: "));
-  // Serial.println(millis());
-  handle_button(true, millis());
-}
+// ICACHE_RAM_ATTR void buttonPress(){
+//   // Serial.print(F("Button press: "));
+//   // Serial.println(millis());
+//   handle_button(true, millis());
+// }

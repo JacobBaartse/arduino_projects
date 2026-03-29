@@ -19,13 +19,13 @@ Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, 
 enum DisplayState { Off, Dim, On };
 
 uint8_t displaystatus = DisplayState::Off;
-void display_oled(bool clear, int x, int y, String text) {
-  if (displaystatus == DisplayState::Off) return;
-  if (clear) display.clearDisplay();
-  display.setCursor(x, y);
-  display.print(text);
-  display.display();
-}
+// void display_oled(bool clear, int x, int y, const char* text) {
+//   if (displaystatus == DisplayState::Off) return;
+//   // if (clear) display.clearDisplay();
+//   display.setCursor(x, y);
+//   display.print(text);
+//   // display.display();
+// }
 
 DisplayState setDisplay(DisplayState statustoset){
   static DisplayState displaystatus = DisplayState::Dim;
@@ -52,15 +52,19 @@ DisplayState setDisplay(DisplayState statustoset){
   return displaystatus;
 }
 
-void clear_display(){
-  display.clearDisplay();
-  display.display();
-}
+// void clear_display(){
+//   display.clearDisplay();
+//   display.display();
+// }
 
-String Lines[4] = {"Welcome George",
-                   "Demo {small display}", 
-                   "Whats up?",
-                   "Hello World"};  
+char Lines[4][101] = {
+  "Welcome George",
+  "Demo {small display}", 
+  "Whats up?",
+  "Hello World"
+};  
+uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
+uint8_t upddisplay = 200;
 
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
@@ -137,13 +141,25 @@ bool addPeer(){ // add pairing
 // }
 
 void updateDisplay(){
-  Serial.println("updateDisplay ");
-  delay(1000);
-
-  display_oled(true, 0, 16, Lines[0]); 
-  display_oled(false, 0, 32, Lines[1]); 
-  display_oled(false, 0, 48, Lines[2]);  
-  display_oled(false, 0, 64, Lines[3]); 
+  //bool fresh = true;
+  //Serial.println("updateDisplay 1 ");
+  //delay(1000);
+  display.clearDisplay();
+  // for(int lin=0; lin < 4 ; lin++){
+  //   Serial.println(Lines[lin]);
+  // }
+  //Serial.println("updateDisplay 2 ");
+  //delay(5000);
+  for(int lin=0; lin < 4 ; lin++){
+    display.setCursor(0, LinesYPos[lin]);
+    display.print(Lines[lin]);
+  }
+  display.display();
+  //Serial.println("updateDisplay 3 ");
+  upddisplay = 0;
+  // display_oled(false, 0, 32, Lines[1]); 
+  // display_oled(false, 0, 48, Lines[2]);  
+  // display_oled(false, 0, 64, Lines[3]); 
 }
 
 // function to send 1 single ESP-NOW message
@@ -248,20 +264,11 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len){
     Serial.print(F(" "));
     Serial.println(textingData.texting);
 
-    // while (textingData.texting[ix] != '\0'){
-    //   linetxt.concat(textingData.texting[ix]);
-    //   ix++;
-    // }
-    // Serial.print(F("String '"));
-    // Serial.print(linetxt);
-    // Serial.println(F("'"));
-
-    //updateDisplay(textingData.line);
-    // if (textingData.line < 4){
-    //   strcpy(, textingData.texting);
-    // }
-    //delay(1000);
-    //updateDisplay();
+    // updateDisplay();
+    if (textingData.line < 4){
+      memcpy(&Lines[textingData.line], textingData.texting, 101);
+      upddisplay = 90; // update display in the main loop
+    }
 
     // reply with 'ack'
     textingData.texting[100] = '\0';
@@ -369,7 +376,7 @@ void setup(){
   esp_now_register_send_cb(onDataSent);
 
   // use the button on an interrupt hadling
-  //attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+  // attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
   updateDisplay();
   // display_oled(true, 0, 16, Lines[0]); 
@@ -386,40 +393,40 @@ const char buttonmsg[] = "Button pressed (BC1).";
 unsigned long runningtime = 0;
 bool action = false;
 int actionid = 0;
-bool buttonpressed = false;
+// bool buttonpressed = false;
 
-void handle_button(bool pressed, unsigned long timing){
-  static unsigned long btime = 0;
-  static bool buttonstate = false;
-  bool bpress = pressed;
+// void handle_button(bool pressed, unsigned long timing){
+//   static unsigned long btime = 0;
+//   static bool buttonstate = false;
+//   bool bpress = pressed;
 
-  if (buttonstate){
-    int butstate = digitalRead(buttonPin); // check current status of the button
-    if (butstate == LOW) {  // button still pressed within the time period
-      btime = timing;
-      // Serial.println(F("Button press extension"));
-      return;
-    }
-    if (btime + 2000 < timing){
-      buttonstate = false;
-      Serial.print(F("Button can be pressed again "));
-      Serial.println(millis());
-      buttonpressed = false;
-    }
-    else {
-      bpress = false;
-    }
-  }
-  if (bpress) {
-    buttonpressed = true;
-    btime = millis();
-    buttonstate = true;
-    Serial.print(F("Button press: "));
-    Serial.println(btime);
-    sendonesp((uint8_t *)buttonmsg, sizeof(buttonmsg));
-    //esp_now_send(Server_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
-  }
-}
+//   if (buttonstate){
+//     int butstate = digitalRead(buttonPin); // check current status of the button
+//     if (butstate == LOW) {  // button still pressed within the time period
+//       btime = timing;
+//       // Serial.println(F("Button press extension"));
+//       return;
+//     }
+//     if (btime + 2000 < timing){
+//       buttonstate = false;
+//       Serial.print(F("Button can be pressed again "));
+//       Serial.println(millis());
+//       buttonpressed = false;
+//     }
+//     else {
+//       bpress = false;
+//     }
+//   }
+//   if (bpress) {
+//     buttonpressed = true;
+//     btime = millis();
+//     buttonstate = true;
+//     Serial.print(F("Button press: "));
+//     Serial.println(btime);
+//     sendonesp((uint8_t *)buttonmsg, sizeof(buttonmsg));
+//     //esp_now_send(Server_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
+//   }
+// }
 
 // --------------------
 // Main Loop
@@ -439,14 +446,20 @@ void loop(){
     }
   }
 
-  handle_button(false, runningtime);
+  //handle_button(false, runningtime);
+
+  if (upddisplay > 0){
+    if (++upddisplay > 100){
+      updateDisplay();
+    }
+  }
 
   heartbeat(runningtime, false);
   
 }
 
-ICACHE_RAM_ATTR void buttonPress(){
-  // Serial.print(F("Button press: "));
-  // Serial.println(millis());
-  handle_button(true, millis());
-}
+// ICACHE_RAM_ATTR void buttonPress(){
+//   // Serial.print(F("Button press: "));
+//   // Serial.println(millis());
+//   handle_button(true, millis());
+// }
