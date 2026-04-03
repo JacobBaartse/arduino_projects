@@ -8,10 +8,10 @@
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
 
-#define CFG_PIN0 A0
-#define CFG_PIN1 A1
-#define CFG_PIN2 A2
-#define CFG_PIN3 A3
+// #define CFG_PIN0 A0
+// #define CFG_PIN1 A1
+// #define CFG_PIN2 A2
+// #define CFG_PIN3 A3
 // #define CFG_PIN4 6
 // #define CFG_PIN5 7
 // #define CFG_PIN6 8
@@ -50,17 +50,17 @@ bool newdata = false;
 void setup() {
   Serial.begin(115200);
 
-  // multiple PINs for reading the config
-  pinMode(CFG_PIN0, INPUT_PULLUP);
-  pinMode(CFG_PIN1, INPUT_PULLUP);
-  pinMode(CFG_PIN2, INPUT_PULLUP);
-  pinMode(CFG_PIN3, INPUT_PULLUP);
-  // pinMode(CFG_PIN4, INPUT_PULLUP);
-  // pinMode(CFG_PIN5, INPUT_PULLUP);
-  // pinMode(CFG_PIN6, INPUT_PULLUP);
-  // pinMode(CFG_PIN7, INPUT_PULLUP);
+  // // multiple PINs for reading the config
+  // pinMode(CFG_PIN0, INPUT_PULLUP);
+  // pinMode(CFG_PIN1, INPUT_PULLUP);
+  // pinMode(CFG_PIN2, INPUT_PULLUP);
+  // pinMode(CFG_PIN3, INPUT_PULLUP);
+  // // pinMode(CFG_PIN4, INPUT_PULLUP);
+  // // pinMode(CFG_PIN5, INPUT_PULLUP);
+  // // pinMode(CFG_PIN6, INPUT_PULLUP);
+  // // pinMode(CFG_PIN7, INPUT_PULLUP);
 
-  // PINs for sensor inputs
+  // PINs for user input
   pinMode(BUTTON_PIN1, INPUT_PULLUP);
   pinMode(BUTTON_PIN2, INPUT_PULLUP);
 
@@ -70,12 +70,12 @@ void setup() {
   // }
   // if (digitalRead(CFG_PIN1) == LOW){ // PIN active
   // }
-  if (digitalRead(CFG_PIN2) == LOW){ // PIN active
-    radiolevel = 1;
-  }
-  if (digitalRead(CFG_PIN3) == LOW){ // PIN active
-    radiolevel = radiolevel + 2;
-  }
+  // if (digitalRead(CFG_PIN2) == LOW){ // PIN active
+  //   radiolevel = 1;
+  // }
+  // if (digitalRead(CFG_PIN3) == LOW){ // PIN active
+  //   radiolevel = radiolevel + 2;
+  // }
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
@@ -89,7 +89,6 @@ void setup() {
     while (true) delay(1000);
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-  //radio.setPALevel(RF24_PA_MIN, 0);
   radiolevel = RF24_PA_LOW;
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
@@ -153,12 +152,12 @@ void drivebuzzer(bool buzzerstatus){
 
   if (buzzerstatus != status){
     if (buzzerstatus){
-      if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-        buzzertone = 1000;
-      }
-      if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-        buzzertone += 2000;
-      }
+      // if (digitalRead(CFG_PIN0) == LOW){ // PIN active
+      //   buzzertone = 1000;
+      // }
+      // if (digitalRead(CFG_PIN1) == LOW){ // PIN active
+      //   buzzertone += 2000;
+      // }
       tone(BUZZER_PIN, buzzertone);
     }
     else {

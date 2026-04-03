@@ -11,10 +11,10 @@
 #define CE_PIN 10
 #define CSN_PIN 9
 
-#define CFG_PIN0 A0
-#define CFG_PIN1 A1
-#define CFG_PIN2 A2
-#define CFG_PIN3 A4
+// #define CFG_PIN0 A0
+// #define CFG_PIN1 A1
+// #define CFG_PIN2 A2
+// #define CFG_PIN3 A4
 
 // maybe a few pins for config of the distance threshold
 // #define CFG_PIN4 6
@@ -36,9 +36,9 @@
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
-uint16_t detectornode = 01; // Address of this node in Octal format (04, 031, etc.)
+uint16_t detectornode = 01; // Address of this node in Octal format (01 ... 05), maximum 5 detector nodes
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
-uint8_t radiolevel = RF24_PA_MAX;
+uint8_t radiolevel = RF24_PA_MIN;
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
 
@@ -57,15 +57,15 @@ bool debug = true;
 void setup() {
   Serial.begin(115200);
 
-  // multiple PINs for reading the config
-  pinMode(CFG_PIN0, INPUT_PULLUP);
-  pinMode(CFG_PIN1, INPUT_PULLUP);
-  pinMode(CFG_PIN2, INPUT_PULLUP);
-  pinMode(CFG_PIN3, INPUT_PULLUP);
-  // pinMode(CFG_PIN4, INPUT_PULLUP);
-  // pinMode(CFG_PIN5, INPUT_PULLUP);
-  // pinMode(CFG_PIN6, INPUT_PULLUP);
-  // pinMode(CFG_PIN7, INPUT_PULLUP);
+  // // multiple PINs for reading the config
+  // pinMode(CFG_PIN0, INPUT_PULLUP);
+  // pinMode(CFG_PIN1, INPUT_PULLUP);
+  // pinMode(CFG_PIN2, INPUT_PULLUP);
+  // pinMode(CFG_PIN3, INPUT_PULLUP);
+  // // pinMode(CFG_PIN4, INPUT_PULLUP);
+  // // pinMode(CFG_PIN5, INPUT_PULLUP);
+  // // pinMode(CFG_PIN6, INPUT_PULLUP);
+  // // pinMode(CFG_PIN7, INPUT_PULLUP);
 
   // PINs for sensor inputs
   pinMode(BUTTON_PIN1, INPUT_PULLUP);
@@ -73,20 +73,20 @@ void setup() {
   pinMode(PIR_PIN1, INPUT);
   //pinMode(PIR_PIN2, INPUT);
 
-  if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-    detectornode = 2;
-  }
-  if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-    detectornode = detectornode + 2;
-  }
+  // if (digitalRead(CFG_PIN0) == LOW){ // PIN active
+  //   detectornode = 2;
+  // }
+  // if (digitalRead(CFG_PIN1) == LOW){ // PIN active
+  //   detectornode = detectornode + 2;
+  // }
 
-  // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-  if (digitalRead(CFG_PIN2) == LOW){ // PIN active
-    radiolevel = 1;
-  }
-  if (digitalRead(CFG_PIN3) == LOW){ // PIN active
-    radiolevel = radiolevel + 2;
-  }
+  // // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
+  // if (digitalRead(CFG_PIN2) == LOW){ // PIN active
+  //   radiolevel = 1;
+  // }
+  // if (digitalRead(CFG_PIN3) == LOW){ // PIN active
+  //   radiolevel = radiolevel + 2;
+  // }
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
@@ -103,6 +103,7 @@ void setup() {
     while (true) delay(1000);
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
+  radiolevel = RF24_PA_LOW;
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, detectornode);
