@@ -59,13 +59,14 @@ DisplayState setDisplay(DisplayState statustoset){
 
 char Lines[4][101] = {
   "Welcome George",
-  "Demo {small display}", 
+  "Demo {small disp.}", 
   "Whats up?",
   "Hello World"
 };  
 uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
 uint8_t upddisplay = 200;
 
+const char reftext[11] = "client_SD";
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 bool devicepaired = false;
@@ -87,25 +88,26 @@ typedef struct struct_message {
 } struct_message;
 
 typedef struct struct_pairing { // structure for pairing
-    uint8_t msgType;
-    uint8_t id;
-    uint8_t ServermacAddr[6];
-    uint8_t ClientmacAddr[6];
-    uint8_t channel;
+  uint8_t msgType;
+  uint8_t id;
+  uint8_t ServermacAddr[6];
+  uint8_t ClientmacAddr[6];
+  uint8_t channel;
+  char textref[11];
 } struct_pairing;
 
 typedef struct struct_ack { // structure for acknowledge
-    uint8_t msgType;
-    uint8_t id;
+  uint8_t msgType;
+  uint8_t id;
 } struct_ack;
 
 struct_pairing pairingData;
 
 typedef struct struct_string { // structure for text
-    uint8_t msgType;
-    uint8_t id;
-    uint8_t line;
-    char texting[101]; // 100 characters + terminator char
+  uint8_t msgType;
+  uint8_t id;
+  uint8_t line;
+  char texting[101]; // 100 characters + terminator char
 } struct_string;
 
 struct_string textingData;
@@ -370,6 +372,7 @@ void setup(){
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
+  Serial.println(reftext);
   Serial.flush(); 
 
   // ESP-NOW requires WiFi in STA mode

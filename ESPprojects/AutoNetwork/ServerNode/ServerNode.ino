@@ -5,6 +5,7 @@ extern "C" {
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
+const char reftext[11] = "web_server";
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 
@@ -33,6 +34,30 @@ uint8_t connectedclients[20][6] = {
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 }; 
+char referencestring[21][11] = { // 10 charactors + terminator, for 20 clients and the server
+  "Ref 0",
+  "Ref 1",
+  "Ref 2",
+  "Ref 3",
+  "Ref 4",
+  "Ref 5",
+  "Ref 6",
+  "Ref 7",
+  "Ref 8",
+  "Ref 9",
+  "Ref 10",
+  "Ref 11",
+  "Ref 12",
+  "Ref 13",
+  "Ref 14",
+  "Ref 15",
+  "Ref 16",
+  "Ref 17",
+  "Ref 18",
+  "Ref 19",
+  "Ref Server"
+};
+
 
 uint8_t connectedclientcount = 0;
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
@@ -62,25 +87,26 @@ typedef struct struct_message {
 } struct_message;
 
 typedef struct struct_pairing { // structure for pairing
-    uint8_t msgType;
-    uint8_t id;
-    uint8_t ServermacAddr[6];
-    uint8_t ClientmacAddr[6];
-    uint8_t channel;
+  uint8_t msgType;
+  uint8_t id;
+  uint8_t ServermacAddr[6];
+  uint8_t ClientmacAddr[6];
+  uint8_t channel;
+  char textref[11];
 } struct_pairing;
 
 typedef struct struct_ack { // structure for acknowledge
-    uint8_t msgType;
-    uint8_t id;
+  uint8_t msgType;
+  uint8_t id;
 } struct_ack;
 
 struct_pairing pairingData;
 
 typedef struct struct_string { // structure for text
-    uint8_t msgType;
-    uint8_t id;
-    uint8_t line;
-    char texting[101]; // 100 characters + terminator char
+  uint8_t msgType;
+  uint8_t id;
+  uint8_t line;
+  char texting[101]; // 100 characters + terminator char
 } struct_string;
 
 struct_string textingData;
@@ -118,6 +144,7 @@ int indexMAC(const uint8_t * mac_addr){
     }
     if (foundcount == 6){
       index = row;
+      //referencestring[index] = refstring; 
       break; // return index;
     }
   }
@@ -457,7 +484,9 @@ void setup() {
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
+  Serial.println(reftext);
   Serial.flush(); 
+
 
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(local_ip, gateway, subnet);

@@ -3,8 +3,9 @@ extern "C" {
 }
 #include <ESP8266WiFi.h>
 #include <Wire.h>
-//#include <Adafruit_GFX.h> // already included from font file
+#include <Adafruit_GFX.h> 
 //#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
+#include "font_16pix_high.h"
 #include <Adafruit_SH110X.h> // Adafruit SH110X by Adafruit
 
 // enum DisplayState {
@@ -35,14 +36,22 @@ Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, 
 //   display.display();
 // }
 
-char Lines[3][101] = {
-  "Welcome a",
-  "Demo B",
-  "Whats c up?"
-};
-uint8_t LinesYPos[3] = { 0, 21, 42 };
+// char Lines[3][101] = {
+//   "Welcome a",
+//   "Demo B",
+//   "Whats c up?"
+// };
+// uint8_t LinesYPos[3] = { 0, 21, 42 };
+char Lines[4][101] = {
+  "Welcome George",
+  "Demo {big disp.}", 
+  "Whats up?",
+  "Hello World"
+};  
+uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
 uint8_t upddisplay = 200;
 
+const char reftext[11] = "client_BD";
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 bool devicepaired = false;
@@ -64,25 +73,26 @@ typedef struct struct_message {
 } struct_message;
 
 typedef struct struct_pairing { // structure for pairing
-    uint8_t msgType;
-    uint8_t id;
-    uint8_t ServermacAddr[6];
-    uint8_t ClientmacAddr[6];
-    uint8_t channel;
+  uint8_t msgType;
+  uint8_t id;
+  uint8_t ServermacAddr[6];
+  uint8_t ClientmacAddr[6];
+  uint8_t channel;
+  char textref[11];
 } struct_pairing;
 
 typedef struct struct_ack { // structure for acknowledge
-    uint8_t msgType;
-    uint8_t id;
+  uint8_t msgType;
+  uint8_t id;
 } struct_ack;
 
 struct_pairing pairingData;
 
 typedef struct struct_string { // structure for text
-    uint8_t msgType;
-    uint8_t id;
-    uint8_t line;
-    char texting[101]; // 100 characters + terminator char
+  uint8_t msgType;
+  uint8_t id;
+  uint8_t line;
+  char texting[101]; // 100 characters + terminator char
 } struct_string;
 
 struct_string textingData;
@@ -112,7 +122,8 @@ void updateDisplay(){
   // }
   //Serial.println("updateDisplay 2 ");
   //delay(5000);
-  for(int lin=0; lin < 3 ; lin++){
+  //for(int lin=0; lin < 3 ; lin++){
+  for(int lin=0; lin < 4 ; lin++){
     display.setCursor(0, LinesYPos[lin]);
     display.print(Lines[lin]);
   }
@@ -226,7 +237,8 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.println(textingData.texting);
 
     // updateDisplay();
-    if (textingData.line < 3){
+    //if (textingData.line < 3){
+    if (textingData.line < 4){
       memcpy(&Lines[textingData.line], textingData.texting, 101);
       upddisplay = 90; // update display in the main loop
       runningline = 0; // reset static running line (if received from webserver form input)
@@ -237,7 +249,8 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
       upddisplay = 90; // update display in the main loop
     }
     if (textingData.line == 95){
-      for(int lin=0; lin < 3 ; lin++){
+      //for(int lin=0; lin < 3 ; lin++){
+      for(int lin=0; lin < 4 ; lin++){
         Lines[lin][0] = '\0';
         //memset(Lines[lin], 0, 101);
       }
@@ -322,6 +335,7 @@ void setup() {
   Serial.print(__FILE__);
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
+  Serial.println(reftext);
   Serial.flush(); 
 
   //Wire.begin();
@@ -331,7 +345,9 @@ void setup() {
   //displaystatus = DisplayState::Dim;
   display.clearDisplay();
   //display.setFont(&FreeSerif12pt7b);
-  display.setTextSize(2); // 3 lines of 10-12 chars
+  display.setFont(&font_16_pix);
+  //display.setTextSize(2); // 3 lines of 10-12 chars
+  display.setTextSize(1); 
   display.setTextColor(SH110X_WHITE);
   display.setTextWrap(false);
   display.display();
