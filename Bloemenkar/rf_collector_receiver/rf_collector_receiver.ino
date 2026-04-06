@@ -7,6 +7,8 @@
 #include <SPI.h>
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
+#define CE_PIN 10
+#define CSN_PIN 9
 
 // #define CFG_PIN0 A0
 // #define CFG_PIN1 A1
@@ -27,7 +29,7 @@
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(10, 9); // nRF24L01 (CE, CSN)
+RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 uint16_t detectornode = 00; // Address of this node in Octal format (04, 031, etc.)
@@ -112,7 +114,7 @@ bool activeBUTTON2 = false;
 void ledactivity(uint8_t ledid, uint8_t ledaction, unsigned long ledtime){
   static unsigned long ledflashtime = 0;
   static uint8_t ledAction[3][3] = {
-    {0, 0, 0}, // LED PIN, status, time
+    {0, 0, 0}, // LED PIN, status, ledaction
     {0, 0, 0},
     {0, 0, 0},
   };
@@ -340,7 +342,6 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
 
   return fresh;
 }
-
 
 void loop() {
 

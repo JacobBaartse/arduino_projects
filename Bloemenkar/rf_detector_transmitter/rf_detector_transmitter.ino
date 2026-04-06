@@ -1,15 +1,15 @@
 /*
- * RF-Nano, headers, USB-C, using RF24network library
+ * Nano + NRF extender module, , USB-C, using RF24network library
  */
 
 #include "RF24.h"
 #include <RF24Network.h>
 #include <SPI.h>
-#include "distance.h"
+#include "distance.h" // here IIC is used, pins A4 and A5
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
-#define CE_PIN 10
-#define CSN_PIN 9
+#define CE_PIN 9 // 10
+#define CSN_PIN 10 // 9
 
 // #define CFG_PIN0 A0
 // #define CFG_PIN1 A1
@@ -28,8 +28,6 @@
 #define BUTTON_PIN2 3
 
 #define PIR_PIN1 7
-//#define PIR_PIN1 A5
-//#define PIR_PIN2 A3
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -52,7 +50,7 @@ struct detector_payload{
 };
 
 bool newdata = false;
-bool debug = true;
+bool debug = false;
 
 void setup() {
   Serial.begin(115200);
@@ -115,7 +113,7 @@ void setup() {
   setupDistance();
 
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN1), buttonPress, FALLING); // trigger when button is pressed
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress, FALLING); // trigger when button is pressed
+  //attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress, FALLING); // trigger when button is pressed
 }
 
 unsigned long currentmilli = 0;
@@ -264,6 +262,15 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
   return fresh;
 }
 
+void watchdogprinting(unsigned long nowmilli){
+  static unsigned long nowtiming = 0;
+  if (nowtiming + 10000 < nowmilli){
+    Serial.print(F("WD: "));
+    Serial.println(nowmilli);
+    nowtiming = nowmilli;
+  }
+}
+
 uint8_t remPIR1 = 3;
 uint8_t curPIR1 = 3;
 //uint8_t remPIR2 = 3;
@@ -351,6 +358,9 @@ void loop() {
   // else{ // ping for base node
   //   newdata = transmitRFnetwork(newdata, currentmilli, true);
   // }
+
+  watchdogprinting(currentmilli);
+
 }
 
 void buttonPress(){
