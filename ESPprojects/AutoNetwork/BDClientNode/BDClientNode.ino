@@ -302,16 +302,19 @@ void onDataSent(uint8_t *mac_addr, uint8_t status) {
   Serial.println(millis());
 }
 
-void sendpairingsequence(int pstat){
-  static int seq = 0;
+void sendpairingsequence(uint8_t pstat){
+  static uint8_t seq = 0;
 
   pairingData.msgType = PAIRING;
-  pairingData.id = seq;
+  pairingData.id = seq++;
   for ( int id = 0; id < 6; id++ ){
     pairingData.ServermacAddr[id] = Server_Address[id];
     pairingData.ClientmacAddr[id] = Client_Address[id];
   }
   pairingData.channel = 4;
+  for ( int id = 0; id < 11; id++ ){
+    pairingData.textref[id] = reftext[id];
+  }  
   sendonesp((uint8_t *)&pairingData, sizeof(pairingData));
 }
 

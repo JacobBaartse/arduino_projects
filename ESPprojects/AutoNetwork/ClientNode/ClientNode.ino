@@ -95,14 +95,14 @@ void sendonesp(u8 *data, int len){
 }
 
 // function to check the heartbeat of the server
-void heartbeat(unsigned long curtime, bool message){
+void heartbeat(unsigned long curtime, bool message, unsigned long durationtime){
   static unsigned long htime = 0;
   if (message){
     htime = curtime;
   }
   else {
     if (devicepaired){
-      if (htime + 60000 < curtime){ // if not received a message for over 60 seconds, consider pairing dropped
+      if (htime + durationtime < curtime){ // if not received a message for over 60 seconds, consider pairing dropped
         devicepaired = false;
       }
     }
@@ -128,7 +128,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   Serial.print(" at: ");
   unsigned long messagetime = millis();
   Serial.println(messagetime);
-  heartbeat(messagetime, true);
+  heartbeat(messagetime, true, 0);
   // String datahere(data);
   // Serial.println(datahere);
 
@@ -229,16 +229,19 @@ void onDataSent(uint8_t *mac_addr, uint8_t status) {
   Serial.println(millis());
 }
 
-void sendpairingsequence(int pstat){
-  static int seq = 0;
+void sendpairingsequence(uint8_t pstat){
+  static uint8_t seq = 0;
 
   pairingData.msgType = PAIRING;
-  pairingData.id = seq;
+  pairingData.id = seq++;
   for ( int id = 0; id < 6; id++ ){
     pairingData.ServermacAddr[id] = Server_Address[id];
     pairingData.ClientmacAddr[id] = Client_Address[id];
   }
   pairingData.channel = 4;
+  for ( int id = 0; id < 11; id++ ){
+    pairingData.textref[id] = reftext[id];
+  }  
   sendonesp((uint8_t *)&pairingData, sizeof(pairingData));
 }
 
@@ -354,7 +357,7 @@ void loop() {
 
   handle_led(false, runningtime, 0);
 
-  heartbeat(runningtime, false);
+  heartbeat(runningtime, false, 60000);
   
 }
 

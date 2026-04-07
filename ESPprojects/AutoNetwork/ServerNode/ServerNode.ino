@@ -321,12 +321,15 @@ const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controlle
 const String endsection = "<BR><HR></body></html>";
 const String GWhtml = "<a href=\"/GW\">GateWay</a>";
 const String BChtml = "<a href=\"/BC\">Remote Node</a>";
-const String FORMshtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"0\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/>&nbsp;&nbsp;&nbsp;";
+const String FORMshtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"1\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/>&nbsp;&nbsp;&nbsp;";
 const String FORMehtml = "</FORM><a href=\"/cleardisplay\">Clear</a><BR>";
 
 String deviceslisting = "";
 void activedeviceslisting(){
-  deviceslisting = "<select name=\"device\" id=\"dev\"><option value=\"99\" selected=\"selected\">All</option>";
+  deviceslisting = "<select name=\"device\" id=\"dev\">";
+  if (connectedclientcount > 0){
+    deviceslisting += "<option value=\"99\" selected=\"selected\">All</option>"; // default send to all devices (server and connected clients)
+  }
   for ( int idn = 0; idn < connectedclientcount; idn++ ){
     deviceslisting += "<option value=\"";
     deviceslisting += idn;
