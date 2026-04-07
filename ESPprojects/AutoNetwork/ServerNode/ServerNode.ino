@@ -252,11 +252,12 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
           }
         }
         deviceidx = getindexMAC(mac); // add to connected clients list
-        Serial.print(F("Device pairing reference: "));
-        Serial.println(pairingData.textref);
+
         for ( int id = 0; id < 11; id++ ){
           referencestring[deviceidx][id] = pairingData.textref[id];
         }        
+        Serial.print(F("Device pairing reference: "));
+        Serial.println(referencestring[deviceidx]);
       break;
       case 2: // second message on pairing, capture server MAC (if not already known)
         pairingData.id = 3;
@@ -408,7 +409,6 @@ void handleBC() {
   Serial.println(F("handleBC"));
 
   sendonesp(Broadcast_Address, (uint8_t *)webmsg, sizeof(webmsg));
-  //esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
@@ -553,7 +553,7 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
 
   // Add broadcast peer (improves reliability)
-  //esp_now_add_peer(BC1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
+  esp_now_add_peer(Broadcast_Address, ESP_NOW_ROLE_SLAVE, 4, NULL, 0);
 
   server.on("/", handleRoot);
   server.on("/BC", handleBC);
