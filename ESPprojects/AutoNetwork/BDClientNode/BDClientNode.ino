@@ -211,7 +211,10 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
           Server_Address[id] = mac[id];
         }
         addPeer();
-        memcpy(&reftext, pairingData.textref, 11);
+        //memcpy(&reftext, pairingData.textref, 11);
+        for ( int id = 0; id < 11; id++ ){
+          pairingData.textref[id] = reftext[id];
+        }        
       break;
       // case 3: // second reply message on pairing, reply with ?
       //   pairingData.id = 4;

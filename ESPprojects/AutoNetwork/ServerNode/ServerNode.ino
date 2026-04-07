@@ -251,6 +251,8 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
           }
         }
         getindexMAC(mac); // add to connected clients list
+        Serial.print(F("Device pairing reference: "));
+        Serial.println(pairingData.textref);
       break;
       case 2: // second message on pairing, capture server MAC (if not already known)
         pairingData.id = 3;
@@ -315,7 +317,8 @@ const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controlle
 const String endsection = "<BR><HR></body></html>";
 const String GWhtml = "<a href=\"/GW\">GateWay</a>";
 const String BChtml = "<a href=\"/BC\">Remote Node</a>";
-const String FORMhtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"1\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/></FORM><a href=\"/cleardisplay\">Clear</a><BR>";
+const String FORMshtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"1\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/>";
+const String FORMehtml = "</FORM><a href=\"/cleardisplay\">Clear</a><BR>";
 
 String deviceslisting = "";
 void activedeviceslisting(){
@@ -345,8 +348,9 @@ String makewebpagehtml(){ // to be enhanced, array processing
   htmlpage += F("<BR><BR>\n");
   htmlpage += BChtml;
   htmlpage += F("<BR><HR>\n");
-  htmlpage += FORMhtml;
+  htmlpage += FORMshtml;
   htmlpage += deviceslisting;
+  htmlpage += FORMehtml;
   htmlpage += endsection;
   //Serial.print(htmlpage);
   return htmlpage;
@@ -421,6 +425,12 @@ void handleFORM() {
     textfromform = 2;
   }
 
+  if (server.hasArg("device") && server.arg("device") != NULL){
+    String devicestring = server.arg("device");
+    Serial.print("device selection: ");
+    Serial.println(devicestring);
+  }
+
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
   Serial.println(F(" "));
@@ -428,6 +438,7 @@ void handleFORM() {
 void handleCLEAR() {
   Serial.println(F("handleCLEAR"));
   textfromform = 95;
+
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
   Serial.println(F(" "));
@@ -463,7 +474,7 @@ bool timepassing(unsigned long curtime, unsigned long duration){
 bool timepassing2(unsigned long curtime, uint8_t inputval, unsigned long duration){
   static unsigned long rtime = 0;
   if (inputval < 2){ // skip time check if inputval > 1
-    if(rtime + duration > curtime) return false;
+    if (rtime + duration > curtime) return false;
   }
   rtime = millis(); // get fresh time to base the new interval on
   return true;
@@ -507,7 +518,10 @@ void setup() {
   Serial.println(reftext);
   Serial.flush(); 
 
-  memcpy(&reftext, referencestring[20], 11);
+  // memcpy(&reftext, referencestring[20], 11);
+  for ( int id = 0; id < 11; id++ ){
+    referencestring[20][id] = reftext[id];
+  }
 
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(local_ip, gateway, subnet);
