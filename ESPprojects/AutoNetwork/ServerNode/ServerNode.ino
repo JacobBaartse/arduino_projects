@@ -679,12 +679,12 @@ void loop() {
         randomstringvalue(random(1, 15));
         //strcpy(textingData.texting, rmsg); 
         memcpy(&textingData.texting, rmsg, 101); 
-        if (textforclient < 21){
-          runningclient = textforclient + 1;
-        }
-        else {
-          runningclient = connectedclientcount;
-        }
+        // if (textforclient < 21){
+        //   runningclient = textforclient + 1;
+        // }
+        // else {
+        //   runningclient = connectedclientcount;
+        // }
       }
     }
 
@@ -704,11 +704,15 @@ void loop() {
     Serial.print(F(" texting, line: "));
     Serial.print(textingData.line);
     Serial.print(F(", client: "));
+    if (textforclient < 21){
+      runningclient = textforclient;
+    }
     Serial.println(runningclient);
     sendonesp(connectedclients[runningclient], (uint8_t *)&textingData, sizeof(textingData));
     if (textforclient < 21){
       runningclient = 0;
       textforclient = 99;
+      Serial.println(F("single client addressed!"));
     }
   }
 
