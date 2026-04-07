@@ -252,11 +252,12 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
           }
         }
         deviceidx = getindexMAC(mac); // add to connected clients list
-        Serial.print(F("Device pairing reference: "));
-        Serial.println(pairingData.textref);
+
         for ( int id = 0; id < 11; id++ ){
           referencestring[deviceidx][id] = pairingData.textref[id];
         }        
+        Serial.print(F("Device pairing reference: "));
+        Serial.println(referencestring[deviceidx]);
       break;
       case 2: // second message on pairing, capture server MAC (if not already known)
         pairingData.id = 3;
@@ -411,7 +412,6 @@ void handleBC() {
   Serial.println(F("handleBC"));
 
   sendonesp(Broadcast_Address, (uint8_t *)webmsg, sizeof(webmsg));
-  //esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
@@ -556,7 +556,7 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
 
   // Add broadcast peer (improves reliability)
-  //esp_now_add_peer(BC1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
+  esp_now_add_peer(Broadcast_Address, ESP_NOW_ROLE_SLAVE, 4, NULL, 0);
 
   server.on("/", handleRoot);
   server.on("/BC", handleBC);
@@ -628,7 +628,13 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action){
-    sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg)); // heartbeat message
+    // entice pairing, for unknown devices
+    sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
+
+    // heartbeat message
+    runningclient = connectedclientcount;
+    textingData.line = 91;
+    textingData.texting[0] = '\0';
 
     // if (connectedclientcount < 1){
     //   pairingData.id = 33;
@@ -651,7 +657,8 @@ void loop() {
     textingData.id = textcount++;
     if (textfromform > 1){ // only send if textfromform is 2
       if (textfromform > 90){ // clear displays
-        textingData.line = textfromform; // send specific command to client 91..98, 99 is looping, 95 is clear displays
+        textingData.line = textfromform; // send specific command to client 91..98, 
+        // 99 is looping, 95 is clear displays, 91 is heartbeat
       }
       else {
         textingData.line = 99;
@@ -688,7 +695,9 @@ void loop() {
 
   if (runningclient > 0){
     runningclient -= 1;
-    Serial.print(F(" texting "));
+    Serial.print(F(" texting, line: "));
+    Serial.print(textingData.line);
+    Serial.print(F(", client: "));
     Serial.println(runningclient);
     sendonesp(connectedclients[runningclient], (uint8_t *)&textingData, sizeof(textingData));
   }
