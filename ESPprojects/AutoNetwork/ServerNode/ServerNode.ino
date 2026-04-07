@@ -113,6 +113,7 @@ struct_string textingData;
 uint8_t textackcount = 0;
 char forminput[101] = {'\0'};
 uint8_t textfromform = 0;
+uint8_t textforclient = 99;
 
 IPAddress local_ip(192,168,4,1);
 IPAddress gateway(192,168,4,1);
@@ -229,7 +230,6 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.println("PAIRING");
 
     memcpy(&pairingData, incomingData, sizeof(pairingData));
-    // Serial.println(pairingData.msgType);
     Serial.print(pairingData.id);
     Serial.print(" Pairing request from MAC Address: ");
     printMAC(pairingData.ServermacAddr);
@@ -243,7 +243,6 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
         pairingData.id = 1;
         for ( int id = 0; id < 6; id++ ){
           pairingData.ClientmacAddr[id] = mac[id];
-          //Client_Address[id] = mac[id];
         }
         addPeer(mac);
         if (serverknown){
@@ -304,16 +303,18 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   }
 }
 
+unsigned long datasendtime = 0;
 // Callback when data is sent
 void onDataSent(uint8_t *mac_addr, uint8_t status) {
   static unsigned long scount = 0;
   scount += 1;
+  datasendtime = millis();
   Serial.print(", message: ");
   Serial.print(scount);
   Serial.print(", send status: ");
   Serial.print(status == 0 ? "Success" : "Fail");
   Serial.print(" at: ");
-  Serial.println(millis());
+  Serial.println(datasendtime);
 }
 
 const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controller and webpage</title> \
@@ -438,7 +439,7 @@ void handleFORM() {
     Serial.print("device selection: ");
     Serial.println(deviceval);
     if (deviceval < 21){
-
+      textforclient = deviceval;
     }
   }
 
@@ -446,6 +447,7 @@ void handleFORM() {
   server.send(200, "text/html", webpage);
   Serial.println(F(" "));
 }
+
 void handleCLEAR() {
   Serial.println(F("handleCLEAR"));
   textfromform = 95;
@@ -617,7 +619,6 @@ int actionid = 0;
 
 uint8_t textcount = 0;
 uint8_t runningclient = 0;
-uint8_t specificclient = 100;
 
 // --------------------
 // Main Loop
@@ -678,7 +679,12 @@ void loop() {
         randomstringvalue(random(1, 15));
         //strcpy(textingData.texting, rmsg); 
         memcpy(&textingData.texting, rmsg, 101); 
-        runningclient = connectedclientcount;
+        if (textforclient < 21){
+          runningclient = textforclient + 1;
+        }
+        else {
+          runningclient = connectedclientcount;
+        }
       }
     }
 
@@ -700,6 +706,10 @@ void loop() {
     Serial.print(F(", client: "));
     Serial.println(runningclient);
     sendonesp(connectedclients[runningclient], (uint8_t *)&textingData, sizeof(textingData));
+    if (textforclient < 21){
+      runningclient = 0;
+      textforclient = 99;
+    }
   }
 
   server.handleClient();
