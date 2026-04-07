@@ -104,7 +104,7 @@ void printMAC(const uint8_t * mac_addr){
   Serial.print(macStr);
 }
 
-bool addPeer() {      // add pairing
+bool addPeer() { // add pairing
   esp_now_del_peer(Server_Address);
   int res = esp_now_add_peer(Server_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
   devicepaired = res == 0;
@@ -240,23 +240,19 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.print(F(" "));
     Serial.println(textingData.texting);
 
-    // updateDisplay();
-    //if (textingData.line < 3){
     if (textingData.line < 4){
       memcpy(&Lines[textingData.line], textingData.texting, 101);
       upddisplay = 90; // update display in the main loop
       runningline = 0; // reset static running line (if received from webserver form input)
     }
     if (textingData.line == 99){
-      runningline = runningline % 3;
+      runningline = runningline % 4;
       memcpy(&Lines[runningline++], textingData.texting, 101);
       upddisplay = 90; // update display in the main loop
     }
     if (textingData.line == 95){
-      //for(int lin=0; lin < 3 ; lin++){
       for(int lin=0; lin < 4 ; lin++){
         Lines[lin][0] = '\0';
-        //memset(Lines[lin], 0, 101);
       }
       upddisplay = 90; // update display in the main loop
       runningline = 0; // reset static running line (if received from webserver form input)
@@ -274,14 +270,11 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   }
 
   if (!devicepaired) {
-    if (false) {//if (strcmp(data,"HIERO") == 0) { // consider pairing found
-      for ( int id = 0; id < 6; id++ ){
-        Server_Address[id] = mac[id];
-      }
-      // Add broadcast peer (improves reliability)
-      esp_now_add_peer(Server_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
-      devicepaired = true;
+    for ( int id = 0; id < 6; id++ ){
+      Server_Address[id] = mac[id];
     }
+    // Add broadcast peer (improves reliability)
+    addPeer();
   }
 
   // add check if mac is Server_Address

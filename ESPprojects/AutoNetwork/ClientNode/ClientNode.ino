@@ -196,19 +196,16 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
 
     break;
   default:
-    Serial.print("Unknown message type: ");
+    Serial.print("ERROR: Unknown message type: ");
     Serial.println(type);
   }
 
   if (!devicepaired) {
-    if (false) {//if (strcmp(data,"HIERO") == 0) { // consider pairing found
-      for ( int id = 0; id < 6; id++ ){
-        Server_Address[id] = mac[id];
-      }
-      // Add broadcast peer (improves reliability)
-      esp_now_add_peer(Server_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
-      devicepaired = true;
+    for ( int id = 0; id < 6; id++ ){
+      Server_Address[id] = mac[id];
     }
+    // Add broadcast peer (improves reliability)
+    addPeer();
   }
 
   // add check if mac is Server_Address

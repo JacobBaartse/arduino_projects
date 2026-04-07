@@ -168,7 +168,7 @@ int getindexMAC(const uint8_t * mac_addr){
   return macindex;
 }
 
-void addPeer(uint8_t *peer_addr) {      // add pairing
+void addPeer(uint8_t *peer_addr){ // add pairing
   esp_now_del_peer(peer_addr);
   int res = esp_now_add_peer(peer_addr, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
   if (res == 0){
@@ -712,7 +712,7 @@ void loop() {
     if (textforclient < 21){
       runningclient = 0;
       textforclient = 99;
-      Serial.println(F("single client addressed!"));
+      Serial.println(F("s-client!"));
     }
   }
 
