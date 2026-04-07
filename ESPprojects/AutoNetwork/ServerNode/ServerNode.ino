@@ -5,9 +5,9 @@ extern "C" {
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
-const char reftext[11] = "web_server";
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
+char reftext[11] = "web_server";
 
 enum MessageType {PAIRING, DATA, ACK, TEXT};
 MessageType messageType;
@@ -312,23 +312,43 @@ void onDataSent(uint8_t *mac_addr, uint8_t status) {
 const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controller and webpage</title> \
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
       </head><h1>Local esp-now network with AP</h1><br><br>";
-const String endsection = "</body></html>";
+const String endsection = "<BR><HR></body></html>";
 const String GWhtml = "<a href=\"/GW\">GateWay</a>";
 const String BChtml = "<a href=\"/BC\">Remote Node</a>";
-const String FORMhtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"1\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/></FORM><a href=\"/cleardisplay\">Clear</a><BR><HR>";
+const String FORMhtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"1\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/></FORM><a href=\"/cleardisplay\">Clear</a><BR>";
+
+String deviceslisting = "";
+void activedeviceslisting(){
+  deviceslisting = "<select name=\"device\" id=\"dev\"><option value=\"99\" selected=\"selected\">All</option>";
+  for ( int idn = 0; idn < connectedclientcount; idn++ ){
+    deviceslisting += "<option value=\"";
+    deviceslisting += idn;
+    deviceslisting += "\">";
+    deviceslisting += referencestring[idn];
+    deviceslisting += "</option>";
+  }
+  deviceslisting += "<option value=\"20\">";  
+  deviceslisting += referencestring[20]; // 21th item is the web server
+  deviceslisting += "</option>";
+  deviceslisting += "</select>";
+ 
+}
 
 String makewebpagehtml(){ // to be enhanced, array processing
+  activedeviceslisting();
+
   String htmlpage = startsection;
-  htmlpage += F("Demo/trial/PoC<BR><BR>");
-  htmlpage += F("For now 2 links which can be clicked");
-  htmlpage += F("<BR><BR>");
+  htmlpage += F("Demo/trial/PoC<BR><BR>\n");
+  htmlpage += F("For now 2 links which can be clicked\n");
+  htmlpage += F("<BR><BR>\n");
   htmlpage += GWhtml;
-  htmlpage += F("<BR><BR>");
+  htmlpage += F("<BR><BR>\n");
   htmlpage += BChtml;
-  htmlpage += F("<BR><HR>");
+  htmlpage += F("<BR><HR>\n");
   htmlpage += FORMhtml;
+  htmlpage += deviceslisting;
   htmlpage += endsection;
-  // Serial.print(htmlpage);
+  //Serial.print(htmlpage);
   return htmlpage;
 }
 
@@ -487,6 +507,7 @@ void setup() {
   Serial.println(reftext);
   Serial.flush(); 
 
+  memcpy(&reftext, referencestring[20], 11);
 
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(local_ip, gateway, subnet);

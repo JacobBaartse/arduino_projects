@@ -4,10 +4,10 @@ extern "C" {
 #include <ESP8266WiFi.h>
 
 
-const char reftext[11] = "client_LED";
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 bool devicepaired = false;
+char reftext[11] = "client_LED";
 
 enum MessageType {PAIRING, DATA, ACK, TEXT};
 MessageType messageType;
@@ -159,6 +159,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
           Server_Address[id] = mac[id];
         }
         addPeer();
+        memcpy(&reftext, pairingData.textref, 11);
       break;
       // case 3: // second reply message on pairing, reply with ?
       //   pairingData.id = 4;
