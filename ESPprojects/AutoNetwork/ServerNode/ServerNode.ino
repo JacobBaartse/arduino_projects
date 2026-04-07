@@ -191,6 +191,7 @@ void sendonesp(u8 *da, u8 *data, int len){
 void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   static unsigned long rcount = 0;
   bool resppairing = true;
+  int deviceidx = 0;
 
   rcount += 1;
   Serial.print("ESP-NOW Received ");
@@ -250,9 +251,12 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
             pairingData.ServermacAddr[id] = Server_Address[id];
           }
         }
-        getindexMAC(mac); // add to connected clients list
+        deviceidx = getindexMAC(mac); // add to connected clients list
         Serial.print(F("Device pairing reference: "));
         Serial.println(pairingData.textref);
+        for ( int id = 0; id < 11; id++ ){
+          referencestring[deviceidx][id] = pairingData.textref[id];
+        }        
       break;
       case 2: // second message on pairing, capture server MAC (if not already known)
         pairingData.id = 3;
@@ -317,7 +321,7 @@ const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controlle
 const String endsection = "<BR><HR></body></html>";
 const String GWhtml = "<a href=\"/GW\">GateWay</a>";
 const String BChtml = "<a href=\"/BC\">Remote Node</a>";
-const String FORMshtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"1\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/>";
+const String FORMshtml = "<BR>Text input:<FORM action=\"/post\"><input type=\"text\" name=\"textinput\" required minlength=\"0\" maxlength=\"20\" size=\"10\"/>&nbsp;&nbsp;&nbsp;<input type=\"submit\" value=\"send\" name=\"send\"/>&nbsp;&nbsp;&nbsp;";
 const String FORMehtml = "</FORM><a href=\"/cleardisplay\">Clear</a><BR>";
 
 String deviceslisting = "";
@@ -427,8 +431,12 @@ void handleFORM() {
 
   if (server.hasArg("device") && server.arg("device") != NULL){
     String devicestring = server.arg("device");
+    int deviceval = devicestring.toInt();
     Serial.print("device selection: ");
-    Serial.println(devicestring);
+    Serial.println(deviceval);
+    if (deviceval < 21){
+
+    }
   }
 
   String webpage = makewebpagehtml(); // include the current status information
@@ -465,18 +473,20 @@ void handleNotFound() {
 // function to indicate the passing of certain duration
 bool timepassing(unsigned long curtime, unsigned long duration){
   static unsigned long rtime = 0;
-  if(rtime + duration > curtime) return false;
-  rtime = millis(); // get fresh time to base the new interval on
+
+  if(rtime > curtime) return false;
+  rtime = millis() + duration; // get fresh time to base the new interval on
   return true;
 }
 
 // function to indicate the passing of certain duration
 bool timepassing2(unsigned long curtime, uint8_t inputval, unsigned long duration){
   static unsigned long rtime = 0;
+
   if (inputval < 2){ // skip time check if inputval > 1
-    if (rtime + duration > curtime) return false;
+    if (rtime > curtime) return false;
   }
-  rtime = millis(); // get fresh time to base the new interval on
+  rtime = millis() + duration; // get fresh time to base the new interval on
   return true;
 }
 
@@ -604,6 +614,7 @@ int actionid = 0;
 
 uint8_t textcount = 0;
 uint8_t runningclient = 0;
+uint8_t specificclient = 100;
 
 // --------------------
 // Main Loop
