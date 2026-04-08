@@ -11,23 +11,12 @@
 #define CE_PIN 9 // 10
 #define CSN_PIN 10 // 9
 
-// #define CFG_PIN0 A0
-// #define CFG_PIN1 A1
-// #define CFG_PIN2 A2
-// #define CFG_PIN3 A4
-
-// maybe a few pins for config of the distance threshold
-// #define CFG_PIN4 6
-// #define CFG_PIN5 7
-// #define CFG_PIN6 8
-// #define CFG_PIN7 9
-
 /* one button or two buttons can be connected to trigger human presence
  */
-#define BUTTON_PIN1 2
-#define BUTTON_PIN2 3
+#define BUTTON1_PIN 2
+#define BUTTON2_PIN 3
 
-#define PIR_PIN1 7
+#define PIR1_PIN 7
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
@@ -55,42 +44,15 @@ bool debug = false;
 void setup() {
   Serial.begin(115200);
 
-  // // multiple PINs for reading the config
-  // pinMode(CFG_PIN0, INPUT_PULLUP);
-  // pinMode(CFG_PIN1, INPUT_PULLUP);
-  // pinMode(CFG_PIN2, INPUT_PULLUP);
-  // pinMode(CFG_PIN3, INPUT_PULLUP);
-  // // pinMode(CFG_PIN4, INPUT_PULLUP);
-  // // pinMode(CFG_PIN5, INPUT_PULLUP);
-  // // pinMode(CFG_PIN6, INPUT_PULLUP);
-  // // pinMode(CFG_PIN7, INPUT_PULLUP);
-
   // PINs for sensor inputs
-  pinMode(BUTTON_PIN1, INPUT_PULLUP);
-  pinMode(BUTTON_PIN2, INPUT_PULLUP);
-  pinMode(PIR_PIN1, INPUT);
-  //pinMode(PIR_PIN2, INPUT);
-
-  // if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-  //   detectornode = 2;
-  // }
-  // if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-  //   detectornode = detectornode + 2;
-  // }
-
-  // // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-  // if (digitalRead(CFG_PIN2) == LOW){ // PIN active
-  //   radiolevel = 1;
-  // }
-  // if (digitalRead(CFG_PIN3) == LOW){ // PIN active
-  //   radiolevel = radiolevel + 2;
-  // }
+  pinMode(BUTTON1_PIN, INPUT_PULLUP);
+  pinMode(BUTTON2_PIN, INPUT_PULLUP);
+  pinMode(PIR1_PIN, INPUT);
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
   Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
-  // detectornode = depending on settings
   Serial.print(F("Detectornode: "));
   Serial.println(detectornode);
   Serial.flush(); 
@@ -112,8 +74,8 @@ void setup() {
 
   setupDistance();
 
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN1), buttonPress, FALLING); // trigger when button is pressed
-  //attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress, FALLING); // trigger when button is pressed
+  attachInterrupt(digitalPinToInterrupt(BUTTON1_PIN), buttonPress, FALLING); // trigger when button is pressed
+  //attachInterrupt(digitalPinToInterrupt(BUTTON2_PIN), buttonPress, FALLING); // trigger when button is pressed
 }
 
 unsigned long currentmilli = 0;
@@ -291,8 +253,7 @@ void loop() {
 
   //************************ sensors ****************//
 
-  curPIR1 = digitalRead(PIR_PIN1);
-  //curPIR2 = digitalRead(PIR_PIN2);
+  curPIR1 = digitalRead(PIR1_PIN);
   if (curPIR1 != remPIR1){
     difPIR = (unsigned long)(currentmilli - difPIRtime1);
     Serial.print(currentmilli);
@@ -303,16 +264,6 @@ void loop() {
     remPIR1 = curPIR1;
     difPIRtime1 = currentmilli;
   }
-  // if (curPIR2 != remPIR2){
-  //   difPIR = (unsigned long)(currentmilli - difPIRtime2);
-  //   Serial.print(currentmilli);
-  //   Serial.print(F(" PIR 2 change "));
-  //   Serial.print(difPIR);
-  //   Serial.print(F(" to "));
-  //   Serial.println(curPIR2);
-  //   remPIR2 = curPIR2;
-  //   difPIRtime2 = currentmilli;
-  // }
   if (activePIR){
     if (curPIR1 == LOW){
       activePIR = false;
