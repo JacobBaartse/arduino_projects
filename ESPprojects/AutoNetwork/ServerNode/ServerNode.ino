@@ -298,7 +298,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     textackcount += 1;
     break;
   default:
-    Serial.print("Unknown message type: ");
+    Serial.print("ERROR: Unknown message type: ");
     Serial.println(type);
   }
 }
@@ -533,10 +533,10 @@ void setup() {
   Serial.println(reftext);
   Serial.flush(); 
 
-  // memcpy(&reftext, referencestring[20], 11);
-  for ( int id = 0; id < 11; id++ ){
-    referencestring[20][id] = reftext[id];
-  }
+  memcpy(&referencestring[20], reftext, 11);
+  // for ( int id = 0; id < 11; id++ ){
+  //   referencestring[20][id] = reftext[id];
+  // }
 
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(local_ip, gateway, subnet);
@@ -627,10 +627,10 @@ void loop() {
   
   runningtime = millis();
 
-  action = timepassing(runningtime, 30000);
+  action = timepassing(runningtime, 25000);
   if (action){
     // entice pairing, for unknown devices
-    sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
+    //sendonesp(Broadcast_Address, (uint8_t *)msg, sizeof(msg));
 
     // heartbeat message
     runningclient = connectedclientcount;
@@ -649,7 +649,7 @@ void loop() {
     // }
   }
   
-  action = timepassing2(runningtime, textfromform, 35000);
+  action = timepassing2(runningtime, textfromform, 40000);
   if (action){
     Serial.print(F("Text action: "));
     Serial.println(textackcount);
