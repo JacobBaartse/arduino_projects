@@ -58,7 +58,7 @@ DisplayState setDisplay(DisplayState statustoset){
 // }
 
 char Lines[4][101] = {
-  "Welcome George",
+  "Welcome Leo",
   "Demo {small disp.}", 
   "Whats up?",
   "Hello World"
