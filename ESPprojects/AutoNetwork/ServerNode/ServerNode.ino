@@ -289,7 +289,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     //   }  
     // }  
     break; 
-  case ACK:                            // the message is an aknowledge message 
+  case ACK:                            // the message is an acknowledge message 
     Serial.println("ACK");
 
     break; 
@@ -428,7 +428,7 @@ void handleFORM() {
     String serverstring = server.arg("textinput");
     //Serial.println(serverstring);
     serverstring.toCharArray(forminput, serverstring.length() + 1);
-    Serial.print("forminput: ");
+    Serial.print("Form input: ");
     Serial.println(forminput);
     textfromform = 2;
   }
@@ -436,8 +436,8 @@ void handleFORM() {
   if (server.hasArg("device") && server.arg("device") != NULL){
     String devicestring = server.arg("device");
     int deviceval = devicestring.toInt();
-    Serial.print("device selection: ");
-    Serial.println(deviceval);
+    Serial.print("Device selection: ");
+    Serial.println(referencestring[deviceval]);
     if (deviceval < 21){
       textforclient = deviceval;
     }
@@ -664,7 +664,7 @@ void loop() {
       else {
         textingData.line = 99;
         memcpy(&textingData.texting, forminput, 101); 
-        Serial.print(F("Text textingData.texting: "));
+        Serial.print(F("Text: "));
         Serial.println(textingData.texting);
         memset(forminput, 0, sizeof(forminput));
       }
