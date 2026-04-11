@@ -651,7 +651,7 @@ void loop() {
   
   action = timepassing2(runningtime, textfromform, 40000);
   if (action){
-    Serial.print(F("Text action: "));
+    Serial.print(F("Action acknowledge: "));
     Serial.println(textackcount);
     textackcount = 0;
     textingData.msgType = TEXT;
@@ -689,14 +689,18 @@ void loop() {
     }
 
     // print connected clients (+ 1 extra, showing clearly the end of the list)
-    Serial.print(F("Message: "));
-    Serial.println(textingData.texting);
-    Serial.println(F("Listing clients:"));
-    for ( int idn = 0; idn <= connectedclientcount; idn++ ){
-      printMAC(connectedclients[idn]);
-      Serial.println(F(" "));
+    if (connectedclientcount > 0){
+      Serial.print(F("Message: "));
+      Serial.println(textingData.texting);
+      Serial.print(F("Time: "));
+      Serial.println(runningtime);
+      Serial.println(F("Listing clients:"));
+      for ( int idn = 0; idn <= connectedclientcount; idn++ ){
+        printMAC(connectedclients[idn]);
+        Serial.println(F(" "));
+      }
+      Serial.println(F("------"));
     }
-    Serial.println(F("------"));
   }
 
   if (runningclient > 0){
