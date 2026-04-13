@@ -8,8 +8,8 @@
 #include "distance.h" // here IIC is used, pins A4 and A5
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
-#define CE_PIN 9 // 10
-#define CSN_PIN 10 // 9
+#define CE_PIN  10
+#define CSN_PIN  9
 
 /* one button or two buttons can be connected to trigger human presence
  */
