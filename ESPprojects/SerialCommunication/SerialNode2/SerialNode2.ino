@@ -3,6 +3,12 @@
 // Use D5 (RX) and D6 (TX)
 SoftwareSerial mySerial(D5, D6); 
 
+unsigned long runtiming = 0;
+bool action = false;
+unsigned long serialdata = 0;
+char cpm_array[101];
+size_t bytesread = 0;
+
 void setup() {
   Serial.begin(115200);   // USB Serial
   mySerial.begin(9600);   // Software Serial to other D1 Mini
@@ -14,6 +20,7 @@ void setup() {
   Serial.flush(); 
   Serial.println("Serial communication initialized");
   Serial.flush(); 
+
 }
 
 // function to indicate the passing of certain duration
@@ -32,9 +39,6 @@ unsigned long getvalfromstring(String serialdata){
   return serialval;
 }
 
-unsigned long runtiming = 0;
-bool action = false;
-unsigned long serialdata = 0;
 
 void loop() {
 
@@ -42,8 +46,11 @@ void loop() {
 
   action = timepassing(runtiming, 14000);
   if (action){
-    mySerial.println("Hello from Board 2");
+    mySerial.print("t");
+    mySerial.println("Hay from Board 2");
+    mySerial.print("x");
     mySerial.println(0xbeefdead, HEX);
+    mySerial.print("x");
     mySerial.println(runtiming, HEX);
     //slen = mySerial.write(pmessage);
     Serial.print("Sent message at: ");
@@ -51,10 +58,18 @@ void loop() {
   }
 
   if (mySerial.available()) {
-    String data = mySerial.readStringUntil('\n');
-    Serial.println("Received: " + data);
-    serialdata = getvalfromstring(data);
-    Serial.print("Value: ");
-    Serial.println(serialdata);
+    memset(cpm_array, 0, 101);
+    bytesread = mySerial.readBytesUntil('\n', cpm_array, 100);
+    Serial.print("Data length: ");
+    Serial.println(bytesread);    
+    Serial.print("Data: ");
+    Serial.println(cpm_array);
+
+    // mySerial.readBytesUntil
+    // String data = mySerial.readStringUntil('\n');
+    // Serial.println("Received: " + data);
+    // serialdata = getvalfromstring(data);
+    // Serial.print("Value: ");
+    // Serial.println(serialdata);
   }
 }
