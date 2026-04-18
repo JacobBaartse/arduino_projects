@@ -59,7 +59,7 @@ void loop() {
 
   if (mySerial.available()) {
     memset(cpm_array, 0, 101);
-    bytesread = mySerial.readBytesUntil('\n', cpm_array, 100);
+    bytesread = mySerial.readBytesUntil('\n', cpm_array, 101);
     Serial.print("Data length: ");
     Serial.println(bytesread);    
     Serial.print("Data: ");
