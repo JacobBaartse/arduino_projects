@@ -119,9 +119,10 @@ bool readserialdata(){
         Serial.print(", HEX: 0x");
         Serial.println(answer, HEX);
 
-        if (answeridx == 0){ // check other board is restarted
+        if (answerindex == 15){ // check other board is restarted
           resetclear = answer == 0xffffffff;
         }
+        storeData[answerindex] = answer;
       }
       // Serial.print(" data: ");
       // Serial.println(cpm_array + 1);
@@ -188,8 +189,15 @@ void loop() {
   newdata = readserialdata();
   if (newdata){
     if (resetclear){ // other board is restarted
-      
-      //ESP.restart(); // restart this board 
+      Serial.println(F("reset detected other node"));
+      for (uint8_t ai=0;ai<16;ai++){
+        Serial.print("Stored at index: ");
+        Serial.print(ai);
+        Serial.print(", 0x");
+        Serial.println(storeData[ai], HEX);
+        storeData[ai] = 0;
+      }      
+      //ESP.restart(); // do not restart this board, endless loop will happen for serial1 and serial2
 
       resetclear = false;
     }
