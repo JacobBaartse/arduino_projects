@@ -14,6 +14,8 @@ void setupDistance(){
 }
 
 uint16_t readDistanceCM(){
+  Serial.println(F(" function readDistanceCM "));
+
   uint16_t retDist = 0xffff;
   uint8_t i = 0;
   ds[0] = 0;
@@ -49,11 +51,11 @@ uint16_t sonardistance(uint16_t command, unsigned long distMilli){
 
   // state can be 0xffff - nothing, 0xfffe - measuring in progress, 0xfffd - measuring complete
   if (dstate == 0xfffe){ // check if measurement complete
-          // Serial.print(" time ");
-          // Serial.print(distMilli);
-          // Serial.print(" start distance ");
-          // Serial.println(startdistancemilli);
-    if (((unsigned long)(distMilli - startdistancemilli) > 120)){ // processing time is around 100 ms
+    Serial.print(" time ");
+    Serial.print(distMilli);
+    Serial.print(" start distance ");
+    Serial.println(startdistancemilli);
+    if (((unsigned long)(distMilli - startdistancemilli) > 150)){ // processing time is around 100 ms
       dstate = 0xfffd;
       distcm = readDistanceCM(); 
       Serial.print(" distcm ");
@@ -95,6 +97,7 @@ uint16_t sonardistance(uint16_t command, unsigned long distMilli){
   return retval;
 }
 
+// get status of distance measurement
 uint16_t getDistance(unsigned long distMilli) {
   uint16_t sd = sonardistance(3, distMilli);
   return sd;
