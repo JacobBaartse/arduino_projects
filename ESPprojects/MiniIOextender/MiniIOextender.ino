@@ -1,75 +1,19 @@
+/*
+https://www.luisllamas.es/en/control-up-to-16-gpio-i2c-pcf8575-arduino-expander/
+
+*/
+
 extern "C" {
   #include <espnow.h>
 }
 #include <ESP8266WiFi.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h> 
-//#include "FreeSerif12pt7b_special.h" // https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
-#include "font_16pix_high.h"
-#include <Adafruit_SSD1306.h> // Adafruit SSD 1306 by Adafruit
-
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
-//#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
-#define OLED_RESET -1
-
-Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-enum DisplayState { Off, Dim, On };
-
-uint8_t displaystatus = DisplayState::Off;
-// void display_oled(bool clear, int x, int y, const char* text) {
-//   if (displaystatus == DisplayState::Off) return;
-//   // if (clear) display.clearDisplay();
-//   display.setCursor(x, y);
-//   display.print(text);
-//   // display.display();
-// }
-
-DisplayState setDisplay(DisplayState statustoset){
-  static DisplayState displaystatus = DisplayState::Dim;
-  switch(statustoset){
-    case DisplayState::Dim:
-      display.ssd1306_command(SSD1306_DISPLAYON);
-      //display.dim(true); // dim display
-      //displaystatus = DisplayState::Dim; // this display does not support dim
-      //displaystatus = DisplayState::On;
-      display.ssd1306_command(SSD1306_SETCONTRAST);
-      display.ssd1306_command(1);
-      displaystatus = DisplayState::Dim; // this display does not support dim ??
-      break;
-    case DisplayState::On:
-      display.ssd1306_command(SSD1306_DISPLAYON);
-      display.dim(false);
-      displaystatus = DisplayState::On;
-      break;
-    //case DisplayState::Off:
-    default:
-      display.ssd1306_command(SSD1306_DISPLAYOFF);
-      displaystatus = DisplayState::Off;
-  }
-  return displaystatus;
-}
-
-// void clear_display(){
-//   display.clearDisplay();
-//   display.display();
-// }
-
-char Lines[4][101] = {
-  "Welcome Leo",
-  "Demo {small disp.}", 
-  "Whats up?",
-  "Hello World"
-};  
-uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
-uint8_t upddisplay = 200;
+#include "PCF8575.h"
 
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
 bool devicepaired = false;
-char reftext[11] = "client_SD";
+char reftext[11] = "client_IO";
 
 enum MessageType { PAIRING, DATA, ACK, TEXT };
 MessageType messageType;
@@ -125,43 +69,6 @@ bool addPeer(){ // add pairing
   devicepaired = res == 0;
   Serial.println("PEER added ");
   return devicepaired;
-}
-
-// //void updateDisplay(uint8_t line, char lineoftext[]){
-// void updateDisplay(uint8_t line){
-//   // if (line < 4){
-//   //   Lines[line][0] = '\0';
-//   //   //strcat(Lines[line], lineoftext);
-//   //   // for(int xj;xj<20;xj++){
-//   //   //   Lines[line][xj] = lineoftext[xj];      
-//   //   // }
-//   // }
-//   display_oled(true, 0, 16, Lines[0]); 
-//   display_oled(false, 0, 32, Lines[1]); 
-//   display_oled(false, 0, 48, Lines[2]);  
-//   display_oled(false, 0, 64, Lines[3]); 
-// }
-
-void updateDisplay(){
-  //bool fresh = true;
-  //Serial.println("updateDisplay 1 ");
-  //delay(1000);
-  display.clearDisplay();
-  for(int lin=0; lin < 4 ; lin++){
-    Serial.println(Lines[lin]);
-  }
-  //Serial.println("updateDisplay 2 ");
-  //delay(5000);
-  for(int lin=0; lin < 4 ; lin++){
-    display.setCursor(0, LinesYPos[lin]);
-    display.print(Lines[lin]);
-  }
-  display.display();
-  //Serial.println("updateDisplay 3 ");
-  upddisplay = 0;
-  // display_oled(false, 0, 32, Lines[1]); 
-  // display_oled(false, 0, 48, Lines[2]);  
-  // display_oled(false, 0, 64, Lines[3]); 
 }
 
 // function to send 1 single ESP-NOW message
@@ -349,6 +256,9 @@ bool timepassing(unsigned long curtime, unsigned long duration){
   return true;
 }
 
+// Initialize the PCF8575 at address 0x20
+PCF8575 pcf8575(0x20); 
+
 // --------------------
 // Setup
 // --------------------
@@ -357,16 +267,6 @@ void setup(){
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
-
-  display.begin(SSD1306_SWITCHCAPVCC, i2c_Address);
-  displaystatus = setDisplay(DisplayState::Dim);
-  display.clearDisplay();
-  //display.setFont(&FreeSerif12pt7b);
-  display.setFont(&font_16_pix);
-  display.setTextSize(1); // 3 lines of 10-12 chars
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextWrap(false); 
-  display.display();
 
   Serial.println(F(" "));
   Serial.println(F(" "));
@@ -397,11 +297,9 @@ void setup(){
   // use the button on an interrupt hadling
   // attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
-  updateDisplay();
-  // display_oled(true, 0, 16, Lines[0]); 
-  // display_oled(false, 0, 32, Lines[1]); 
-  // display_oled(false, 0, 48, Lines[2]);  
-  // display_oled(false, 0, 64, Lines[3]); 
+  // Set pin P0 as an output
+  pcf8575.pinMode(P0, OUTPUT);
+  pcf8575.begin();
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Transceiver Ready"));
@@ -466,12 +364,6 @@ void loop(){
   }
 
   //handle_button(false, runningtime);
-
-  if (upddisplay > 0){
-    if (++upddisplay > 100){
-      updateDisplay();
-    }
-  }
 
   heartbeat(runningtime, false);
   
