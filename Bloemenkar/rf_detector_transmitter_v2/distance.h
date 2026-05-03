@@ -99,52 +99,45 @@ uint16_t sonardistance(uint16_t command, unsigned long distMilli){
 
 // get status of distance measurement
 uint16_t getDistance(unsigned long distMilli) {
-  uint16_t sd = sonardistance(3, distMilli);
-  return sd;
+  return sonardistance(3, distMilli);
 }
 
 // start distance measurement
 uint16_t startDistance(unsigned long distMilli){
-  uint16_t sd = sonardistance(1, distMilli);
-  return sd;
+  return sonardistance(1, distMilli);
 }
 
 // return distance in cm
 uint16_t readDistance(unsigned long distMilli) {
-  uint16_t sd = sonardistance(2, distMilli);
-  // if (sd < 0xff00) {
-  //   Serial.print(sd, HEX);
-  //   Serial.println(F(" cm "));
-  // }
-  return sd;
+  return sonardistance(2, distMilli);
 }
 
 // state can be 0xffff - nothing, 0xfffe - measuring in progress, 0xfffd - measuring complete
-uint16_t measureDistance(bool PIRval, unsigned long distMilli){
-  static bool measureactive = false;
+uint16_t measureDistance(unsigned long distMilli){
+  //static bool measureactive = true;
   static unsigned long measureuntil = 0;
 
-  Serial.print(F("measureDistance "));
-  Serial.println(distMilli);
+  // Serial.print(F("measureDistance "));
+  // Serial.println(distMilli);
   uint16_t status = getDistance(distMilli);
 
-  if (measureactive){
+  //if (measureactive){
     Serial.print(F("getDistance "));
     Serial.println(distMilli);
-    Serial.println(status, HEX);
+    //Serial.println(status, HEX);
     if (status < 0xfffa){
       status = startDistance(distMilli);
       Serial.print(F(" startDistance "));
       Serial.println(distMilli);
-      Serial.println(status, HEX);
+      //Serial.println(status, HEX);
     }
     else if (status == 0xfffd){
       status = readDistance(distMilli);
       Serial.print(F(" readDistance "));
       Serial.println(distMilli);
-      Serial.println(status, HEX);
+      //Serial.println(status, HEX);
     }
     Serial.println(status, HEX);
-  }
+  //}
   return status;
 }

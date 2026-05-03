@@ -147,7 +147,7 @@ bool transmitRFnetwork(bool fresh){
     Serial.flush(); 
 
     if (failcount > 4){
-      failcount = 0; // do not send/retry a lot of messages continously
+      failcount = 0; // do not send/retry a lot of messages continuously
       freshdata = false;
       receivedbvalue = 0;
       receivedsvalue = 0;

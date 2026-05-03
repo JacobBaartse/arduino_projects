@@ -1,5 +1,5 @@
 /*
- * Nano + NRF extender module, , USB-C, using RF24network library
+ * Nano + NRF extender module, USB-C, using RF24network library
  */
 
 #include "RF24.h"
@@ -38,6 +38,7 @@ struct detector_payload{
   uint8_t sw2value;
 };
 
+unsigned long currentmilli = 0;
 bool newdata = false;
 
 void setup() {
@@ -77,51 +78,100 @@ void setup() {
   //attachInterrupt(digitalPinToInterrupt(BUTTON2_PIN), buttonPress, FALLING); // trigger when button is pressed
 }
 
-unsigned long currentmilli = 0;
-uint8_t detectionValue = 0;
-uint8_t sw1Value = 0;
-uint8_t sw2Value = 0;
-bool activePIR = false;
-bool PIRconfirmed = false;
 bool activeBUTTON = false;
 bool pressBUTTON = false;
 
-bool trackDetectionAndButton(unsigned long currentDetectMillis){
+uint8_t detectionValue = 0;
+uint8_t sw1Value = 0;
+uint8_t sw2Value = 0;
+bool resetalarming = false;
+
+bool PIRconfirmed = false;
+
+uint8_t remPIR1 = 3;
+uint8_t curPIR1 = 3;
+//uint8_t remPIR2 = 3;
+//uint8_t curPIR2 = 3;
+unsigned long difPIR = 3;
+unsigned long difPIRtime1 = 0;
+//unsigned long difPIRtime2 = 0;
+uint16_t mloop = 0;
+uint16_t objectdistance = 0;
+
+bool trackSensorsIO(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
+  static bool activePIR = false;
   static bool alarming = false;
   bool fresh = false;
 
-  if (alarming){
-    if ((unsigned long)(currentDetectMillis - activationTime) > 60000){ // 60 seconds no new alarming
-      PIRconfirmed = false;
-      activeBUTTON = false;
-      detectionValue = 0;
-      sw1Value = 0;
-      sw2Value = 0;
-      Serial.print(F("Reset detections "));
-      Serial.println(currentDetectMillis);
+  if (alarming){ // if alarmed check for a reset or a 2 minute timeout
+    if ((unsigned long)(currentDetectMillis - activationTime) > 120000){ // 120 seconds
+      resetalarming = true;
+      Serial.println(F("resetalarming 2 minute timeout"));
+    }
+    if (resetalarming){
+      Serial.println(F("resetalarming"));
       alarming = false;
+      resetalarming = false;
+      pressBUTTON = false;
+      activeBUTTON = false;
+    }
+    return false;
+  }
+
+  if (pressBUTTON){
+    if (!activeBUTTON){
+      activeBUTTON = true;
+      fresh = true;
+      alarming = true;
+    }
+    pressBUTTON = false;
+  } 
+
+  curPIR1 = digitalRead(PIR1_PIN);
+  if (curPIR1 != remPIR1){
+    difPIR = (unsigned long)(currentDetectMillis - difPIRtime1);
+    Serial.print(currentDetectMillis);
+    Serial.print(F(" PIR 1 change "));
+    Serial.print(difPIR);
+    Serial.print(F(" to "));
+    Serial.println(curPIR1);
+    remPIR1 = curPIR1;
+    difPIRtime1 = currentDetectMillis;
+
+    if (activePIR){
+      if (curPIR1 == LOW){
+        activePIR = false;
+      }
+    }
+    else{
+      if (curPIR1 == HIGH){ // PIR detection activated (again)
+        activePIR = true;
+        activationTime = difPIRtime1;
+        Serial.println(F("activePIR = true"));
+      }
     }
   }
-  else {
-    if (PIRconfirmed){
-      sw1Value = 0xa5;
-      Serial.print(F("PIR detection "));
-      Serial.println(currentDetectMillis);
-      alarming = true;
+
+  if (activePIR){
+    // check the distance measuring time, up to 10 seconds from PIR detection
+    if ((unsigned long)(currentDetectMillis - activationTime) < 10000){ // 10 seconds
+      objectdistance = measureDistance(currentDetectMillis);
+      if (objectdistance < 0xff00){ // measured distance result available
+        alarming = objectdistance < 10; // 200; // smaller than 200 cm
+      }
     }
-    if (activeBUTTON){
-      sw2Value = 0x5a;
-      activationTime = currentDetectMillis;
-      Serial.print(F("BUTTON detection "));
-      Serial.println(currentDetectMillis);
-      alarming = true;
+    else {
+      activePIR = false;
     }
-    if (alarming){
-      activationTime = currentDetectMillis;
-      detectionValue = 0xff;
-      fresh = true;
-    }
+  }
+
+  if (alarming){
+    activationTime = currentDetectMillis;
+    detectionValue = 0xf0;
+    fresh = true;
+    Serial.print(F("Alarming at: "));
+    Serial.println(activationTime);
   }
   return fresh;
 }
@@ -145,6 +195,19 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       Serial.println(currentRFmilli);
       // in case a message is received, with specific data, the detector could be 'reset' (for example)
 
+      Serial.print(F("Timing (base node): "));
+      Serial.print(Rxdata.timing);
+      Serial.print(F(", count: "));
+      Serial.print(Rxdata.count);
+      Serial.print(F(", dvalue received: "));
+      Serial.println(Rxdata.dvalue);
+      if (Rxdata.dvalue > 0){ // use this value as distance treshold
+        //distance_threshold = Rxdata.dvalue;
+      }
+      if ((Rxdata.sw1value > 0)&&(Rxdata.sw1value > 0)){ // reset detections and alarming
+        //activeBUTTON = false;
+        resetalarming = true;
+      }
 
     }
     else{
@@ -160,7 +223,7 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
   //static unsigned long pingTimer = 0;
   static uint8_t counter = 0;
   static uint8_t failcount = 0;
-  bool w_ok;
+  bool w_ok = false;
   bool fresh = pfresh;
 
   // Every 60 seconds, or on new data
@@ -218,16 +281,6 @@ void watchdogprinting(unsigned long nowmilli){
   }
 }
 
-uint8_t remPIR1 = 3;
-uint8_t curPIR1 = 3;
-//uint8_t remPIR2 = 3;
-//uint8_t curPIR2 = 3;
-unsigned long difPIR = 3;
-unsigned long difPIRtime1 = 0;
-//unsigned long difPIRtime2 = 0;
-uint16_t mloop = 0;
-uint16_t objectdistance = 0;
-
 void loop() {
 
   network.update();
@@ -238,62 +291,11 @@ void loop() {
 
   //************************ sensors ****************//
 
-  curPIR1 = digitalRead(PIR1_PIN);
-  if (curPIR1 != remPIR1){
-    difPIR = (unsigned long)(currentmilli - difPIRtime1);
-    Serial.print(currentmilli);
-    Serial.print(F(" PIR 1 change "));
-    Serial.print(difPIR);
-    Serial.print(F(" to "));
-    Serial.println(curPIR1);
-    remPIR1 = curPIR1;
-    difPIRtime1 = currentmilli;
-  }
-  if (activePIR){
-    if (curPIR1 == LOW){
-      activePIR = false;
-    }
-  }
-  else{
-    if (curPIR1 == HIGH){
-      mloop = 0;
-      activePIR = true;
-      //newdata = true;
-    }
-  }
-  if (pressBUTTON){
-    activeBUTTON = true;
-    //newdata = true;
-    pressBUTTON = false;
-  } 
-
-  // this is limited bij the PIR active signal (2-3 seconds)
-  if ((activePIR)&&(!PIRconfirmed)){
-    //startDistance(currentmilli);
-    //objectdistance = readDistance(currentmilli);
-    objectdistance = measureDistance(currentmilli);
-    
-    if (objectdistance < 0xff00){
-      mloop++;
-      Serial.print(F(" distance "));
-      Serial.print(objectdistance);
-      Serial.print(F(" cm, loop: "));
-      Serial.println(mloop);
-      PIRconfirmed = objectdistance < 200; // smaller than 200 cm
-    }
-  }
+  newdata = trackSensorsIO(currentmilli);
 
   //************************ sensors ****************//
-
-  newdata = trackDetectionAndButton(currentmilli);
   
   newdata = transmitRFnetwork(newdata, currentmilli);
-  // if (currentmilli < collectorpresenttime){ // for a certain amount of time after the base node was 'heared'
-  //   newdata = transmitRFnetwork(newdata, currentmilli, false);
-  // }
-  // else{ // ping for base node
-  //   newdata = transmitRFnetwork(newdata, currentmilli, true);
-  // }
 
   watchdogprinting(currentmilli);
 

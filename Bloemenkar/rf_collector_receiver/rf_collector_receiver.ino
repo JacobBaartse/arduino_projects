@@ -304,7 +304,7 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     Serial.println(currentRFmilli);
 
     if (failcount > 2){
-      fresh = false; // do not send a lot of messages continously
+      fresh = false; // do not send a lot of messages continuously
     }
   }
 

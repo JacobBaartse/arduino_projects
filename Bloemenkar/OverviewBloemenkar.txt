@@ -11,26 +11,24 @@ In principe is het systeem:
 1b.
 .
 .
-.
-1z. detector en knop in batterij (9V) gevoed kastje, met RF24 interface.
+1e. detector en knop in batterij (9V) gevoed kastje, met RF24 interface.
 
-2 buzzer, LEDs, knoppen in batterij (9V) gevoed kastje, met RF24 interface, als collector receiver centrale.
+2 buzzer, LEDs, knoppen in batterij (9V) gevoed kastje, met RF24 interface, als centrale collector receiver.
 
 
 Werking:
-Bij een detectie of druk op de knop op een kastje uit 1 gaat er een signaal naar 2
+Bij een detectie of druk op de knop op een kastje uit 1 gaat er een signaal naar 2.
 Er komt een melding met buzzer en LED.
 De buzzer kan onderdrukt/uitgezet worden door een druk op knop 1, de LED blijft wel aan.
 Na een druk op knop 2 wordt het monitoring systeem weer actief (buzzer en LED uit, detectors aan). 
-In geval van nieuwe detectie gaat de buzzer en LED weer aan.
+In geval van nieuwe detectie gaan de buzzer en LED weer aan.
 
 
 De detectie met 1 PIR (SR620) geeft af en toe een valse melding.
 De detectie met 2 PIR sensors (SR602) geeft af en toe een valse melding, vaak ook gelijktijdig.
 
 Oplossing om te onderzoeken: PIR sensor (SR602) in combinatie met ultrasone afstandsmeting (HC-SR04) via I2C.
-Dit lijkt te werken, afstandsmeting is in 1 richting
+Dit lijkt te werken, de afstandsmeting is in 1 richting.
 
-Oplossing om te checken: 1 PIR sensor HC-SR501, deze is groter en heeft meer electronica erop.
-
+Eventueel om te checken: 1 PIR sensor HC-SR501, deze is groter en heeft meer electronica erop.
 

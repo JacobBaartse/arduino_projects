@@ -168,40 +168,40 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len){
     Serial.println("ACK");
 
     break; 
-  case TEXT:                           // the message is text type
-    Serial.println("TEXT");
+  // case TEXT:                           // the message is text type
+  //   Serial.println("TEXT");
 
-    memcpy(&textingData, incomingData, sizeof(textingData));
-    Serial.print(textingData.line);
-    Serial.print(F(" "));
-    Serial.println(textingData.texting);
+  //   memcpy(&textingData, incomingData, sizeof(textingData));
+  //   Serial.print(textingData.line);
+  //   Serial.print(F(" "));
+  //   Serial.println(textingData.texting);
 
-    // updateDisplay();
-    if (textingData.line < 4){
-      memcpy(&Lines[textingData.line], textingData.texting, 101);
-      upddisplay = 90; // update display in the main loop
-      runningline = 0; // reset static running line (if received from webserver form input)
-    }
-    if (textingData.line == 99){
-      runningline = runningline % 4;
-      memcpy(&Lines[runningline++], textingData.texting, 101);
-      upddisplay = 90; // update display in the main loop
-    }
-    if (textingData.line == 95){
-      for(int lin=0; lin < 4 ; lin++){
-        Lines[lin][0] = '\0';
-        //memset(Lines[lin], 0, 101);
-      }
-      upddisplay = 90; // update display in the main loop
-      runningline = 0; // reset static running line (if received from webserver form input)
-    }
+  //   // updateDisplay();
+  //   if (textingData.line < 4){
+  //     memcpy(&Lines[textingData.line], textingData.texting, 101);
+  //     upddisplay = 90; // update display in the main loop
+  //     runningline = 0; // reset static running line (if received from webserver form input)
+  //   }
+  //   if (textingData.line == 99){
+  //     runningline = runningline % 4;
+  //     memcpy(&Lines[runningline++], textingData.texting, 101);
+  //     upddisplay = 90; // update display in the main loop
+  //   }
+  //   if (textingData.line == 95){
+  //     for(int lin=0; lin < 4 ; lin++){
+  //       Lines[lin][0] = '\0';
+  //       //memset(Lines[lin], 0, 101);
+  //     }
+  //     upddisplay = 90; // update display in the main loop
+  //     runningline = 0; // reset static running line (if received from webserver form input)
+  //   }
     
-    // reply with 'ack'
-    textingData.texting[100] = '\0';
-    textingData.texting[0] = '\0';
-    sendonesp((uint8_t *)&textingData, sizeof(textingData));
+    // // reply with 'ack'
+    // textingData.texting[100] = '\0';
+    // textingData.texting[0] = '\0';
+    // sendonesp((uint8_t *)&textingData, sizeof(textingData));
 
-    break;
+    // break;
   default:
     Serial.print("Unknown message type: ");
     Serial.println(type);
@@ -298,7 +298,7 @@ void setup(){
   // attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
   // Set pin P0 as an output
-  pcf8575.pinMode(P0, OUTPUT);
+  //pcf8575.pinMode(P0, OUTPUT);
   pcf8575.begin();
 
   Serial.print(F("ESP-NOW channel 4, "));

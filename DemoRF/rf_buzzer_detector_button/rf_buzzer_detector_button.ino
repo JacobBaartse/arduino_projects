@@ -161,7 +161,7 @@ bool activeBUTTON = false;
 //     Serial.println(currentRFmilli);
 
 //     if (failcount > 4){
-//       fresh = false; // do not send a lot of messages continously
+//       fresh = false; // do not send a lot of messages continuously
 //     }
 //   }
 
