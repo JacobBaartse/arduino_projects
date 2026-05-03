@@ -14,7 +14,7 @@ void setupDistance(){
 }
 
 uint16_t readDistanceCM(){
-  Serial.println(F(" function readDistanceCM "));
+  //Serial.println(F(" function readDistanceCM "));
 
   uint16_t retDist = 0xffff;
   uint8_t i = 0;
@@ -30,8 +30,8 @@ uint16_t readDistanceCM(){
   distance = distance + (unsigned long)(ds[1]) * 256;
   distance = (distance + (unsigned long)(ds[2])) / 10000;
   if (distance > 0) { // minimum distance is 4 cm, maximum 400 cm
-    Serial.print(distance);
-    Serial.println(F(" cm "));
+    // Serial.print(distance);
+    // Serial.println(F(" cm "));
     retDist = distance;
   }
   return retDist;
@@ -46,28 +46,46 @@ uint16_t readDistanceCM(){
 uint16_t sonardistance(uint16_t command, unsigned long distMilli){
   static unsigned long startdistancemilli = 0;
   static uint16_t dstate = 0xfff0;
-  static uint16_t distcm = 0xfff0;
+  static uint16_t remdistcm = 0xffff;
+  uint16_t distcm = 0xfff0;
   uint16_t retval = 0xff01;
 
   // state can be 0xffff - nothing, 0xfffe - measuring in progress, 0xfffd - measuring complete
   if (dstate == 0xfffe){ // check if measurement is in progress
-    Serial.print(" time ");
-    Serial.print(distMilli);
-    Serial.print(" start distance ");
-    Serial.println(startdistancemilli);
-    if (((unsigned long)(distMilli - startdistancemilli) > 150)){ // check if measurement complete, processing time is around 100 ms
+    // Serial.print(" time ");
+    // Serial.print(distMilli);
+    // Serial.print(" start distance ");
+    // Serial.println(startdistancemilli);
+    if (((unsigned long)(distMilli - startdistancemilli) > 120)){ // check if measurement complete, processing time is around 100 ms
       dstate = 0xfffd; // measurement is ready
       distcm = readDistanceCM(); 
-      Serial.print(" distcm ");
-      Serial.println(distcm);
+      if (distcm < remdistcm){
+        remdistcm = distcm;
+        Serial.print(" distcm: ");
+        Serial.println(remdistcm);
+      }
     }
   }
 
-  retval = dstate;
   switch(command){
-    case 3:
-      // retval = dstate;
+    case 1:
+      //Serial.println(" start I2C measurement ");
+
+      //if (((unsigned long)(distMilli - startdistancemilli) > 250)){ // 4 measurements per second is enough
+      //if (true){ // as quickly as possible
+        Wire.beginTransmission(SR04_I2CADDR);
+        Wire.write(1);          // 1 = cmd to start meansurement
+        Wire.endTransmission();
+        startdistancemilli = millis();
+        // Serial.print(" start distance ");
+        // Serial.println(startdistancemilli);
+        dstate = 0xfffe;
+        retval = dstate;
+      //}
       break;
+    // case 3:
+    //   // retval = dstate;
+    //   break;
     case 2:
       if (dstate == 0xfffd){
         retval = distcm;
@@ -77,21 +95,15 @@ uint16_t sonardistance(uint16_t command, unsigned long distMilli){
       //   retval = dstate;
       // }
       break;
-    // case 1:
-    default: // 1
-      Serial.println(" start I2C ");
-
-      //if (((unsigned long)(distMilli - startdistancemilli) > 250)){ // 4 measurements per second is enough
-      //if (true){ // as quickly as possible
-        Wire.beginTransmission(SR04_I2CADDR);
-        Wire.write(1);          // 1 = cmd to start meansurement
-        Wire.endTransmission();
-        startdistancemilli = millis();
-        Serial.print(" start distance ");
-        Serial.println(startdistancemilli);
-        dstate = 0xfffe;
-        retval = dstate;
-      //}
+    case 4: // reset minimum counting
+      remdistcm = 0xffff;
+      retval = dstate;
+      break;
+    //case 3: // nothing to be done
+    default:
+      // Serial.print(F("Defuault for command: "));
+      // Serial.println(command);
+      retval = dstate;
   }
 
   return retval;
@@ -114,30 +126,19 @@ uint16_t readDistance(unsigned long distMilli) {
 
 // state can be 0xffff - nothing, 0xfffe - measuring in progress, 0xfffd - measuring complete
 uint16_t measureDistance(unsigned long distMilli){
-  //static bool measureactive = true;
-  static unsigned long measureuntil = 0;
-
-  // Serial.print(F("measureDistance "));
-  // Serial.println(distMilli);
   uint16_t status = getDistance(distMilli);
 
-  //if (measureactive){
-    Serial.print(F("getDistance "));
-    Serial.println(distMilli);
-    //Serial.println(status, HEX);
-    if (status < 0xfffa){
-      status = startDistance(distMilli);
-      Serial.print(F(" startDistance "));
-      Serial.println(distMilli);
-      //Serial.println(status, HEX);
-    }
-    else if (status == 0xfffd){
-      status = readDistance(distMilli);
-      Serial.print(F(" readDistance "));
-      Serial.println(distMilli);
-      //Serial.println(status, HEX);
-    }
-    Serial.println(status, HEX);
-  //}
+  if (status < 0xfffa){ // measurement can start (fresh or previous value read)
+    status = startDistance(distMilli);
+    // Serial.print(F(" startDistance "));
+    // Serial.println(distMilli);
+  }
+  else if (status == 0xfffd){ // if measurement complete, read actual distance
+    status = readDistance(distMilli);
+    // Serial.print(F(" readDistance "));
+    // Serial.println(distMilli);
+  }
+  //Serial.println(status, HEX);
+
   return status;
 }

@@ -86,7 +86,7 @@ uint8_t sw1Value = 0;
 uint8_t sw2Value = 0;
 bool resetalarming = false;
 
-bool PIRconfirmed = false;
+//bool PIRconfirmed = false;
 
 uint8_t remPIR1 = 3;
 uint8_t curPIR1 = 3;
@@ -95,13 +95,13 @@ uint8_t curPIR1 = 3;
 unsigned long difPIR = 3;
 unsigned long difPIRtime1 = 0;
 //unsigned long difPIRtime2 = 0;
-uint16_t mloop = 0;
-uint16_t objectdistance = 0;
+//uint16_t mloop = 0;
 
 bool trackSensorsIO(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
   static bool activePIR = false;
   static bool alarming = false;
+  uint16_t objectdistance = 0;
   bool fresh = false;
 
   if (alarming){ // if alarmed check for a reset or a 2 minute timeout
@@ -115,6 +115,11 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
       resetalarming = false;
       pressBUTTON = false;
       activeBUTTON = false;
+      detectionValue = 0;
+      sw1Value = 0;
+      sw2Value = 0;
+      remPIR1 = 3; // for debugging
+      sonardistance(4, currentDetectMillis); // reset measurements
     }
     return false;
   }
@@ -124,6 +129,7 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
       activeBUTTON = true;
       fresh = true;
       alarming = true;
+      sw2Value = 0xff;
     }
     pressBUTTON = false;
   } 
@@ -147,7 +153,7 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
     else{
       if (curPIR1 == HIGH){ // PIR detection activated (again)
         activePIR = true;
-        activationTime = difPIRtime1;
+        activationTime = currentDetectMillis;
         Serial.println(F("activePIR = true"));
       }
     }
@@ -163,12 +169,16 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
     }
     else {
       activePIR = false;
+      if (curPIR1 == HIGH){ // PIR detection activated (again) (basically it remains active)
+        activePIR = true;
+        activationTime = currentDetectMillis;
+      }
     }
   }
 
   if (alarming){
     activationTime = currentDetectMillis;
-    detectionValue = 0xf0;
+    detectionValue = 0xff;
     fresh = true;
     Serial.print(F("Alarming at: "));
     Serial.println(activationTime);
@@ -235,7 +245,7 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
     Txdata.dvalue = detectionValue;
-    Txdata.sw1value = sw1Value;
+    Txdata.sw1value = curPIR1; // sw1Value;
     Txdata.sw2value = sw2Value;
 
     Serial.print(F("Message dvalue: "));
