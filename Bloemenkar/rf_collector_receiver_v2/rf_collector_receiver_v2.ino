@@ -215,9 +215,14 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
     RF24NetworkHeader header;
     detector_payload Rxdata;
     network.read(header, &Rxdata, sizeof(Rxdata)); // Read the incoming data
-    if (header.from_node == basenode) {
+    if (header.from_node == basenode){
       Serial.print(F("received unexpected message, from_node: "));
       Serial.println(header.from_node);
+      break;
+    }
+    if (header.type != 'D'){
+      Serial.print(F("received unexpected message type: "));
+      Serial.println(header.type);
       break;
     }
     nodereceived = header.from_node;

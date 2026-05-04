@@ -41,6 +41,7 @@ struct detector_payload{
 };
 
 unsigned long currentmilli = 0;
+uint16_t distance_threshold = 30; // 30 cm, to make sure to get the actual value from the base node
 bool newdata = false;
 
 void setup() {
@@ -90,22 +91,17 @@ uint8_t sw1Value = 0;
 uint8_t sw2Value = 0;
 bool resetalarming = false;
 
-//bool PIRconfirmed = false;
-
-uint8_t remPIR1 = 3;
-uint8_t curPIR1 = 3;
-//uint8_t remPIR2 = 3;
-//uint8_t curPIR2 = 3;
+uint8_t remPIR = 3;
+uint8_t curPIR = 3;
 unsigned long difPIR = 3;
-unsigned long difPIRtime1 = 0;
-//unsigned long difPIRtime2 = 0;
-//uint16_t mloop = 0;
+unsigned long difPIRtime = 0;
+
 
 bool trackSensorsIO(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
   static bool activePIR = false;
   static bool alarming = false;
-  uint16_t objectdistance = 0;
+  uint16_t objectdistance = 1000;
   bool fresh = false;
 
   if (alarming){ // if alarmed check for a reset or a 2 minute timeout
@@ -120,10 +116,12 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
       pressBUTTON = false;
       activeBUTTON = false;
       detectionValue = 0;
+      p1Value = 0;
+      p2Value = 0;
       sw1Value = 0;
       sw2Value = 0;
-      remPIR1 = 3; // for debugging
-      sonardistance(4, currentDetectMillis); // reset measurements
+      remPIR = 3; // for debugging
+      sonardistance(4, currentDetectMillis); // reset measurements memory
     }
     return false;
   }
@@ -138,24 +136,24 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
     pressBUTTON = false;
   } 
 
-  curPIR1 = digitalRead(PIR1_PIN);
-  if (curPIR1 != remPIR1){
-    difPIR = (unsigned long)(currentDetectMillis - difPIRtime1);
+  curPIR = digitalRead(PIR1_PIN);
+  if (curPIR != remPIR){
+    difPIR = (unsigned long)(currentDetectMillis - difPIRtime);
     Serial.print(currentDetectMillis);
-    Serial.print(F(" PIR 1 change "));
+    Serial.print(F(" PIR change "));
     Serial.print(difPIR);
     Serial.print(F(" to "));
-    Serial.println(curPIR1);
-    remPIR1 = curPIR1;
-    difPIRtime1 = currentDetectMillis;
+    Serial.println(curPIR);
+    remPIR = curPIR;
+    difPIRtime = currentDetectMillis;
 
     if (activePIR){
-      if (curPIR1 == LOW){
+      if (curPIR == LOW){
         activePIR = false;
       }
     }
     else{
-      if (curPIR1 == HIGH){ // PIR detection activated (again)
+      if (curPIR == HIGH){ // PIR detection activated (again)
         activePIR = true;
         activationTime = currentDetectMillis;
         Serial.println(F("activePIR = true"));
@@ -168,13 +166,13 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
     if ((unsigned long)(currentDetectMillis - activationTime) < 10000){ // 10 seconds
       objectdistance = measureDistance(currentDetectMillis);
       if (objectdistance < 0xff00){ // measured distance result available
-        alarming = objectdistance < 10; // 200; // smaller than 200 cm
+        alarming = objectdistance < 10; // 300; // smaller than 300 cm
+        //alarming = objectdistance < distance_threshold; // smaller than 300 cm
       }
     }
     else {
-      activePIR = false;
-      if (curPIR1 == HIGH){ // PIR detection activated (again) (basically it remains active)
-        activePIR = true;
+      activePIR = curPIR == HIGH;
+      if (activePIR){ // PIR detection activated (again) (basically it remains active)
         activationTime = currentDetectMillis;
       }
     }
@@ -182,7 +180,7 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
 
   if (alarming){
     activationTime = currentDetectMillis;
-    detectionValue = 0xff;
+    detectionValue = 0xffff;
     fresh = true;
     Serial.print(F("Alarming at: "));
     Serial.println(activationTime);
@@ -197,7 +195,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
     RF24NetworkHeader header;
     detector_payload Rxdata;
     network.read(header, &Rxdata, sizeof(Rxdata)); // Read the incoming data
-    if ((header.from_node != basenode)||(header.type != 'B')) {
+    if ((header.from_node != basenode)||(header.type != 'B')){
       Serial.print(F("received unexpected message, from_node: "));
       Serial.print(header.from_node);
       Serial.print(F(", type: "));
@@ -215,14 +213,18 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(Rxdata.count);
       Serial.print(F(", dvalue received: "));
       Serial.println(Rxdata.dvalue);
-      if (Rxdata.dvalue > 0){ // use this value as distance treshold
-        //distance_threshold = Rxdata.dvalue;
+      if (Rxdata.dvalue > 9){ // use this value as distance treshold
+        if (Rxdata.dvalue != distance_threshold){
+          distance_threshold = Rxdata.dvalue;
+          Serial.print(F("distance_threshold: "));
+          Serial.print(distance_threshold);
+          Serial.println(F(" cm"));
+        }
       }
-      if ((Rxdata.sw1value > 0)&&(Rxdata.sw2value > 0)){ // reset detections and alarming
-        //activeBUTTON = false;
+      if ((Rxdata.sw1value > 0xf0)&&(Rxdata.sw2value > 0xf0)){ // reset detections and alarming
         resetalarming = true;
+        Serial.println(F("RESET alarming"));
       }
-
     }
     else{
       Serial.println(F("Keyword failure"));
@@ -255,7 +257,6 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
     Txdata.sw2value = sw2Value;
 
     Serial.print(F("Message dvalue: "));
-    //Serial.print(F(" dvalue: "));
     Serial.print(Txdata.dvalue);
     Serial.print(F(", p1value: "));
     Serial.print(Txdata.p1value);  

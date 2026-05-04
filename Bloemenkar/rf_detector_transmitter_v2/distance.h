@@ -88,7 +88,7 @@ uint16_t sonardistance(uint16_t command, unsigned long distMilli){
     //   break;
     case 2:
       if (dstate == 0xfffd){
-        retval = distcm;
+        retval = remdistcm;
         dstate = 0xfff0; // ready for next measurement
       }
       // else {
