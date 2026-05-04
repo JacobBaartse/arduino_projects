@@ -34,8 +34,10 @@ unsigned long const keywordvalD = 0xdeedbeeb;
 struct detector_payload{
   uint32_t keyword;
   uint32_t timing;
-  uint8_t count;
-  uint8_t dvalue;
+  uint16_t count;
+  uint16_t dvalue;
+  uint8_t p1value;
+  uint8_t p2value;
   uint8_t sw1value;
   uint8_t sw2value;
 };
@@ -225,9 +227,13 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(diffTime);
       Serial.print(F(", dvalue: "));
       Serial.print(Rxdata.dvalue);
-      Serial.print(F(", sw1 (PIR): "));
+      Serial.print(F(", p1: "));
+      Serial.print(Rxdata.p1value);
+      Serial.print(F(", p2: "));
+      Serial.print(Rxdata.p2value);
+      Serial.print(F(", sw1: "));
       Serial.print(Rxdata.sw1value);
-      Serial.print(F(", sw2 (BUTTON): "));
+      Serial.print(F(", sw2): "));
       Serial.println(Rxdata.sw2value);
 
       //pingreceived = ((Rxdata.dvalue==0xff)&&(Rxdata.sw1value==0xff)&&(Rxdata.sw2value==0xff));
@@ -255,7 +261,7 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
 //===== Sending =====//
 bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
-  static uint8_t counter = 0;
+  static uint16_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok;
 
@@ -268,7 +274,9 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     Txdata.keyword = keywordvalD;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
-    // Txdata.bvalue = bValue;
+    Txdata.dvalue = 300; // 300 cm detection threshold
+    // Txdata.p1value = p1Value;
+    // Txdata.p2value = p2Value;
     // Txdata.sw1value = sw1Value;
     // Txdata.sw2value = sw2Value;
 

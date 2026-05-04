@@ -32,8 +32,10 @@ unsigned long const keywordvalD = 0xdeedbeeb;
 struct detector_payload{
   uint32_t keyword;
   uint32_t timing;
-  uint8_t count;
-  uint8_t dvalue;
+  uint16_t count;
+  uint16_t dvalue;
+  uint8_t p1value;
+  uint8_t p2value;
   uint8_t sw1value;
   uint8_t sw2value;
 };
@@ -81,7 +83,9 @@ void setup() {
 bool activeBUTTON = false;
 bool pressBUTTON = false;
 
-uint8_t detectionValue = 0;
+uint16_t detectionValue = 0;
+uint8_t p1Value = 0;
+uint8_t p2Value = 0;
 uint8_t sw1Value = 0;
 uint8_t sw2Value = 0;
 bool resetalarming = false;
@@ -214,7 +218,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       if (Rxdata.dvalue > 0){ // use this value as distance treshold
         //distance_threshold = Rxdata.dvalue;
       }
-      if ((Rxdata.sw1value > 0)&&(Rxdata.sw1value > 0)){ // reset detections and alarming
+      if ((Rxdata.sw1value > 0)&&(Rxdata.sw2value > 0)){ // reset detections and alarming
         //activeBUTTON = false;
         resetalarming = true;
       }
@@ -231,7 +235,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
 bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
   static unsigned long sendingTimer = 0;
   //static unsigned long pingTimer = 0;
-  static uint8_t counter = 0;
+  static uint16_t counter = 0;
   static uint8_t failcount = 0;
   bool w_ok = false;
   bool fresh = pfresh;
@@ -245,15 +249,21 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
     Txdata.dvalue = detectionValue;
-    Txdata.sw1value = curPIR1; // sw1Value;
+    Txdata.p1value = p1Value;
+    Txdata.p2value = p2Value;
+    Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
 
     Serial.print(F("Message dvalue: "));
     //Serial.print(F(" dvalue: "));
     Serial.print(Txdata.dvalue);
-    Serial.print(F(", sw1value (PIR): "));
+    Serial.print(F(", p1value: "));
+    Serial.print(Txdata.p1value);  
+    Serial.print(F(", p2value: "));
+    Serial.print(Txdata.p2value); 
+    Serial.print(F(", sw1value: "));
     Serial.print(Txdata.sw1value);        
-    Serial.print(F(", sw2value (BUTTON): "));
+    Serial.print(F(", sw2value: "));
     Serial.println(Txdata.sw2value);
 
     RF24NetworkHeader header0(basenode, 'D'); // address where the data is going
