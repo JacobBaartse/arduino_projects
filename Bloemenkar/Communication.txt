@@ -1,0 +1,25 @@
+struct detector_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint8_t count;
+  uint8_t dvalue;
+  uint8_t sw1value;
+  uint8_t sw2value;
+};
+
+From detector to controller:
+ keyword    0xdeedbeeb
+ timing
+ count
+ dvalue     0 for nothing, 0xff for a detection within range
+ sw1value   PIR
+ sw2value   button 
+ 
+ 
+ From controller to detector(s):
+ keyword
+ timing
+ count
+ dvalue     acknowledge detection with 0xff, any other value > 10 is new distance threshold in cm
+ sw1value   when > 0 reset/restart the detection
+ sw2value   when > 0 reset/restart the detection
