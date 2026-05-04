@@ -162,6 +162,8 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
       drivebuzzer(true);
       driveLED(1, currentDetectMillis);
       alarming = true;
+      Serial.print(F("Alarming: "));
+      Serial.println(detectorscount);
     }
   }
   // else {
@@ -233,7 +235,7 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(Rxdata.p2value);
       Serial.print(F(", sw1: "));
       Serial.print(Rxdata.sw1value);
-      Serial.print(F(", sw2): "));
+      Serial.print(F(", sw2: "));
       Serial.println(Rxdata.sw2value);
 
       //pingreceived = ((Rxdata.dvalue==0xff)&&(Rxdata.sw1value==0xff)&&(Rxdata.sw2value==0xff));
