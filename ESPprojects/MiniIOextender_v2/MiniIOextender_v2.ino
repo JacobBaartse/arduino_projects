@@ -1,8 +1,5 @@
 /*
-https://www.luisllamas.es/en/control-up-to-16-gpio-i2c-pcf8575-arduino-expander/
 
-
-https://github.com/RobTillaart/PCF8575
 
 */
 
@@ -261,7 +258,7 @@ bool timepassing(unsigned long curtime, unsigned long duration){
 
 
 // Initialize the PCF8575 at address 0x20
-PCF8575 pcf8575(0x20); 
+PCF8575 pcf(0x20); 
 
 void printHex(uint16_t x)
 {
@@ -272,19 +269,19 @@ void printHex(uint16_t x)
 }
 
 void showdata(){
-  uint16_t x = pcf8575.read16();
+  uint16_t x = pcf.read16();
   Serial.print(" read16 ");
   printHex(x);
 }
 
 void doHigh(){
-  pcf8575.write(4, HIGH);
+  pcf.write(4, HIGH);
   showdata();
 }
 
 void doLow()
 {
-  pcf8575.write(4, LOW);
+  pcf.write(4, LOW);
   showdata();
 }
 
@@ -292,7 +289,7 @@ void doToggle(uint8_t pinval)
 {
   Serial.print(F("Toggle: "));
   Serial.print(pinval);
-  pcf8575.toggle(pinval);
+  pcf.toggle(pinval);
   showdata();
 }
 
@@ -313,8 +310,6 @@ void setup(){
   Serial.print(F(", creation/build time: "));
   Serial.println(__TIMESTAMP__);
   Serial.println(reftext);
-  Serial.print(F("PCF8575_LIB_VERSION:"));
-  Serial.println(PCF8575_LIB_VERSION);
   Serial.flush(); 
 
   // ESP-NOW requires WiFi in STA mode
@@ -336,12 +331,8 @@ void setup(){
   // use the button on an interrupt hadling
   // attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
-  // Set pin P0 as an output
-  //pcf8575.pinMode(P0, OUTPUT);
-  //pinMode(pin2, INPUT_PULLUP);
   Wire.begin();
-
-  pcf8575.begin();
+  pcf.begin();
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Transceiver Ready"));
