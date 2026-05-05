@@ -16,6 +16,9 @@
 #define BUTTON1_PIN 2
 #define BUTTON2_PIN 3
 
+#define LED1_PIN 6
+#define LED2_PIN 7
+
 #define BUZZER_PIN 8
 
 enum BuzzerState {
@@ -29,18 +32,15 @@ enum BuzzerState {
 
 BuzzerState buzzerstatus = BuzzerState::Off;
 
-#define LED1_PIN 7
-#define LED2_PIN 8
-
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
-uint16_t detectornode = 00; // Address of this node in Octal format (04, 031, etc.)
-const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
+uint16_t detectornode = 00; // Address of a detector node in Octal format (01 ... 05)
+const uint16_t basenode = 00; // Address of thhis home/host/controller node in Octal format
 uint8_t radiolevel = RF24_PA_MIN;
 
-unsigned long const keywordvalD = 0xdeedbeeb; 
+const unsigned long keywordvalD = 0xdeedbeeb; 
 
 struct detector_payload{
   uint32_t keyword;
@@ -86,7 +86,7 @@ void setup() {
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
   radiolevel = RF24_PA_LOW;
-  radio.setPALevel(radiolevel, 0);
+  radio.setPALevel(radiolevel, 1); // enable LNA
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, basenode);
   Serial.print(F("radioChannel: "));
@@ -188,7 +188,6 @@ void driveLED(uint8_t lstat, unsigned long currenttiming){
   }
 }
 
-
 unsigned long reportingTime = 0;
 
 uint8_t trackDetectionsAndButtons(unsigned long currentDetectMillis){
@@ -235,28 +234,31 @@ uint8_t trackDetectionsAndButtons(unsigned long currentDetectMillis){
     if (buzzer_off){
       drivebuzzer(BuzzerState::Off);
     }
+
     // activate alarm LED
 
   }
 
-  // // if nothing happened
-  // if (false){
-  //   // at least print for debugging something to know the software is still running
-  //   if ((unsigned long)(currentDetectMillis - reportingTime) > 60000){
-  //     Serial.print(F("Running detection tracking: "));
-  //     Serial.println(currentDetectMillis);
-  //     reportingTime = currentDetectMillis;
-  //     reportingdog += 1;
-  //   }
-  // }
-  // else{
-  //   reportingdog = 0;
-  // }
-
   return retval;
 }
 
-//bool pingreceived = false;
+// keep track of the detectors in a static array
+uint16_t dtnodes[6] = { 0, 0, 0, 0, 0, 0};
+uint16_t trackdetectornodes(uint16_t nodeid, bool receivedmsg=false){
+  uint16_t returnval = 00;
+  if (nodeid > 0){
+    if (receivedmsg){
+      dtnodes[nodeid] = 2;
+      returnval = nodeid;
+    }
+    else {
+      if (dtnodes[nodeid] > 0){
+        returnval = nodeid;
+      }
+    }
+  }
+  return returnval;
+}
 
 //===== Receiving =====//
 uint16_t receiveRFnetwork(unsigned long currentRFmilli){
@@ -296,19 +298,12 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(F(", sw2: "));
       Serial.println(Rxdata.sw2value);
 
-      //pingreceived = ((Rxdata.dvalue==0xff)&&(Rxdata.sw1value==0xff)&&(Rxdata.sw2value==0xff));
-
-      // if (pingreceived){
-      //   Serial.print(nodereceived);
-      //   Serial.print(F(" PING received: "));
-      // }
-      // else{
-        if (detectorscount < 0xff00)
-          detectorscount += Rxdata.dvalue;
-        Serial.print(F("detectorscount: "));
-        Serial.print(detectorscount);
-        Serial.print(F(", timing: "));
-      //}
+      if (detectorscount < 0xff00){
+        detectorscount += Rxdata.dvalue;
+      }
+      Serial.print(F("detectorscount: "));
+      Serial.print(detectorscount);
+      Serial.print(F(", timing: "));
       Serial.println(currentRFmilli);
     }
     else{
@@ -340,18 +335,6 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
 
-    // Serial.print(F("Message: "));
-    // Serial.print(F(", xvalue: "));
-    // Serial.print(Txdata.xvalue);
-    // Serial.print(F(", yvalue: "));
-    // Serial.print(Txdata.yvalue);
-    // Serial.print(F(", bvalue: "));
-    // Serial.print(Txdata.bvalue);
-    // Serial.print(F(", sw1value: "));
-    // Serial.print(Txdata.sw1value);        
-    // Serial.print(F(", sw2value: "));
-    // Serial.println(Txdata.sw2value);
-
     RF24NetworkHeader header0(node_id, 'B'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     if (!w_ok){ // retry
@@ -380,6 +363,7 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
 }
 
 uint8_t actionval = 0;
+uint16_t nodeidvalue = 0;
 
 void loop() {
 
@@ -390,6 +374,9 @@ void loop() {
   //pingreceived = false;
   detectornode = receiveRFnetwork(currentmilli);
   newdata = detectornode > 0; // received a message from a detector
+  if (newdata){
+    trackdetectornodes(detectornode, newdata);
+  }
 
   //************************ sensors ****************//
 
@@ -412,18 +399,23 @@ void loop() {
   //   newdata = true;
   // }
   // possible to send acknowledge to the detector node
-  newdata = transmitRFnetwork(newdata, detectornode, currentmilli);
+  //newdata = transmitRFnetwork(newdata, detectornode, currentmilli);
+  transmitRFnetwork(newdata, detectornode, currentmilli);
 
-  if (actionval == 0x55){ // signal reset of detections
+  if (actionval == 0x55){ // signal reset of detections to all detector nodes
     newdata = true;
-    sw1Value = 0xff;
-    sw2Value = 0xff;
+
     // loop here all detector nodes, detector nodes should be tracked in an array (if > 1)
-    for(uint16_t dt=01;dt<02;dt++){ 
-      transmitRFnetwork(newdata, dt, currentmilli);
+    for(uint16_t dt=1;dt<6;dt++){ // loop the possible detector nodes
+      nodeidvalue = trackdetectornodes(dt);
+      if (nodeidvalue > 0){
+        sw1Value = 0xf0 + nodeidvalue;
+        p2Value = sw1Value;
+        transmitRFnetwork(newdata, nodeidvalue, currentmilli);
+      }
     }
     sw1Value = 0;
-    sw2Value = 0;
+    p2Value = 0;
   }
 
 }

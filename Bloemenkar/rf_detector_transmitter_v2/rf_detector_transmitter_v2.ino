@@ -16,18 +16,17 @@
 #define BUTTON1_PIN 2
 //#define BUTTON2_PIN 3
 
-#define PIR1_PIN 7
-
+#define PIR_PIN 7
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
-uint16_t detectornode = 01; // Address of this node in Octal format (01 ... 05), maximum 5 detector nodes
+const uint16_t detectornode = 01; // Address of this node in Octal format (01 ... 05), maximum 5 detector nodes
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
 uint8_t radiolevel = RF24_PA_MIN;
 
-unsigned long const keywordvalD = 0xdeedbeeb; 
+const unsigned long keywordvalD = 0xdeedbeeb; 
 
 struct detector_payload{
   uint32_t keyword;
@@ -50,7 +49,7 @@ void setup() {
   // PINs for sensor inputs
   pinMode(BUTTON1_PIN, INPUT_PULLUP);
   //pinMode(BUTTON2_PIN, INPUT_PULLUP);
-  pinMode(PIR1_PIN, INPUT);
+  pinMode(PIR_PIN, INPUT);
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
@@ -67,7 +66,7 @@ void setup() {
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
   radiolevel = RF24_PA_LOW;
-  radio.setPALevel(radiolevel, 0);
+  radio.setPALevel(radiolevel, 1); // enable LNA
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, detectornode);
   Serial.print(F("radioChannel: "));
@@ -101,7 +100,7 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
   static bool activePIR = false;
   static bool alarming = false;
-  uint16_t objectdistance = 1000;
+  uint16_t objectdistance = 0xffff;
   bool fresh = false;
 
   if (alarming){ // if alarmed check for a reset or a 2 minute timeout
@@ -136,7 +135,7 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
     pressBUTTON = false;
   } 
 
-  curPIR = digitalRead(PIR1_PIN);
+  curPIR = digitalRead(PIR_PIN);
   if (curPIR != remPIR){
     difPIR = (unsigned long)(currentDetectMillis - difPIRtime);
     Serial.print(currentDetectMillis);
@@ -177,10 +176,15 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
       }
     }
   }
+  if (activePIR){
+    p1Value = 0xff;
+  }
 
   if (alarming){
     activationTime = currentDetectMillis;
-    detectionValue = 0xffff;
+    if (objectdistance < 0xff00){
+      detectionValue = objectdistance;
+    }
     fresh = true;
     Serial.print(F("Alarming at: "));
     Serial.println(activationTime);
@@ -213,7 +217,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
       Serial.print(Rxdata.count);
       Serial.print(F(", dvalue received: "));
       Serial.println(Rxdata.dvalue);
-      if (Rxdata.dvalue > 9){ // use this value as distance treshold
+      if ((Rxdata.dvalue > 9)&&(Rxdata.dvalue < 0xff00)){ // use this value as distance treshold
         if (Rxdata.dvalue != distance_threshold){
           distance_threshold = Rxdata.dvalue;
           Serial.print(F("distance_threshold: "));
@@ -221,7 +225,7 @@ bool receiveRFnetwork(unsigned long currentRFmilli){
           Serial.println(F(" cm"));
         }
       }
-      if ((Rxdata.sw1value > 0xf0)&&(Rxdata.sw2value > 0xf0)){ // reset detections and alarming
+      if ((Rxdata.p2value > 0xf0)&&(Rxdata.sw1value > 0xf0)){ // reset detections and alarming
         resetalarming = true;
         Serial.println(F("RESET alarming"));
       }
