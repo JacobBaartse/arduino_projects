@@ -54,6 +54,10 @@ struct detector_payload{
 };
 
 bool newdata = false;
+uint8_t p1Value = 0;
+uint8_t p2Value = 0;
+uint8_t sw1Value = 0;
+uint8_t sw2Value = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -187,10 +191,12 @@ void driveLED(uint8_t lstat, unsigned long currenttiming){
 
 unsigned long reportingTime = 0;
 
-void trackDetectionsAndButtons(unsigned long currentDetectMillis){
+uint8_t trackDetectionsAndButtons(unsigned long currentDetectMillis){
   static unsigned long activationTime = 0;
   //static uint8_t reportingdog = 0;
   static bool alarming = false;
+  bool buzzer_off = false;
+  uint8_t retval = 0;
 
   if (!alarming){
     if (detectorscount > 0){
@@ -200,6 +206,7 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
       alarming = true;
       Serial.print(F("Alarming: "));
       Serial.println(detectorscount);
+      activationTime = currentDetectMillis;
     }
   }
   // else {
@@ -210,14 +217,23 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
 
   if (alarming){ // show LED and sound (buzzer)
     if (activeBUTTON1){ // button 1 means alarm acknowledged, do not buzz
-      drivebuzzer(BuzzerState::Off);
       activeBUTTON1 = false;
+      buzzer_off = true;
     }
     if (activeBUTTON2){ // button 2 means reset for detections
-      drivebuzzer(BuzzerState::Off);
       driveLED(0, currentDetectMillis);
       activeBUTTON2 = false;
+      buzzer_off = true;
+    }
+    if ((unsigned long)(currentDetectMillis - activationTime) > 2000){ // maximum 2 seconds of buzzing
+      buzzer_off = true;
+      alarming = false;
       detectorscount = 0;
+      retval = 0x55;
+    }
+
+    if (buzzer_off){
+      drivebuzzer(BuzzerState::Off);
     }
     // activate alarm LED
 
@@ -237,6 +253,7 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
   //   reportingdog = 0;
   // }
 
+  return retval;
 }
 
 //bool pingreceived = false;
@@ -318,10 +335,10 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
     Txdata.dvalue = 300; // 300 cm detection threshold
-    // Txdata.p1value = p1Value;
-    // Txdata.p2value = p2Value;
-    // Txdata.sw1value = sw1Value;
-    // Txdata.sw2value = sw2Value;
+    Txdata.p1value = p1Value;
+    Txdata.p2value = p2Value;
+    Txdata.sw1value = sw1Value;
+    Txdata.sw2value = sw2Value;
 
     // Serial.print(F("Message: "));
     // Serial.print(F(", xvalue: "));
@@ -362,6 +379,8 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
   return fresh;
 }
 
+uint8_t actionval = 0;
+
 void loop() {
 
   network.update();
@@ -385,7 +404,7 @@ void loop() {
 
   //************************ sensors ****************//
 
-  trackDetectionsAndButtons(currentmilli);
+  actionval = trackDetectionsAndButtons(currentmilli);
 
   ledactivity(0, 0, currentmilli); // run the LED activity on all LEDs, for example flashing
 
@@ -394,6 +413,18 @@ void loop() {
   // }
   // possible to send acknowledge to the detector node
   newdata = transmitRFnetwork(newdata, detectornode, currentmilli);
+
+  if (actionval == 0x55){ // signal reset of detections
+    newdata = true;
+    sw1Value = 0xff;
+    sw2Value = 0xff;
+    // loop here all detector nodes, detector nodes should be tracked in an array (if > 1)
+    for(uint16_t dt=01;dt<02;dt++){ 
+      transmitRFnetwork(newdata, dt, currentmilli);
+    }
+    sw1Value = 0;
+    sw2Value = 0;
+  }
 
 }
 
