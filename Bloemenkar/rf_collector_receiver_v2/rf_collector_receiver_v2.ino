@@ -2,8 +2,8 @@
  * Nano + NRF extender module, USB-C, using RF24network library
  */
 
-#include <RF24Network.h>
 #include "RF24.h"
+#include <RF24Network.h>
 #include <SPI.h>
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
@@ -17,6 +17,17 @@
 #define BUTTON2_PIN 3
 
 #define BUZZER_PIN 6
+
+enum BuzzerState {
+    Off,
+    On,
+    // Low,
+    // High,
+    // Pulse,
+    NoChange
+};
+
+BuzzerState buzzerstatus = BuzzerState::Off;
 
 #define LED1_PIN 7
 #define LED2_PIN 8
@@ -124,19 +135,41 @@ void ledactivity(uint8_t ledid, uint8_t ledaction, unsigned long ledtime){
   }
 }
 
-void drivebuzzer(bool buzzerstatus){
-  static bool status = false;
-  uint16_t buzzertone = 2000;
+void drivebuzzer(BuzzerState buzzerstatustoset){
+  static BuzzerState status = BuzzerState::Off;
+  static uint16_t buzzertone = 2000;
 
-  if (buzzerstatus != status){
-    if (buzzerstatus){
-      tone(BUZZER_PIN, buzzertone);
+  if (buzzerstatustoset != status){
+    switch(buzzerstatustoset){
+      // case BuzzerState::Dim:
+
+
+      //   status = BuzzerState::Dim;
+      //   break;
+      case BuzzerState::On:
+        buzzertone += 300;
+        if (buzzertone > 5000){
+          buzzertone = 2000;
+        }
+        status = BuzzerState::On;
+        break;
+      case BuzzerState::NoChange:
+        break;
+      //case BuzzerState::Off:
+      default:
+        buzzertone = 2000;
+        status = BuzzerState::Off;
     }
-    else {
-      noTone(BUZZER_PIN); 
-    }
-    status = buzzerstatus;
   }
+
+  switch(status){
+    case BuzzerState::On:
+      tone(BUZZER_PIN, buzzertone);
+      break;
+    case BuzzerState::Off:
+      noTone(BUZZER_PIN); 
+  }
+
 }
 
 void driveLED(uint8_t lstat, unsigned long currenttiming){
@@ -159,7 +192,7 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
   if (!alarming){
     if (detectorscount > 0){
       // activate LED and sound
-      drivebuzzer(true);
+      drivebuzzer(BuzzerState::On);
       driveLED(1, currentDetectMillis);
       alarming = true;
       Serial.print(F("Alarming: "));
@@ -174,11 +207,11 @@ void trackDetectionsAndButtons(unsigned long currentDetectMillis){
 
   if (alarming){ // show LED and sound (buzzer)
     if (activeBUTTON1){ // button 1 means alarm acknowledged, do not buzz
-      drivebuzzer(false);
+      drivebuzzer(BuzzerState::Off);
       activeBUTTON1 = false;
     }
     if (activeBUTTON2){ // button 2 means reset for detections
-      drivebuzzer(false);
+      drivebuzzer(BuzzerState::Off);
       driveLED(0, currentDetectMillis);
       activeBUTTON2 = false;
       detectorscount = 0;
@@ -334,21 +367,16 @@ void loop() {
 
   //pingreceived = false;
   detectornode = receiveRFnetwork(currentmilli);
+  newdata = detectornode > 0; // received a message from a detector
 
   //************************ sensors ****************//
 
-  // detectionnode is nodereceived, if > 0
-  if (detectornode > 0)
-    newdata = true; // received a message from a detector
-
   if (pressBUTTON1){
     activeBUTTON1 = true;
-    //newdata = true; // this button is only for local action
     pressBUTTON1 = false;
   }  
   if (pressBUTTON2){
     activeBUTTON2 = true;
-    //newdata = true; // this button is only for local action
     pressBUTTON2 = false;
   }  
 
