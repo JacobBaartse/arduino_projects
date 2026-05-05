@@ -16,7 +16,7 @@
 #define BUTTON1_PIN 2
 #define BUTTON2_PIN 3
 
-#define BUZZER_PIN 6
+#define BUZZER_PIN 8
 
 enum BuzzerState {
     Off,
@@ -75,7 +75,10 @@ void setup() {
   SPI.begin();
   if (!radio.begin()){
     Serial.println(F("Radio hardware error."));
-    while (true) delay(1000);
+    while (true){ 
+      delay(1500);
+      //drivebuzzer(BuzzerState::On); // testing some buzzer things
+    }
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
   radiolevel = RF24_PA_LOW;
@@ -137,7 +140,7 @@ void ledactivity(uint8_t ledid, uint8_t ledaction, unsigned long ledtime){
 
 void drivebuzzer(BuzzerState buzzerstatustoset){
   static BuzzerState status = BuzzerState::Off;
-  static uint16_t buzzertone = 2000;
+  static uint16_t buzzertone = 1000;
 
   if (buzzerstatustoset != status){
     switch(buzzerstatustoset){
@@ -148,8 +151,8 @@ void drivebuzzer(BuzzerState buzzerstatustoset){
       //   break;
       case BuzzerState::On:
         buzzertone += 300;
-        if (buzzertone > 5000){
-          buzzertone = 2000;
+        if (buzzertone > 6000){
+          buzzertone = 1000;
         }
         status = BuzzerState::On;
         break;
