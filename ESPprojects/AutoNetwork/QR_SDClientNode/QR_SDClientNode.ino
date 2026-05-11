@@ -366,7 +366,7 @@ void setup(){
   display.setFont(&font_16_pix);
   display.setTextSize(1); // 3 lines of 10-12 chars
   display.setTextColor(SSD1306_WHITE);
-  display.setTextWrap(false); 
+  display.setTextWrap(true); 
   display.display();
 
   Serial.println(F(" "));
@@ -405,7 +405,7 @@ void setup(){
   // display_oled(false, 0, 64, Lines[3]); 
 
   // Display the QR code at setup time
-  generateQRCode("ESPNOW trial");
+  generateQRCode("QR code trial");
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Transceiver Ready"));
@@ -451,7 +451,8 @@ int actionid = 0;
 //   }
 // }
 
-char qstr[16];
+const int qrlen = 50;
+char qstr[qrlen]; // maximum 50 characters
 
 // --------------------
 // Main Loop
@@ -462,6 +463,10 @@ void loop(){
 
   action = timepassing(runningtime, 9000);
   if (action){
+
+    sprintf(qstr, "%s %05d", "George", runningtime);
+    DisplayProgress(qstr);
+
     if (devicepaired){
       //sendonesp((uint8_t *)msg, sizeof(msg));
       //esp_now_send(Server_Address, (uint8_t *)msg, sizeof(msg));
@@ -469,8 +474,6 @@ void loop(){
     else{
       sendpairingsequence(0);
     }
-    sprintf(qstr, "%09d", runningtime);
-    generateQRCode(qstr);
   }
 
   //handle_button(false, runningtime);
@@ -491,16 +494,37 @@ void loop(){
 //   handle_button(true, millis());
 // }
 
-void generateQRCode(const char* text) {
+void DisplayProgress(const char* ptext){
+  static bool toggle = false;
+  static bool toggle2 = false;
+  if (toggle){
+    if (toggle2){
+      generateQRCode(ptext);
+    }
+    else {
+      generateQRCode("Other text that can be reasonable long (enough).");
+    }
+    toggle2 = !toggle2;
+  }
+  else{
+    textdisplay(ptext);
+  }
+  toggle = !toggle; // toggle
+}
+
+void generateQRCode(const char* text){
   // Create a QR code object
   QRCode qrcode;
   
-  // Define the size of the QR code (1-40, higher means bigger size)
+  // Define the size of the QR code (1-40, higher means bigger size), this value is the QR code version
   uint8_t qrcodeData[qrcode_getBufferSize(3)];
   qrcode_initText(&qrcode, qrcodeData, 3, 0, text);
 
   // Clear the display
   display.clearDisplay();
+
+  Serial.print(F("QR info: "));
+  Serial.println(text);
 
   // Calculate the scale factor
   int scale = min(SCREEN_WIDTH / qrcode.size, SCREEN_HEIGHT / qrcode.size);
@@ -519,6 +543,21 @@ void generateQRCode(const char* text) {
       }
     }
   }
+
+  // Update the display
+  display.display();
+}
+
+void textdisplay(const char* text){
+  // Clear the display
+  display.clearDisplay();
+
+  Serial.print(F("textdisplay: "));
+  Serial.println(text);
+
+  //display.setCursor(0, LinesYPos[0]);
+  display.setCursor(0, 16);
+  display.print(text);
 
   // Update the display
   display.display();
