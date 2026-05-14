@@ -512,7 +512,7 @@ void DisplayProgress(const char* ptext){
       textdisplay(ptext);
     }
     else {
-      textdisplay("Very long text that is readable but not very nice on the display");
+      textdisplay("Very long text that is readable but not very nice on the display to read");
     }
     toggle3 = !toggle3;
   }
