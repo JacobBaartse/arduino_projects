@@ -497,17 +497,24 @@ void loop(){
 void DisplayProgress(const char* ptext){
   static bool toggle = false;
   static bool toggle2 = false;
+  static bool toggle3 = false;
   if (toggle){
     if (toggle2){
       generateQRCode(ptext);
     }
     else {
-      generateQRCode("Other text that can be reasonable long (enough).");
+      generateQRCode("Other text that can be reasonable long (enough) for QR code scanning.");
     }
     toggle2 = !toggle2;
   }
   else{
-    textdisplay(ptext);
+    if (toggle3){
+      textdisplay(ptext);
+    }
+    else {
+      textdisplay("Very long text that is readable but not very nice on the display");
+    }
+    toggle3 = !toggle3;
   }
   toggle = !toggle; // toggle
 }
