@@ -4,6 +4,7 @@
 #define ACTIVE 1
 #define INACTIVE 2
 #define FREE 0
+#define NOT_INITIALIZED 255
 #define DELETED_USER 3
 
 #define DEBUG 0
@@ -46,6 +47,7 @@ String get_player(bool all_info)
     EEPROM.get(idx_current_player, readObject);
     debug(readObject.status);
     if (readObject.status==FREE) idx_current_player=-16;  // next loop will increase to 0 again.
+    else if (readObject.status==NOT_INITIALIZED) idx_current_player=-16;  // next loop will increase to 0 again.
     else if (readObject.status == ACTIVE || all_info)
       if (readObject.status != DELETED_USER) {
         debug(idx_current_player);
@@ -77,7 +79,7 @@ String get_top_scores(){
   for (int i=0; i<1000; i+=16){
     UserObject l_readObject;
     EEPROM.get(i, l_readObject);
-    if (l_readObject.status==FREE) {
+    if (l_readObject.status==FREE || l_readObject.status==NOT_INITIALIZED) {
       String top_score_string = "";
       for (int j=0; j<6; j++)
         if (top[j].score >=0) 
