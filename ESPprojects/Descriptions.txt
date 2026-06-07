@@ -1,0 +1,31 @@
+
+
+WebServerFromExample1
+
+
+WebServerFromExample2
+
+
+
+WebServerFromExample3    AccessPoint and internet connection trial
+
+  Dual-Mode Web Server: AP & Station Simultaneously 
+
+
+WebServerFromExample4
+
+  Dual-Mode Web Server: AP & Station Simultaneously 
+  
+  Webserver using form(s) and links
+
+
+
+
+
+
+
+
+
+ https://pedrofnseca.medium.com/esp32-http-client-a-modern-lightweight-rest-api-client-for-esp32-e6e38dedea53
+
+

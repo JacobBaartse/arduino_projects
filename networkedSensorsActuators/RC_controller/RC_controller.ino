@@ -215,7 +215,7 @@ bool transmitRFnetwork(bool fresh){
     Serial.println(currentRFmilli);
 
     if (failcount > 10){
-      fresh = false; // do not send a lot of messages continously
+      fresh = false; // do not send a lot of messages continuously
     }
 
     if(!fresh){ // clear buttons status always after 5 seconds

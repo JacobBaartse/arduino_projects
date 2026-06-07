@@ -1,0 +1,37 @@
+
+
+
+
+struct detector_payload{
+  uint32_t keyword;
+  uint32_t timing;
+  uint16_t count;
+  uint16_t dvalue;
+  uint8_t p1value;
+  uint8_t p2value;
+  uint8_t sw1value;
+  uint8_t sw2value;
+};
+
+From detector to controller, type D (detector):
+ keyword    0xdeedbeeb
+ timing
+ count
+ dvalue     0 for nothing, > 4 for the detection distance
+ p1value    0xff for active PIR
+ p2value
+ sw1value   
+ sw2value   0xff for button press  
+ 
+ 
+From controller to detector(s), type B (base):
+ keyword    0xdeedbeeb
+ timing
+ count
+ dvalue     acknowledge detection with 0xffff, any other value > 10 is new distance threshold in cm
+ p1value
+ p2value    when > 0xf0 reset/restart the detection
+ sw1value   when > 0xf0 reset/restart the detection
+ sw2value   
+ 
+ 

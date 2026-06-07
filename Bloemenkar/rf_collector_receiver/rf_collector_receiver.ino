@@ -7,27 +7,22 @@
 #include <SPI.h>
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
-
-#define CFG_PIN0 A0
-#define CFG_PIN1 A1
-#define CFG_PIN2 A2
-#define CFG_PIN3 A3
-// #define CFG_PIN4 6
-// #define CFG_PIN5 7
-// #define CFG_PIN6 8
-// #define CFG_PIN7 9
+#define CE_PIN 10
+#define CSN_PIN 9
 
 /* one button on the collector to disable the alarm(s) as a local acknowledge that the detection is noticed
  * another button to enable the alarming (when a fresh detection is arriving)
  */
-#define BUTTON_PIN1 2
-#define BUTTON_PIN2 3
+#define BUTTON1_PIN 2
+#define BUTTON2_PIN 3
 
 #define BUZZER_PIN 6
 
+#define LED1_PIN 7
+#define LED2_PIN 8
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
-RF24 radio(10, 9); // nRF24L01 (CE, CSN)
+RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
 uint16_t detectornode = 00; // Address of this node in Octal format (04, 031, etc.)
@@ -50,32 +45,13 @@ bool newdata = false;
 void setup() {
   Serial.begin(115200);
 
-  // multiple PINs for reading the config
-  pinMode(CFG_PIN0, INPUT_PULLUP);
-  pinMode(CFG_PIN1, INPUT_PULLUP);
-  pinMode(CFG_PIN2, INPUT_PULLUP);
-  pinMode(CFG_PIN3, INPUT_PULLUP);
-  // pinMode(CFG_PIN4, INPUT_PULLUP);
-  // pinMode(CFG_PIN5, INPUT_PULLUP);
-  // pinMode(CFG_PIN6, INPUT_PULLUP);
-  // pinMode(CFG_PIN7, INPUT_PULLUP);
-
-  // PINs for sensor inputs
-  pinMode(BUTTON_PIN1, INPUT_PULLUP);
-  pinMode(BUTTON_PIN2, INPUT_PULLUP);
+  // PINs for user input
+  pinMode(BUTTON1_PIN, INPUT_PULLUP);
+  pinMode(BUTTON2_PIN, INPUT_PULLUP);
 
   pinMode(BUZZER_PIN, OUTPUT); // Set buzzer pin as an output
-
-  // if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-  // }
-  // if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-  // }
-  if (digitalRead(CFG_PIN2) == LOW){ // PIN active
-    radiolevel = 1;
-  }
-  if (digitalRead(CFG_PIN3) == LOW){ // PIN active
-    radiolevel = radiolevel + 2;
-  }
+  pinMode(LED1_PIN, OUTPUT);   
+  pinMode(LED2_PIN, OUTPUT); 
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
@@ -89,7 +65,6 @@ void setup() {
     while (true) delay(1000);
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-  //radio.setPALevel(RF24_PA_MIN, 0);
   radiolevel = RF24_PA_LOW;
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
@@ -99,8 +74,8 @@ void setup() {
   Serial.print(F(", level: "));
   Serial.println(radiolevel);
 
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN1), buttonPress1, FALLING); // trigger when button1 pressed
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress2, FALLING); // trigger when button2 pressed
+  attachInterrupt(digitalPinToInterrupt(BUTTON1_PIN), buttonPress1, FALLING); // trigger when button1 pressed
+  attachInterrupt(digitalPinToInterrupt(BUTTON2_PIN), buttonPress2, FALLING); // trigger when button2 pressed
 }
  
 unsigned long currentmilli = 0;
@@ -113,7 +88,7 @@ bool activeBUTTON2 = false;
 void ledactivity(uint8_t ledid, uint8_t ledaction, unsigned long ledtime){
   static unsigned long ledflashtime = 0;
   static uint8_t ledAction[3][3] = {
-    {0, 0, 0}, // LED PIN, status, time
+    {0, 0, 0}, // LED PIN, status, ledaction
     {0, 0, 0},
     {0, 0, 0},
   };
@@ -153,12 +128,6 @@ void drivebuzzer(bool buzzerstatus){
 
   if (buzzerstatus != status){
     if (buzzerstatus){
-      if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-        buzzertone = 1000;
-      }
-      if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-        buzzertone += 2000;
-      }
       tone(BUZZER_PIN, buzzertone);
     }
     else {
@@ -335,13 +304,12 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     Serial.println(currentRFmilli);
 
     if (failcount > 2){
-      fresh = false; // do not send a lot of messages continously
+      fresh = false; // do not send a lot of messages continuously
     }
   }
 
   return fresh;
 }
-
 
 void loop() {
 

@@ -96,7 +96,12 @@ void setup() {
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-  Serial.println(F("Access Point Web Server with Color Display"));
+  Serial.println(F("Starting UNO R4 WiFi, Access Point Web Server with Color Display"));
+  Serial.println();
+  Serial.print(__FILE__);
+  Serial.print(F("\n, creation/build time: "));
+  Serial.println(__TIMESTAMP__);
+  Serial.flush(); 
   matrix.begin();
 
   pinMode(7, OUTPUT);
@@ -112,11 +117,6 @@ void setup() {
   // if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
   //   Serial.println("Please upgrade the WiFi firmware");
   // }
-
-  Serial.print(__FILE__);
-  Serial.print(F(", creation/build time: "));
-  Serial.println(__TIMESTAMP__);
-  Serial.flush(); 
 
   // print the network name (SSID);
   Serial.print(F("Creating access point named: "));

@@ -1,44 +1,31 @@
 /*
- * RF-Nano, headers, USB-C, using RF24network library
+ * Nano + NRF extender module, , USB-C, using RF24network library
  */
 
 #include "RF24.h"
 #include <RF24Network.h>
 #include <SPI.h>
-#include "distance.h"
+#include "distance.h" // here IIC is used, pins A4 and A5
 
 #define radioChannel 98 // dit wordt mogelijk instelbaar
-#define CE_PIN 10
-#define CSN_PIN 9
-
-#define CFG_PIN0 A0
-#define CFG_PIN1 A1
-#define CFG_PIN2 A2
-#define CFG_PIN3 A4
-
-// maybe a few pins for config of the distance threshold
-// #define CFG_PIN4 6
-// #define CFG_PIN5 7
-// #define CFG_PIN6 8
-// #define CFG_PIN7 9
+#define CE_PIN  10
+#define CSN_PIN  9
 
 /* one button or two buttons can be connected to trigger human presence
  */
-#define BUTTON_PIN1 2
-#define BUTTON_PIN2 3
+#define BUTTON1_PIN 2
+//#define BUTTON2_PIN 3
 
-#define PIR_PIN1 7
-//#define PIR_PIN1 A5
-//#define PIR_PIN2 A3
+#define PIR1_PIN 7
 
 
 /**** Configure the nrf24l01 CE and CSN pins ****/
 RF24 radio(CE_PIN, CSN_PIN); // nRF24L01 (CE, CSN)
 RF24Network network(radio); // Include the radio in the network
 
-uint16_t detectornode = 01; // Address of this node in Octal format (04, 031, etc.)
+uint16_t detectornode = 01; // Address of this node in Octal format (01 ... 05), maximum 5 detector nodes
 const uint16_t basenode = 00; // Address of the home/host/controller node in Octal format
-uint8_t radiolevel = RF24_PA_MAX;
+uint8_t radiolevel = RF24_PA_MIN;
 
 unsigned long const keywordvalD = 0xdeedbeeb; 
 
@@ -52,47 +39,19 @@ struct detector_payload{
 };
 
 bool newdata = false;
-bool debug = true;
 
 void setup() {
   Serial.begin(115200);
 
-  // multiple PINs for reading the config
-  pinMode(CFG_PIN0, INPUT_PULLUP);
-  pinMode(CFG_PIN1, INPUT_PULLUP);
-  pinMode(CFG_PIN2, INPUT_PULLUP);
-  pinMode(CFG_PIN3, INPUT_PULLUP);
-  // pinMode(CFG_PIN4, INPUT_PULLUP);
-  // pinMode(CFG_PIN5, INPUT_PULLUP);
-  // pinMode(CFG_PIN6, INPUT_PULLUP);
-  // pinMode(CFG_PIN7, INPUT_PULLUP);
-
   // PINs for sensor inputs
-  pinMode(BUTTON_PIN1, INPUT_PULLUP);
-  pinMode(BUTTON_PIN2, INPUT_PULLUP);
-  pinMode(PIR_PIN1, INPUT);
-  //pinMode(PIR_PIN2, INPUT);
-
-  if (digitalRead(CFG_PIN0) == LOW){ // PIN active
-    detectornode = 2;
-  }
-  if (digitalRead(CFG_PIN1) == LOW){ // PIN active
-    detectornode = detectornode + 2;
-  }
-
-  // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
-  if (digitalRead(CFG_PIN2) == LOW){ // PIN active
-    radiolevel = 1;
-  }
-  if (digitalRead(CFG_PIN3) == LOW){ // PIN active
-    radiolevel = radiolevel + 2;
-  }
+  pinMode(BUTTON1_PIN, INPUT_PULLUP);
+  //pinMode(BUTTON2_PIN, INPUT_PULLUP);
+  pinMode(PIR1_PIN, INPUT);
 
   Serial.println(F(" ***** <> *****"));  
   Serial.println(__FILE__);
   Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
-  // detectornode = depending on settings
   Serial.print(F("Detectornode: "));
   Serial.println(detectornode);
   Serial.flush(); 
@@ -103,6 +62,7 @@ void setup() {
     while (true) delay(1000);
   }
   // RF24_PA_MIN (0), RF24_PA_LOW (1), RF24_PA_HIGH (2), RF24_PA_MAX (3) 
+  radiolevel = RF24_PA_LOW;
   radio.setPALevel(radiolevel, 0);
   radio.setDataRate(RF24_1MBPS);
   network.begin(radioChannel, detectornode);
@@ -113,8 +73,8 @@ void setup() {
 
   setupDistance();
 
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN1), buttonPress, FALLING); // trigger when button is pressed
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN2), buttonPress, FALLING); // trigger when button is pressed
+  attachInterrupt(digitalPinToInterrupt(BUTTON1_PIN), buttonPress, FALLING); // trigger when button is pressed
+  //attachInterrupt(digitalPinToInterrupt(BUTTON2_PIN), buttonPress, FALLING); // trigger when button is pressed
 }
 
 unsigned long currentmilli = 0;
@@ -157,7 +117,6 @@ bool trackDetectionAndButton(unsigned long currentDetectMillis){
       Serial.println(currentDetectMillis);
       alarming = true;
     }
-    debug = alarming;
     if (alarming){
       activationTime = currentDetectMillis;
       detectionValue = 0xff;
@@ -204,16 +163,6 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
   bool w_ok;
   bool fresh = pfresh;
 
-  // if (pping){
-  //   if ((unsigned long)(currentRFmilli - pingTimer) > 25000){
-  //     fresh = true; // directly send message
-  //     detectionValue = 0xff;
-  //     sw1Value = 0xff;
-  //     sw2Value = 0xff;
-  //     if (debug) Serial.print(F(" PING "));
-  //     pingTimer = currentRFmilli;
-  //   }
-  // }
   // Every 60 seconds, or on new data
   if ((fresh)||((unsigned long)(currentRFmilli - sendingTimer) > 60000)){
     sendingTimer = currentRFmilli;
@@ -226,13 +175,13 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
     Txdata.sw1value = sw1Value;
     Txdata.sw2value = sw2Value;
 
-    if (debug) Serial.print(F("Message dvalue: "));
+    Serial.print(F("Message dvalue: "));
     //Serial.print(F(" dvalue: "));
-    if (debug) Serial.print(Txdata.dvalue);
-    if (debug) Serial.print(F(", sw1value (PIR): "));
-    if (debug) Serial.print(Txdata.sw1value);        
-    if (debug) Serial.print(F(", sw2value (BUTTON): "));
-    if (debug) Serial.println(Txdata.sw2value);
+    Serial.print(Txdata.dvalue);
+    Serial.print(F(", sw1value (PIR): "));
+    Serial.print(Txdata.sw1value);        
+    Serial.print(F(", sw2value (BUTTON): "));
+    Serial.println(Txdata.sw2value);
 
     RF24NetworkHeader header0(basenode, 'D'); // address where the data is going
     w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
@@ -240,27 +189,33 @@ bool transmitRFnetwork(bool pfresh, unsigned long currentRFmilli){
       delay(50);
       w_ok = network.write(header0, &Txdata, sizeof(Txdata)); // Send the data
     }
-    if (debug) Serial.print(F("Message send ")); 
+    Serial.print(F("Message send ")); 
     if (w_ok){
       fresh = false;
       failcount = 0;
     }    
     else{
-      if (debug) Serial.print(F("failed "));
+      Serial.print(F("failed "));
       failcount++;
     }
-    if (debug) Serial.print(Txdata.count);
-    if (debug) Serial.print(F(", "));
-    if (debug) Serial.println(currentRFmilli);
+    Serial.print(Txdata.count);
+    Serial.print(F(", "));
+    Serial.println(currentRFmilli);
 
     if (failcount > 4){
-      fresh = false; // do not send a lot of messages continously
+      fresh = false; // do not send a lot of messages continuously
     }
   }
-  // if (pping){
-  //   fresh = false; // 
-  // }
   return fresh;
+}
+
+void watchdogprinting(unsigned long nowmilli){
+  static unsigned long nowtiming = 0;
+  if (nowtiming + 30000 < nowmilli){
+    Serial.print(F("WD: "));
+    Serial.println(nowmilli);
+    nowtiming = nowmilli;
+  }
 }
 
 uint8_t remPIR1 = 3;
@@ -283,8 +238,7 @@ void loop() {
 
   //************************ sensors ****************//
 
-  curPIR1 = digitalRead(PIR_PIN1);
-  //curPIR2 = digitalRead(PIR_PIN2);
+  curPIR1 = digitalRead(PIR1_PIN);
   if (curPIR1 != remPIR1){
     difPIR = (unsigned long)(currentmilli - difPIRtime1);
     Serial.print(currentmilli);
@@ -295,16 +249,6 @@ void loop() {
     remPIR1 = curPIR1;
     difPIRtime1 = currentmilli;
   }
-  // if (curPIR2 != remPIR2){
-  //   difPIR = (unsigned long)(currentmilli - difPIRtime2);
-  //   Serial.print(currentmilli);
-  //   Serial.print(F(" PIR 2 change "));
-  //   Serial.print(difPIR);
-  //   Serial.print(F(" to "));
-  //   Serial.println(curPIR2);
-  //   remPIR2 = curPIR2;
-  //   difPIRtime2 = currentmilli;
-  // }
   if (activePIR){
     if (curPIR1 == LOW){
       activePIR = false;
@@ -350,6 +294,9 @@ void loop() {
   // else{ // ping for base node
   //   newdata = transmitRFnetwork(newdata, currentmilli, true);
   // }
+
+  watchdogprinting(currentmilli);
+
 }
 
 void buttonPress(){
