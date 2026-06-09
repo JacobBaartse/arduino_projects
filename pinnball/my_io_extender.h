@@ -5,6 +5,8 @@
 // PURPOSE: demo
 //     URL: https://github.com/RobTillaart/PCF8575
 
+// to be able to detect short contact closures, added a 100nf capacitor parallel to the mechanical contacts.
+
 #define DEBUG 0
 #if DEBUG == 1
 #define debug(x) Serial.print(x)
