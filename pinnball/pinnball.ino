@@ -94,6 +94,9 @@ void setup(){
   show_text_on_screen(get_top_scores());
   pinMode(TILT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(TILT_PIN), save_tilt_state, FALLING);
+  delay(500);
+  disp_8x8_matrix.print("................................");
+  delay(2000);
   next_player();
   int switch_nr = io_extender_check_switches(); // skip inital rotary sensor position.
 }
