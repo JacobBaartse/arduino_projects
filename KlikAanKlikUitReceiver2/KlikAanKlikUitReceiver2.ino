@@ -1,3 +1,7 @@
+/*
+ * for checking the codes, this script can be used on a Nano, in the end it can be on an ESP or RF-Nano 
+ * for usage of controlling the same controls as via the web browser, control it  from the central place
+ */
 
 const int rfReceiverPin = 2; // should be a pin that supports interrupts
 const int buffer_size = 1024;
@@ -96,27 +100,28 @@ unsigned long getRfCode(){
 String buttonfromrfcode(unsigned long rfcode){
   String ButtonId = "noId";
   switch(rfcode){
-    case 0x90C40090:
-      ButtonId = "R1B1";
-      break;
-    case 0x90C40080:
-      ButtonId = "R1B2";
-      break;
-    case 0x90C40091:
-      ButtonId = "R1B3";
-      break;
-    case 0x90C40081:
-      ButtonId = "R1B4";
-      break;
-    case 0x90C40092:
-      ButtonId = "R1B5";
-      break;
-    case 0x90C40082:
-      ButtonId = "R1B6";
-      break;
-    case 0x90C400A0:
-      ButtonId = "R1B7";
-      break;
+    // case 0x90C40090:
+    //   ButtonId = "R1B1";
+    //   break;
+    // case 0x90C40080:
+    //   ButtonId = "R1B2";
+    //   break;
+    // case 0x90C40091:
+    //   ButtonId = "R1B3";
+    //   break;
+    // case 0x90C40081:
+    //   ButtonId = "R1B4";
+    //   break;
+    // case 0x90C40092:
+    //   ButtonId = "R1B5";
+    //   break;
+    // case 0x90C40082:
+    //   ButtonId = "R1B6";
+    //   break;
+    // case 0x90C400A0:
+    //   ButtonId = "R1B7";
+    //   break;
+
     default:
       Serial.print("Found RF code: ");
       Serial.println(rfcode);
@@ -141,8 +146,11 @@ void setup() {
   Serial.println("Started");
 }
 
+
+unsigned long rfcommand = 0;
+
 void loop() {
-  unsigned long rfcommand = getRfCode();
+  rfcommand = getRfCode();
   if (rfcommand > 0){
     if (prv_rfcommand != rfcommand){ // store rf code only once (TBD per 4 seconds)
       String ButtonCode = buttonfromrfcode(rfcommand);
