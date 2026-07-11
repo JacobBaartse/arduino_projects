@@ -1,66 +1,17 @@
-
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
+#ifndef STASSID
+#define STASSID "T24_optout"
+#define STAPSK "T24T24T24"
+#endif
+
+const char* ssid = STASSID;
+const char* password = STAPSK;
 const int led = LED_BUILTIN;
-const int buttonPin = D3; 
-
-// uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
-uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
-uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
-// uint8_t BC1_Address[] = { 0x6A, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
-
-/*
-board GW1:
-Station MAC: 48:3F:DA:69:CB:61
-SoftAP MAC: 4A:3F:DA:69:CB:61
-
-board BC1:
-Station MAC: 68:C6:3A:FC:23:76
-SoftAP MAC: 6A:C6:3A:FC:23:76
-
-*/
-
-IPAddress local_ip(192,168,4,1);
-IPAddress gateway(192,168,4,1);
-IPAddress subnet(255,255,255,0);
-
-const char* ssidname = "ESP_NOW_CH_4";
-const char* ssidpassword = "ch4ch4ch4";
 
 ESP8266WebServer server(80);
-
-// --------------------
-// ESP-NOW Receive Callback
-// --------------------
-void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
-  static unsigned long rcount = 0;
-  rcount += 1;
-  Serial.print("ESP-NOW Received ");
-  Serial.print(rcount);
-  Serial.print(" from ");
-  char macStr[18];
-  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
-           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-  Serial.print(macStr);
-  Serial.print(" | Data: ");
-  Serial.write(data, len - 1);
-  Serial.print(" at: ");
-  Serial.println(millis());
-}
-
-// Callback when data is sent
-void onDataSent(uint8_t *mac_addr, uint8_t status) {
-  static unsigned long scount = 0;
-  scount += 1;
-  Serial.print("ESP-NOW Send Status ");
-  Serial.print(scount);
-  Serial.print(": ");
-  Serial.print(status == 0 ? "Success" : "Fail");
-  Serial.print(" at: ");
-  Serial.println(millis());
-}
 
 const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controller and webpage</title> \
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
@@ -130,8 +81,6 @@ const char webmsg[] = "webcontrol message";
 void handleBC() {
   Serial.println(F("handleBC"));
 
-  esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
-
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
   Serial.println(F(" "));
@@ -155,18 +104,10 @@ void handleNotFound() {
   server.send(404, "text/plain", message);
 }
 
-bool timepassing(unsigned long curtime, unsigned long duration){
-  static unsigned long rtime = 0;
-  if(rtime + duration > curtime) return false;
-  rtime = millis();
-  return true;
-}
-
 // --------------------
 // Setup
 // --------------------
 void setup() {
-  pinMode(buttonPin, INPUT_PULLUP);
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
@@ -181,27 +122,18 @@ void setup() {
   Serial.println(__TIMESTAMP__);
   Serial.flush(); 
 
-  WiFi.mode(WIFI_AP);
-  WiFi.softAPConfig(local_ip, gateway, subnet);
-  // WiFi.softAP(ssidname, ssidpassword, 4); // Start the local access point
-  WiFi.softAP(ssidname, "", 4); // Start the local access point
+  WiFi.begin(ssid, password);
 
-  Serial.print(F("AP: "));
-  Serial.println(WiFi.softAPIP());
-  Serial.println("");  
-
-  // ESP-NOW init
-  if (esp_now_init() != 0) {
-    Serial.println("ESP-NOW init failed");
-    return;
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
   }
-
-  esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
-  esp_now_register_recv_cb(onDataRecv);
-  esp_now_register_send_cb(onDataSent);
-
-  // Add broadcast peer (improves reliability)
-  esp_now_add_peer(BC1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
+  Serial.println("");
+  Serial.print("Connected to: ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
 
   server.on("/", handleRoot);
   server.on("/BC", handleBC);
@@ -211,11 +143,6 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
 
-  Serial.print(F("ESP-NOW channel 4, "));
-  Serial.println(F("ESP-NOW Gateway Ready"));
-
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
-
   digitalWrite(led, 1); // turn onboard LED off
 }
 
@@ -223,36 +150,6 @@ const char msg[] = "Hello from Gateway !";
 const char buttonmsg[] = "Button pressed (GW1).";
 unsigned long runningtime = 0;
 bool action = false;
-bool buttonpressed = false;
-
-void handle_button(bool pressed, unsigned long timing) {
-  static unsigned long btime = 0;
-  static bool buttonstate = false;
-
-  if(buttonstate){
-    int butstate = digitalRead(buttonPin); // check current status of the button
-    if (butstate == LOW) {  // button still pressed within the time period
-      btime = timing;
-      // Serial.println(F("Button press extension"));
-      return;
-    }
-    if (btime + 2000 < timing){
-      buttonpressed = false;
-      buttonstate = false;
-      Serial.print(F("Button can be pressed again "));
-      Serial.println(millis());
-    }
-  }
-  if (pressed) {
-    btime = timing;
-    buttonstate = true;
-    buttonpressed = true;
-    Serial.print(F("Button press: "));
-    Serial.println(millis());
-    esp_now_send(BC1_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
-    return;
-  }
-}
 
 // --------------------
 // Main Loop
@@ -263,17 +160,9 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action){
-    esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
+      // something on the serial port to the GatewayLocal
   }
 
   server.handleClient();
 
-  handle_button(false, runningtime);
-
-}
-
-ICACHE_RAM_ATTR void buttonPress(){
-  // Serial.print(F("Button press: "));
-  // Serial.println(millis());
-  handle_button(true, millis());
 }

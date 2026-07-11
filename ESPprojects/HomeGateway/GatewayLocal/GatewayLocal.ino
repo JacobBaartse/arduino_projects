@@ -6,7 +6,7 @@ extern "C" {
 #include <ESP8266WebServer.h>
 
 const int led = LED_BUILTIN;
-const int buttonPin = D3; 
+//const int buttonPin = D3; 
 
 // uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
 uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
@@ -157,18 +157,11 @@ void handleNotFound() {
   server.send(404, "text/plain", message);
 }
 
-bool timepassing(unsigned long curtime, unsigned long duration){
-  static unsigned long rtime = 0;
-  if(rtime + duration > curtime) return false;
-  rtime = millis();
-  return true;
-}
-
 // --------------------
 // Setup
 // --------------------
 void setup() {
-  pinMode(buttonPin, INPUT_PULLUP);
+  //pinMode(buttonPin, INPUT_PULLUP);
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
@@ -216,7 +209,7 @@ void setup() {
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Gateway Ready"));
 
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
+  //attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
   digitalWrite(led, 1); // turn onboard LED off
 }
@@ -225,36 +218,36 @@ const char msg[] = "Hello from Gateway !";
 const char buttonmsg[] = "Button pressed (GW1).";
 unsigned long runningtime = 0;
 bool action = false;
-bool buttonpressed = false;
+// bool buttonpressed = false;
 
-void handle_button(bool pressed, unsigned long timing) {
-  static unsigned long btime = 0;
-  static bool buttonstate = false;
+// void handle_button(bool pressed, unsigned long timing) {
+//   static unsigned long btime = 0;
+//   static bool buttonstate = false;
 
-  if(buttonstate){
-    int butstate = digitalRead(buttonPin); // check current status of the button
-    if (butstate == LOW) {  // button still pressed within the time period
-      btime = timing;
-      // Serial.println(F("Button press extension"));
-      return;
-    }
-    if (btime + 2000 < timing){
-      buttonpressed = false;
-      buttonstate = false;
-      Serial.print(F("Button can be pressed again "));
-      Serial.println(millis());
-    }
-  }
-  if (pressed) {
-    btime = timing;
-    buttonstate = true;
-    buttonpressed = true;
-    Serial.print(F("Button press: "));
-    Serial.println(millis());
-    esp_now_send(BC1_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
-    return;
-  }
-}
+//   if(buttonstate){
+//     int butstate = digitalRead(buttonPin); // check current status of the button
+//     if (butstate == LOW) {  // button still pressed within the time period
+//       btime = timing;
+//       // Serial.println(F("Button press extension"));
+//       return;
+//     }
+//     if (btime + 2000 < timing){
+//       buttonpressed = false;
+//       buttonstate = false;
+//       Serial.print(F("Button can be pressed again "));
+//       Serial.println(millis());
+//     }
+//   }
+//   if (pressed) {
+//     btime = timing;
+//     buttonstate = true;
+//     buttonpressed = true;
+//     Serial.print(F("Button press: "));
+//     Serial.println(millis());
+//     esp_now_send(BC1_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
+//     return;
+//   }
+// }
 
 // --------------------
 // Main Loop
@@ -266,16 +259,18 @@ void loop() {
   action = timepassing(runningtime, 30000);
   if (action){
     esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
+
+    // and something on the serial port to the GatewayInternet
   }
 
   server.handleClient();
 
-  handle_button(false, runningtime);
+  //handle_button(false, runningtime);
 
 }
 
-ICACHE_RAM_ATTR void buttonPress(){
-  // Serial.print(F("Button press: "));
-  // Serial.println(millis());
-  handle_button(true, millis());
-}
+// ICACHE_RAM_ATTR void buttonPress(){
+//   // Serial.print(F("Button press: "));
+//   // Serial.println(millis());
+//   handle_button(true, millis());
+// }
