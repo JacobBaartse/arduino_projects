@@ -503,7 +503,7 @@ void DisplayProgress(const char* ptext){
       generateQRCode(ptext);
     }
     else {
-      generateQRCode("Other text that can be reasonable long (enough) for QR code scanning.");
+      generateQRCode("Other text that can be reasonable long (enough) QR");
     }
     toggle2 = !toggle2;
   }

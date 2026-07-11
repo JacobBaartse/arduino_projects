@@ -329,7 +329,7 @@ bool transmitRFnetwork(bool fresh, uint16_t node_id, unsigned long currentRFmill
     Txdata.keyword = keywordvalD;
     Txdata.timing = currentRFmilli;
     Txdata.count = counter++;
-    Txdata.dvalue = 300; // 300 cm detection threshold
+    Txdata.dvalue = 30; // 300 cm detection threshold
     Txdata.p1value = p1Value;
     Txdata.p2value = p2Value;
     Txdata.sw1value = sw1Value;
