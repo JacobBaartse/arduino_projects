@@ -262,8 +262,8 @@ uint16_t trackdetectornodes(uint16_t nodeid, bool receivedmsg=false){
 
 //===== Receiving =====//
 uint16_t receiveRFnetwork(unsigned long currentRFmilli){
-  static unsigned long receivingTime = 0;
-  unsigned long diffTime = 0;
+  //static unsigned long receivingTime = 0;
+  //unsigned long diffTime = 0;
   uint16_t nodereceived = 00;
 
   while (network.available()){ // Is there any incoming data?
@@ -282,11 +282,12 @@ uint16_t receiveRFnetwork(unsigned long currentRFmilli){
     }
     nodereceived = header.from_node;
     if (Rxdata.keyword == keywordvalD){
-      diffTime = (unsigned long)((currentRFmilli - receivingTime));
-      receivingTime = currentRFmilli;
+      //diffTime = (unsigned long)((currentRFmilli - receivingTime));
+      //receivingTime = currentRFmilli;
       reportingTime = currentRFmilli;
-      Serial.print(F("new data received, time diff: "));
-      Serial.print(diffTime);
+      Serial.print(F("new data received, from node: "));
+      //Serial.print(diffTime);
+      Serial.print(nodereceived);
       Serial.print(F(", dvalue: "));
       Serial.print(Rxdata.dvalue);
       Serial.print(F(", p1: "));
