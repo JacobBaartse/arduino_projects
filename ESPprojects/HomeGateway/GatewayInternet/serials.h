@@ -90,9 +90,9 @@ bool readserialdata(){
   if (mySerial.available()) {
     memset(cpm_array, 0, 101);
     bytesread = mySerial.readBytesUntil('\n', cpm_array, 101);
-    char mtype = cpm_array[0]; // first char is the message type
-    if (bytesread > 2){
-      datafound = true;
+    datafound = bytesread > 2;
+    if (datafound){
+      char mtype = cpm_array[0]; // first char is the message type
       Serial.print("mtype: ");
       Serial.print(mtype); 
       // Serial.print("Data length: ");

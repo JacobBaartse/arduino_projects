@@ -173,7 +173,7 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action){
-      // something on the serial port to the GatewayLocal
+    // something on the serial port to the GatewayLocal
   }
 
   server.handleClient();

@@ -120,28 +120,52 @@ void handleRoot() {
 
 const char webmsg[] = "webcontrol message";
 
-void handleLink1() {
-  if (storeData[0] & 1 > 0){
-    Serial.println(F("handle link 1"));
+void handleLink1(bool local=false) {
+  bool remote = (storeData[0] & 1) > 0;
+  // Serial.print(F("1 "));
+  // Serial.println(storeData[0], HEX);
+  if (remote){
+    Serial.println(F("remote 1 "));
+  }
+  if (local){
+    Serial.println(F("local 1 "));
+  }
+  if (local || remote){
+    //Serial.println(F("handle link 1"));
 
     storeData[0] = storeData[0] & 0xfffffffe;
+    // Serial.print(F("L1 "));
+    // Serial.println(storeData[0], HEX);
   }
 }
 
-void handleLink2() {
-  if (storeData[0] & 2 > 0){
-    Serial.println(F("handle link 2"));
+void handleLink2(bool local=false) {
+  bool remote = (storeData[0] & 2) > 0;
+  // Serial.print(F("2 "));
+  // Serial.println(storeData[0], HEX);
+  if (remote){
+    Serial.println(F("remote 2 "));
+  }
+  if (local){
+    Serial.println(F("local 2 "));
+  }
+  if (local || remote){
+    //Serial.println(F("handle link 2"));
+
     // this should not be a roadcast address, also the device should be checked for connectivity first
     //esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
+
     storeData[0] = storeData[0] & 0xfffffffd;
+    // Serial.print(F("L2 "));
+    // Serial.println(storeData[0], HEX);
   }
 }
 
 void handleGW() {
-  Serial.println(F("link 1"));
+  Serial.println(F("local link 1"));
 
   // toggle LED or so
-  handleLink1();
+  handleLink1(true);
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
@@ -149,9 +173,9 @@ void handleGW() {
 }
 
 void handleBC() {
-  Serial.println(F("link 2"));
+  Serial.println(F("local link 2"));
 
-  handleLink2();
+  handleLink2(true);
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
@@ -319,8 +343,13 @@ void loop() {
         Serial.println(storeData[0], HEX);
         remStoredData = storeData[0]; 
 
+        Serial.println(F("check handlers"));
+
         handleLink1();
         handleLink2();
+
+        Serial.println(storeData[0], HEX);
+        remStoredData = storeData[0]; 
       }
     }
     newdata = false;
