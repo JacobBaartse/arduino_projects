@@ -67,14 +67,14 @@ void onDataSent(uint8_t *mac_addr, uint8_t status) {
 
 const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controller and webpage</title> \
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
-      </head><h1>Local esp-now network with AP</h1><br><br>";
+      </head><h1>Local AP with esp-now network</h1><br><br>";
 const String endsection = "</body></html>";
-const String GWhtml = "<a href=\"/GW\">GateWay</a>";
-const String BChtml = "<a href=\"/BC\">Remote Node</a>";
+const String GWhtml = "<a href=\"/GW\">L1</a>";
+const String BChtml = "<a href=\"/BC\">L2</a>";
 
 String makewebpagehtml(){ // to be enhanced, array processing
   String htmlpage = startsection;
-  htmlpage += F("Demo/trial/PoC<BR><BR>");
+  htmlpage += F("Local AP trial<BR><BR>");
   htmlpage += F("For now 2 links which can be clicked");
   htmlpage += F("<BR><BR>");
   htmlpage += GWhtml;
@@ -118,22 +118,33 @@ void handleRoot() {
   Serial.println(F(" "));
 }
 
+const char webmsg[] = "webcontrol message";
+
+void handleLink1() {
+  Serial.println(F("handle link 1"));
+}
+
+void handleLink2() {
+  Serial.println(F("handle link 2"));
+  
+  esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
+}
+
 void handleGW() {
   Serial.println(F("handleGW"));
 
   // toggle LED or so
+  handleLink1();
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
   Serial.println(F(" "));
 }
 
-const char webmsg[] = "webcontrol message";
-
 void handleBC() {
   Serial.println(F("handleBC"));
 
-  esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
+  handleLink2();
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
@@ -166,7 +177,7 @@ void setup() {
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
-  serial_setup();
+  serial_setup(); // serial connection to the other board
 
   Serial.println(F(" "));
   Serial.println(F(" "));
@@ -269,7 +280,7 @@ void loop() {
   server.handleClient();
 
   //handle_button(false, runningtime);
-  
+
   newdata = readserialdata();
   if (newdata){
     if (resetclear){ // other board is restarted
@@ -286,7 +297,17 @@ void loop() {
       resetclear = false;
     }
     else {
-
+      if (storeData[1] > 0){
+        storeData[1] = 0;
+        storeData[0] = storeData[0] | 1;
+        handleLink1();
+      }
+      if (storeData[2] > 0){
+        storeData[2] = 0;
+        storeData[0] = storeData[0] | 2;
+        handleLink2();
+      }
+      Serial.println(storeData[0], HEX);
     }
     newdata = false;
   }

@@ -12,19 +12,17 @@ const char* ssid = STASSID;
 const char* password = STAPSK;
 const int led = LED_BUILTIN;
 
-ESP8266WebServer server(80);
-
-const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controller and webpage</title> \
+const String startsection = "<!DOCTYPE HTML><html><head><title>Controller internet gateway</title> \
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
-      </head><h1>Local esp-now network with AP</h1><br><br>";
+      </head><h1>Running and can connect to internet</h1><br><br>";
 const String endsection = "</body></html>";
-const String GWhtml = "<a href=\"/GW\">GateWay</a>";
-const String BChtml = "<a href=\"/BC\">Remote Node</a>";
+const String GWhtml = "<a href=\"/GW\">Link item 1</a>";
+const String BChtml = "<a href=\"/BC\">Second 2 link</a>";
 
 String makewebpagehtml(){ // to be enhanced, array processing
   String htmlpage = startsection;
-  htmlpage += F("Demo/trial/PoC<BR><BR>");
-  htmlpage += F("For now 2 links which can be clicked");
+  htmlpage += F("internet gateway trial<BR><BR>");
+  htmlpage += F("For now 2 items/links which can be clicked");
   htmlpage += F("<BR><BR>");
   htmlpage += GWhtml;
   htmlpage += F("<BR><BR>");
@@ -34,6 +32,9 @@ String makewebpagehtml(){ // to be enhanced, array processing
   // Serial.print(htmlpage);
   return htmlpage;
 }
+
+ESP8266WebServer server(80);
+unsigned long runningtime = 0;
 
 // login credentials
 // const char* http_username = "so148";
@@ -68,9 +69,14 @@ void handleRoot() {
 }
 
 void handleGW() {
-  Serial.println(F("handleGW"));
+  Serial.println(F("handle link 1"));
 
   // toggle LED or so
+  sendserialtext("link 1");
+  sendserialtext("from internet connection");
+  sendserialhex(0xdeadbeef, 14);
+  sendserialhex(0xdeadbeef, 1);
+  sendserialhex(runningtime, 15);
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
@@ -80,7 +86,13 @@ void handleGW() {
 const char webmsg[] = "webcontrol message";
 
 void handleBC() {
-  Serial.println(F("handleBC"));
+  Serial.println(F("link 2"));
+
+  sendserialtext("link 2");
+  sendserialtext("from internet connection");
+  sendserialhex(0xdeadbeef, 2);
+  sendserialhex(0xdeadbeef, 13);
+  sendserialhex(runningtime, 15);
 
   String webpage = makewebpagehtml(); // include the current status information
   server.send(200, "text/html", webpage);
@@ -112,7 +124,7 @@ void setup() {
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
-  serial_setup();
+  serial_setup(); // serial connection to the other board
 
   Serial.println(F(" "));
   Serial.println(F(" "));
@@ -149,7 +161,6 @@ void setup() {
 
 const char msg[] = "Hello from Gateway !";
 const char buttonmsg[] = "Button pressed (GW1).";
-unsigned long runningtime = 0;
 bool action = false;
 bool newdata = false;
 
