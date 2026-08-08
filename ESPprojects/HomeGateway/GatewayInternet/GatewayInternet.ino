@@ -14,14 +14,14 @@ const int led = LED_BUILTIN;
 
 const String startsection = "<!DOCTYPE HTML><html><head><title>Controller internet gateway</title> \
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
-      </head><h1>Running and can connect to internet</h1><br><br>";
+      </head><h1>Browser and can connect to internet</h1><br><br>";
 const String endsection = "</body></html>";
 const String GWhtml = "<a href=\"/GW\">Link item 1</a>";
 const String BChtml = "<a href=\"/BC\">Second 2 link</a>";
 
 String makewebpagehtml(){ // to be enhanced, array processing
   String htmlpage = startsection;
-  htmlpage += F("internet gateway trial<BR><BR>");
+  htmlpage += F("Internet gateway trial<BR><BR>");
   htmlpage += F("For now 2 items/links which can be clicked");
   htmlpage += F("<BR><BR>");
   htmlpage += GWhtml;

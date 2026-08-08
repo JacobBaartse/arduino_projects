@@ -67,7 +67,7 @@ void onDataSent(uint8_t *mac_addr, uint8_t status) {
 
 const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controller and webpage</title> \
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \
-      </head><h1>Local AP with esp-now network</h1><br><br>";
+      </head><h1>Local AP browser with esp-now network</h1><br><br>";
 const String endsection = "</body></html>";
 const String GWhtml = "<a href=\"/GW\">L1</a>";
 const String BChtml = "<a href=\"/BC\">L2</a>";
@@ -121,17 +121,24 @@ void handleRoot() {
 const char webmsg[] = "webcontrol message";
 
 void handleLink1() {
-  Serial.println(F("handle link 1"));
+  if (storeData[0] & 1 > 0){
+    Serial.println(F("handle link 1"));
+
+    storeData[0] = storeData[0] & 0xfffffffe;
+  }
 }
 
 void handleLink2() {
-  Serial.println(F("handle link 2"));
-  
-  esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
+  if (storeData[0] & 2 > 0){
+    Serial.println(F("handle link 2"));
+    // this should not be a roadcast address, also the device should be checked for connectivity first
+    //esp_now_send(BC1_Address, (uint8_t *)webmsg, sizeof(webmsg));
+    storeData[0] = storeData[0] & 0xfffffffd;
+  }
 }
 
 void handleGW() {
-  Serial.println(F("handleGW"));
+  Serial.println(F("link 1"));
 
   // toggle LED or so
   handleLink1();
@@ -142,7 +149,7 @@ void handleGW() {
 }
 
 void handleBC() {
-  Serial.println(F("handleBC"));
+  Serial.println(F("link 2"));
 
   handleLink2();
 
@@ -231,6 +238,7 @@ const char buttonmsg[] = "Button pressed (GW1).";
 unsigned long runningtime = 0;
 bool action = false;
 bool newdata = false;
+uint32_t remStoredData = 0xffffffff;
 
 // bool buttonpressed = false;
 
@@ -298,16 +306,22 @@ void loop() {
     }
     else {
       if (storeData[1] > 0){
-        storeData[1] = 0;
         storeData[0] = storeData[0] | 1;
-        handleLink1();
+        storeData[1] = 0;
       }
       if (storeData[2] > 0){
-        storeData[2] = 0;
         storeData[0] = storeData[0] | 2;
+        storeData[2] = 0;
+      }
+
+      // only print in case the value is changed
+      if (storeData[0] != remStoredData){
+        Serial.println(storeData[0], HEX);
+        remStoredData = storeData[0]; 
+
+        handleLink1();
         handleLink2();
       }
-      Serial.println(storeData[0], HEX);
     }
     newdata = false;
   }
