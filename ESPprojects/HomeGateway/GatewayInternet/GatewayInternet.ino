@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+#include "serials.h"
 
 #ifndef STASSID
 #define STASSID "T24_optout"
@@ -150,6 +151,7 @@ const char msg[] = "Hello from Gateway !";
 const char buttonmsg[] = "Button pressed (GW1).";
 unsigned long runningtime = 0;
 bool action = false;
+bool newdata = false;
 
 // --------------------
 // Main Loop
@@ -164,5 +166,26 @@ void loop() {
   }
 
   server.handleClient();
+
+  newdata = readserialdata();
+  if (newdata){
+    if (resetclear){ // other board is restarted
+      Serial.println(F("reset detected other node"));
+      for (uint8_t ai=0;ai<16;ai++){
+        Serial.print("Stored at index: ");
+        Serial.print(ai);
+        Serial.print(", 0x");
+        Serial.println(storeData[ai], HEX);
+        storeData[ai] = 0;
+      }      
+      //ESP.restart(); // do not restart this board, endless loop will happen for serial1 and serial2
+
+      resetclear = false;
+    }
+    else {
+
+    }
+    newdata = false;
+  }
 
 }
