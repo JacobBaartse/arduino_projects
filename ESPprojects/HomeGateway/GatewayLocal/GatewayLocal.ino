@@ -5,14 +5,29 @@ extern "C" {
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include "serials.h"
+#include "esp_now.h"
+
+char reftext[11] = "client_SD";
 
 const int led = LED_BUILTIN;
 //const int buttonPin = D3; 
 
+char Lines[4][101] = {
+  "Welcome Leo",
+  "Demo {small disp.}", 
+  "Whats up?",
+  "Hello World"
+};  
+uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
+uint8_t upddisplay = 200;
+
 // uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
-uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
-uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
+// uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
+// uint8_t GW1_Address[] = { 0x4A, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
 // uint8_t BC1_Address[] = { 0x6A, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
+
+uint8_t GW1_Address[] = { 0x86, 0xcc, 0xa8, 0xa1, 0xe0, 0x00 }; // This local Gateway node
+uint8_t BC1_Address[] = { 0x84, 0xF3, 0xEB, 0x6C, 0xF1, 0xAB };  // Client, Small Display #1
 
 /*
 board GW1:
@@ -33,37 +48,6 @@ const char* ssidname = "ESP_NOW_CH_4";
 const char* ssidpassword = "ch4ch4ch4";
 
 ESP8266WebServer server(80);
-
-// --------------------
-// ESP-NOW Receive Callback
-// --------------------
-void onDataRecv(uint8_t *mac, uint8_t *data, uint8_t len) {
-  static unsigned long rcount = 0;
-  rcount += 1;
-  Serial.print("ESP-NOW Received ");
-  Serial.print(rcount);
-  Serial.print(" from ");
-  char macStr[18];
-  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
-           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-  Serial.print(macStr);
-  Serial.print(" | Data: ");
-  Serial.write(data, len - 1);
-  Serial.print(" at: ");
-  Serial.println(millis());
-}
-
-// Callback when data is sent
-void onDataSent(uint8_t *mac_addr, uint8_t status) {
-  static unsigned long scount = 0;
-  scount += 1;
-  Serial.print("ESP-NOW Send Status ");
-  Serial.print(scount);
-  Serial.print(": ");
-  Serial.print(status == 0 ? "Success" : "Fail");
-  Serial.print(" at: ");
-  Serial.println(millis());
-}
 
 const String startsection = "<!DOCTYPE HTML><html><head><title>ESP-NOW controller and webpage</title> \
       <style>body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }</style> \

@@ -110,6 +110,7 @@ typedef struct struct_string { // structure for text
 } struct_string;
 
 struct_string textingData;
+
 uint8_t textackcount = 0;
 char forminput[101] = {'\0'};
 uint8_t textfromform = 0;
