@@ -14,32 +14,32 @@ uint32_t storeData[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 uint32_t checkData[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 // function to indicate the passing of certain duration
-bool timepassing(unsigned long curtime, unsigned long duration){
+bool timepassing(unsigned long curtime, unsigned long duration) {
   static unsigned long rtime = 0;
-  if(rtime + duration > curtime) return false;
+  if (rtime + duration > curtime) return false;
   rtime = millis(); // get fresh time to base the new interval on
   return true;
 }
 
-void sendserialtext(const char *text){
+void sendserialtext(const char *text) {
   mySerial.print("t");
   mySerial.println(text);
 }
 
-void sendserialhex(uint32_t val, int8_t idx){
+void sendserialhex(uint32_t val, int8_t idx) {
   mySerial.print("x");
   mySerial.print(idx, HEX);
   mySerial.println(val, HEX);
 }
 
-uint32_t converttoval(char *bdata, uint8_t start, uint8_t end){
+uint32_t converttoval(char *bdata, uint8_t start, uint8_t end ){
   uint32_t serialval = 0;
   uint8_t nibbleval = 0;
   char nibblechar;
 
-  for (int i=start; i<end; i++){
+  for (int i=start; i<end; i++) {
     nibblechar = bdata[i];
-    switch(nibblechar){
+    switch(nibblechar) {
       case 'a':
       case 'A': 
         nibbleval = 10;
@@ -84,14 +84,14 @@ uint32_t converttoval(char *bdata, uint8_t start, uint8_t end){
 //   return serialval;
 // }
 
-bool readserialdata(){
+bool readserialdata() {
   bool datafound = false;
 
   if (mySerial.available()) {
     memset(cpm_array, 0, 101);
     bytesread = mySerial.readBytesUntil('\n', cpm_array, 101);
     datafound = bytesread > 2;
-    if (datafound){
+    if (datafound) {
       char mtype = cpm_array[0]; // first char is the message type
       Serial.print("mtype: ");
       Serial.print(mtype); 
@@ -111,7 +111,7 @@ bool readserialdata(){
         Serial.print(", HEX: 0x");
         Serial.println(answer, HEX);
 
-        if (answerindex == 15){ // check if other board is restarted
+        if (answerindex == 15) { // check if other board is restarted
           resetclear = answer == 0xffffffff;
         }
         storeData[answerindex] = answer;

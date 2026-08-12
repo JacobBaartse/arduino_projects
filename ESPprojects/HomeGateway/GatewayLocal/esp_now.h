@@ -1,13 +1,10 @@
 
-
-bool devicepaired = false;
-
-
+//bool devicepaired = false;
 
 enum MessageType { PAIRING, DATA, ACK, TEXT };
 MessageType messageType;
 
-uint8_t connectedclients[20][6] = {
+uint8_t connectedclients[20][6] = { // 20 clients can be connected using ESP-NOW
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
   {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 
@@ -57,8 +54,7 @@ char referencestring[21][11] = { // 10 charactors + terminator, for 20 clients a
 uint8_t connectedclientcount = 0;
 
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
-uint8_t Broadcast_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-// uint8_t Client_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
+uint8_t Broadcast_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // used to find free space in the connected clients array
 bool serverknown = false;
 
 // Structure example to receive data
@@ -121,21 +117,20 @@ int indexMAC(const uint8_t * mac_addr){
     }
     if (foundcount == 6){
       index = row;
-      //referencestring[index] = refstring; 
-      break; // return index;
+      break; // found the index
     }
   }
   Serial.print(F("indexMAC "));
   printMAC(mac_addr);
   Serial.print(F(": "));
-  Serial.println(index);
+  Serial.println(index); // index 99 means not found
   return index;
 }
 
 int getindexMAC(const uint8_t * mac_addr){
   int macindex = indexMAC(mac_addr);
-  if (macindex > 20){
-    macindex = indexMAC(Broadcast_Address); // this should be 0..19
+  if (macindex > 20){ // 99 means MAC not found
+    macindex = indexMAC(Broadcast_Address); // this should be 0..19, all 0xFF
     for ( int id = 0; id < 6; id++ ){
       connectedclients[macindex][id] = mac_addr[id];
     }
@@ -145,10 +140,10 @@ int getindexMAC(const uint8_t * mac_addr){
 }
 
 void addPeer(uint8_t *peer_addr){ // add pairing
-  esp_now_del_peer(peer_addr);
+  esp_now_del_peer(peer_addr); // making sure no duplicates will be introduced
   int res = esp_now_add_peer(peer_addr, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
   if (res == 0){
-    Serial.println("PEER added ");
+    Serial.println("ESP-NOW PEER added");
   }
 }
 
@@ -172,20 +167,20 @@ void sendonesp(u8 *da, u8 *data, int len){
   esp_now_send(da, data, len);
 }
 
-// function to check the heartbeat of the server
-void heartbeat(unsigned long curtime, bool message){
-  static unsigned long htime = 0;
-  if (message){
-    htime = curtime;
-  }
-  else {
-    if (devicepaired){
-      if (htime + 60000 < curtime){ // if not received a message for over 60 seconds, consider pairing dropped
-        devicepaired = false;
-      }
-    }
-  }
-}
+// // function to check the heartbeat of the server
+// void heartbeat(unsigned long curtime, bool message){
+//   static unsigned long htime = 0;
+//   if (message){
+//     htime = curtime;
+//   }
+//   else {
+//     if (devicepaired){
+//       if (htime + 60000 < curtime){ // if not received a message for over 60 seconds, consider pairing dropped
+//         devicepaired = false;
+//       }
+//     }
+//   }
+// }
 
 // next function only for clients I guess 
 // void sendpairingsequence(uint8_t pstat){
@@ -418,18 +413,18 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     switch(pairingData.id){
       case 0: // first message on pairing, reply with the Client Mac
         pairingData.id = 1;
-        for ( int id = 0; id < 6; id++ ){
+        for ( int id = 0; id < 6; id++ ) {
           pairingData.ClientmacAddr[id] = mac[id];
         }
         addPeer(mac);
-        if (serverknown){
-          for ( int id = 0; id < 6; id++ ){
+        if (serverknown) {
+          for ( int id = 0; id < 6; id++ ) {
             pairingData.ServermacAddr[id] = Server_Address[id];
           }
         }
         deviceidx = getindexMAC(mac); // add to connected clients list
 
-        for ( int id = 0; id < 11; id++ ){
+        for ( int id = 0; id < 11; id++ ) {
           referencestring[deviceidx][id] = pairingData.textref[id];
         }        
         Serial.print(F("Device pairing reference: "));
@@ -437,8 +432,8 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
       break;
       case 2: // second message on pairing, capture server MAC (if not already known)
         pairingData.id = 3;
-        if (!serverknown){
-          for ( int id = 0; id < 6; id++ ){
+        if (!serverknown) {
+          for ( int id = 0; id < 6; id++ ) {
             Server_Address[id] = pairingData.ServermacAddr[id];
           }
           serverknown = true;
@@ -448,7 +443,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
       default:
         resppairing = false;
     }
-    if (resppairing){
+    if (resppairing) {
       sendonesp(mac, (uint8_t *)&pairingData, sizeof(pairingData));
     }
 
@@ -465,6 +460,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     //     addPeer(clientMacAddress);
     //   }  
     // }  
+
     break; 
   case ACK:                            // the message is an acknowledge message 
     Serial.println("ACK");
@@ -495,12 +491,12 @@ void onDataSent(uint8_t *mac_addr, uint8_t status) {
 }
 
 char rmsg[101];
-void randomstringvalue(int numBytes){
+void randomstringvalue(int numBytes) {
   memset(rmsg, 0, sizeof(rmsg));
-  for(int i = 0; i < numBytes; i++) {
+  for (int i = 0; i < numBytes; i++) {
     int randomValue = random(0, 36);
     rmsg[i] = randomValue + 'a';
-    if(randomValue > 25) {
+    if (randomValue > 25) {
       rmsg[i] = (randomValue - 26) + '0';
     }
     else { // some change on a capital letter
@@ -510,5 +506,5 @@ void randomstringvalue(int numBytes){
       }
     }
   }
-  //rmsg[numBytes] = '\0';
+  //rmsg[numBytes] = '\0'; // bytes are cleared at the start
 }

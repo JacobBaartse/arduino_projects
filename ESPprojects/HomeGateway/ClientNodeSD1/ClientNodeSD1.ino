@@ -8,342 +8,73 @@ extern "C" {
 #include "font_16pix_high.h"
 #include <Adafruit_SSD1306.h> // Adafruit SSD 1306 by Adafruit
 #include <qrcode.h>
+#include "display_sd.h"
+#include "esp_now.h"
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
-//#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
-#define OLED_RESET -1
+// #define SCREEN_WIDTH 128 // OLED display width, in pixels
+// #define SCREEN_HEIGHT 64 // OLED display height, in pixels
+// #define i2c_Address 0x3C //initialize with the I2C addr 0x3C Typically eBay OLED's
+// //#define i2c_Address 0x3D //initialize with the I2C addr 0x3D Typically Adafruit OLED's
+// #define OLED_RESET -1
 
-Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+// Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-enum DisplayState { Off, Dim, On };
+// enum DisplayState { Off, Dim, On };
 
-uint8_t displaystatus = DisplayState::Off;
-// void display_oled(bool clear, int x, int y, const char* text) {
-//   if (displaystatus == DisplayState::Off) return;
-//   // if (clear) display.clearDisplay();
-//   display.setCursor(x, y);
-//   display.print(text);
-//   // display.display();
+// uint8_t displaystatus = DisplayState::Off;
+// // void display_oled(bool clear, int x, int y, const char* text) {
+// //   if (displaystatus == DisplayState::Off) return;
+// //   // if (clear) display.clearDisplay();
+// //   display.setCursor(x, y);
+// //   display.print(text);
+// //   // display.display();
+// // }
+
+// DisplayState setDisplay(DisplayState statustoset) {
+//   static DisplayState displaystatus = DisplayState::Dim;
+//   switch(statustoset){
+//     case DisplayState::Dim:
+//       display.ssd1306_command(SSD1306_DISPLAYON);
+//       //display.dim(true); // dim display
+//       //displaystatus = DisplayState::Dim; // this display does not support dim
+//       //displaystatus = DisplayState::On;
+//       display.ssd1306_command(SSD1306_SETCONTRAST);
+//       display.ssd1306_command(1);
+//       displaystatus = DisplayState::Dim; // this display does not support dim ??
+//       break;
+//     case DisplayState::On:
+//       display.ssd1306_command(SSD1306_DISPLAYON);
+//       display.dim(false);
+//       displaystatus = DisplayState::On;
+//       break;
+//     //case DisplayState::Off:
+//     default:
+//       display.ssd1306_command(SSD1306_DISPLAYOFF);
+//       displaystatus = DisplayState::Off;
+//   }
+//   return displaystatus;
 // }
 
-DisplayState setDisplay(DisplayState statustoset){
-  static DisplayState displaystatus = DisplayState::Dim;
-  switch(statustoset){
-    case DisplayState::Dim:
-      display.ssd1306_command(SSD1306_DISPLAYON);
-      //display.dim(true); // dim display
-      //displaystatus = DisplayState::Dim; // this display does not support dim
-      //displaystatus = DisplayState::On;
-      display.ssd1306_command(SSD1306_SETCONTRAST);
-      display.ssd1306_command(1);
-      displaystatus = DisplayState::Dim; // this display does not support dim ??
-      break;
-    case DisplayState::On:
-      display.ssd1306_command(SSD1306_DISPLAYON);
-      display.dim(false);
-      displaystatus = DisplayState::On;
-      break;
-    //case DisplayState::Off:
-    default:
-      display.ssd1306_command(SSD1306_DISPLAYOFF);
-      displaystatus = DisplayState::Off;
-  }
-  return displaystatus;
-}
+// // void clear_display(){
+// //   display.clearDisplay();
+// //   display.display();
+// // }
 
-// void clear_display(){
-//   display.clearDisplay();
-//   display.display();
-// }
-
-char Lines[4][101] = {
-  "Welcome Leo",
-  "Demo {small disp.}", 
-  "Whats up?",
-  "Hello World"
-};  
-uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
-uint8_t upddisplay = 200;
+// char Lines[4][101] = {
+//   "Welcome Leo",
+//   "Demo {small disp.}", 
+//   "Whats up?",
+//   "Hello World"
+// };  
+// uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
+// uint8_t upddisplay = 200;
 
 const int led = LED_BUILTIN;
 const int buttonPin = D3; 
-bool devicepaired = false;
-char reftext[11] = "client_SD1";
 
-enum MessageType { PAIRING, DATA, ACK, TEXT };
-MessageType messageType;
-
-uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
-uint8_t Client_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
-
-// Structure example to receive data
-// Must match the sender structure
-typedef struct struct_message {
-  uint8_t msgType;
-  uint8_t id;
-  float temp;
-  float hum;
-  unsigned int readingId;
-} struct_message;
-
-typedef struct struct_pairing { // structure for pairing
-  uint8_t msgType;
-  uint8_t id;
-  uint8_t ServermacAddr[6];
-  uint8_t ClientmacAddr[6];
-  uint8_t channel;
-  char textref[11];
-} struct_pairing;
-
-typedef struct struct_ack { // structure for acknowledge
-  uint8_t msgType;
-  uint8_t id;
-} struct_ack;
-
-struct_pairing pairingData;
-
-typedef struct struct_string { // structure for text
-  uint8_t msgType;
-  uint8_t id;
-  uint8_t line;
-  char texting[101]; // 100 characters + terminator char
-} struct_string;
-
-struct_string textingData;
-
-void printMAC(const uint8_t * mac_addr){
-  char macStr[18];
-  snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
-           mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-  Serial.print(macStr);
-}
-
-bool addPeer(){ // add pairing
-  esp_now_del_peer(Server_Address);
-  int res = esp_now_add_peer(Server_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
-  devicepaired = res == 0;
-  Serial.println("PEER added ");
-  return devicepaired;
-}
-
-// //void updateDisplay(uint8_t line, char lineoftext[]){
-// void updateDisplay(uint8_t line){
-//   // if (line < 4){
-//   //   Lines[line][0] = '\0';
-//   //   //strcat(Lines[line], lineoftext);
-//   //   // for(int xj;xj<20;xj++){
-//   //   //   Lines[line][xj] = lineoftext[xj];      
-//   //   // }
-//   // }
-//   display_oled(true, 0, 16, Lines[0]); 
-//   display_oled(false, 0, 32, Lines[1]); 
-//   display_oled(false, 0, 48, Lines[2]);  
-//   display_oled(false, 0, 64, Lines[3]); 
-// }
-
-void updateDisplay(){
-  //bool fresh = true;
-  //Serial.println("updateDisplay 1 ");
-  //delay(1000);
-  display.clearDisplay();
-  for(int lin=0; lin < 4 ; lin++){
-    Serial.println(Lines[lin]);
-  }
-  //Serial.println("updateDisplay 2 ");
-  //delay(5000);
-  for(int lin=0; lin < 4 ; lin++){
-    display.setCursor(0, LinesYPos[lin]);
-    display.print(Lines[lin]);
-  }
-  display.display();
-  //Serial.println("updateDisplay 3 ");
-  upddisplay = 0;
-  // display_oled(false, 0, 32, Lines[1]); 
-  // display_oled(false, 0, 48, Lines[2]);  
-  // display_oled(false, 0, 64, Lines[3]); 
-}
-
-// function to send 1 single ESP-NOW message
-void sendonesp(u8 *data, int len){
-  // char macStr[18];
-  // snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
-  //          Server_Address[0], Server_Address[1], Server_Address[2], Server_Address[3], Server_Address[4], Server_Address[5]);
-  // Serial.print(macStr);
-  printMAC(Server_Address);
-  esp_now_send(Server_Address, data, len);
-}
-
-// function to check the heartbeat of the server
-void heartbeat(unsigned long curtime, bool message){
-  static unsigned long htime = 0;
-  if (message){
-    htime = curtime;
-  }
-  else {
-    if (devicepaired){
-      if (htime + 60000 < curtime){ // if not received a message for over 60 seconds, consider pairing dropped
-        devicepaired = false;
-      }
-    }
-  }
-}
-
-// Callback when data is received
-void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len){
-  static unsigned long rcount = 0;
-  static uint8_t runningline = 0;
-  bool resppairing = true;
-
-  rcount += 1;  
-  Serial.print("ESP-NOW Received ");
-  Serial.print(rcount);
-  Serial.print(" from ");
-  // char macStr[18];
-  // snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
-  //          mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-  // Serial.print(macStr);
-  printMAC(mac);
-  // Serial.print(" | Data: ");
-  // Serial.write(incomingData, len - 1);
-  Serial.print(" at: ");
-  unsigned long messagetime = millis();
-  Serial.println(messagetime);
-  heartbeat(messagetime, true);
-  // String datahere(data);
-  // Serial.println(datahere);
-
-  uint8_t type = incomingData[0];       // first message byte is the type of message 
-  switch (type) {
-  case DATA:                           // the message is data type
-    Serial.println("DATA");
-
-    break;
-  case PAIRING:                         // the message is a pairing request 
-    Serial.println("PAIRING");
-
-    memcpy(&pairingData, incomingData, sizeof(pairingData));
-    // Serial.println(pairingData.msgType);
-    Serial.print(pairingData.id);
-    Serial.print(" Pairing request from MAC Address: ");
-    printMAC(pairingData.ServermacAddr);
-    Serial.print(", ");
-    printMAC(pairingData.ClientmacAddr);
-    Serial.print(" on channel ");
-    Serial.println(pairingData.channel);
-
-    switch(pairingData.id){
-      case 1: // first reply message on pairing, reply with the Server Mac
-        pairingData.id = 2;
-        for ( int id = 0; id < 6; id++ ){
-          pairingData.ServermacAddr[id] = mac[id];
-          Server_Address[id] = mac[id];
-        }
-        addPeer();
-        memcpy(&pairingData.textref, reftext, 11);
-        // for ( int id = 0; id < 11; id++ ){
-        //   pairingData.textref[id] = reftext[id];
-        // }        
-      break;
-      // case 3: // second reply message on pairing, reply with ?
-      //   pairingData.id = 4;
-      
-      // break;
-      default:
-        resppairing = false;
-    }
-    if (resppairing){
-      sendonesp((uint8_t *)&pairingData, sizeof(pairingData));
-    }
-
-    break;
-  case ACK:                             // the message is an acknowledge message 
-    Serial.println("ACK");
-
-    break; 
-  case TEXT:                           // the message is text type
-    Serial.println("TEXT");
-
-    memcpy(&textingData, incomingData, sizeof(textingData));
-    Serial.print(textingData.line);
-    Serial.print(F(" "));
-    Serial.println(textingData.texting);
-
-    // updateDisplay();
-    if (textingData.line < 4){
-      memcpy(&Lines[textingData.line], textingData.texting, 101);
-      upddisplay = 90; // update display in the main loop
-      runningline = 0; // reset static running line (if received from webserver form input)
-    }
-    if (textingData.line == 99){
-      runningline = runningline % 4;
-      memcpy(&Lines[runningline++], textingData.texting, 101);
-      upddisplay = 90; // update display in the main loop
-    }
-    if (textingData.line == 95){
-      for(int lin=0; lin < 4 ; lin++){
-        Lines[lin][0] = '\0';
-        //memset(Lines[lin], 0, 101);
-      }
-      upddisplay = 90; // update display in the main loop
-      runningline = 0; // reset static running line (if received from webserver form input)
-    }
-    
-    // reply with 'ack'
-    textingData.texting[100] = '\0';
-    textingData.texting[0] = '\0';
-    sendonesp((uint8_t *)&textingData, sizeof(textingData));
-
-    break;
-  default:
-    Serial.print("Unknown message type: ");
-    Serial.println(type);
-  }
-
-  if (!devicepaired) {
-    for ( int id = 0; id < 6; id++ ){
-      Server_Address[id] = mac[id];
-    }
-    // Add broadcast peer (improves reliability)
-    addPeer();
-  }
-
-  // add check if mac is Server_Address
-  // send acknowledge message
-//  sendonesp((uint8_t *)ackmsg, sizeof(ackmsg));
-  //esp_now_send(mac, (uint8_t *)ackmsg, sizeof(ackmsg));
-}
-
-// Callback when data is sent
-void onDataSent(uint8_t *mac_addr, uint8_t status) {
-  static unsigned long scount = 0;
-  scount += 1;
-  Serial.print(", message: ");
-  Serial.print(scount);
-  Serial.print(", send status: ");
-  Serial.print(status == 0 ? "Success" : "Fail");
-  Serial.print(" at: ");
-  Serial.println(millis());
-}
-
-void sendpairingsequence(uint8_t pstat){
-  pairingData.msgType = PAIRING;
-  pairingData.id = pstat;
-  for ( int id = 0; id < 6; id++ ){
-    pairingData.ServermacAddr[id] = Server_Address[id];
-    pairingData.ClientmacAddr[id] = Client_Address[id];
-  }
-  pairingData.channel = 4;
-  memcpy(&pairingData.textref, reftext, 11);
-  // for ( int id = 0; id < 11; id++ ){
-  //   pairingData.textref[id] = reftext[id];
-  // }  
-  sendonesp((uint8_t *)&pairingData, sizeof(pairingData));
-}
 
 // function to indicate the passing of certain duration
-bool timepassing(unsigned long curtime, unsigned long duration){
+bool timepassing(unsigned long curtime, unsigned long duration) {
   static unsigned long rtime = 0;
   if(rtime + duration > curtime) return false;
   rtime = millis(); // get fresh time to base the new interval on
@@ -353,7 +84,7 @@ bool timepassing(unsigned long curtime, unsigned long duration){
 // --------------------
 // Setup
 // --------------------
-void setup(){
+void setup() {
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
@@ -457,17 +188,17 @@ char qstr[qrlen]; // maximum 50 characters
 // --------------------
 // Main Loop
 // --------------------
-void loop(){
+void loop() {
 
   runningtime = millis();
 
   action = timepassing(runningtime, 9000);
-  if (action){
+  if (action) {
 
     sprintf(qstr, "%s %05d", "George", runningtime);
     DisplayProgress(qstr);
 
-    if (devicepaired){
+    if (devicepaired) {
       //sendonesp((uint8_t *)msg, sizeof(msg));
       //esp_now_send(Server_Address, (uint8_t *)msg, sizeof(msg));
     }
@@ -478,7 +209,7 @@ void loop(){
 
   //handle_button(false, runningtime);
 
-  if (upddisplay > 0){
+  if (upddisplay > 0) {
     if (++upddisplay > 100){
       updateDisplay();
     }
@@ -494,78 +225,78 @@ void loop(){
 //   handle_button(true, millis());
 // }
 
-void DisplayProgress(const char* ptext){
-  static bool toggle = false;
-  static bool toggle2 = false;
-  static bool toggle3 = false;
-  if (toggle){
-    if (toggle2){
-      generateQRCode(ptext);
-    }
-    else {
-      generateQRCode("Other text that can be reasonable long (enough) QR");
-    }
-    toggle2 = !toggle2;
-  }
-  else{
-    if (toggle3){
-      textdisplay(ptext);
-    }
-    else {
-      textdisplay("Very long text that is readable but not very nice on the display to read");
-    }
-    toggle3 = !toggle3;
-  }
-  toggle = !toggle; // toggle
-}
+// void DisplayProgress(const char* ptext) {
+//   static bool toggle = false;
+//   static bool toggle2 = false;
+//   static bool toggle3 = false;
+//   if (toggle) {
+//     if (toggle2) {
+//       generateQRCode(ptext);
+//     }
+//     else {
+//       generateQRCode("Other text that can be reasonable long (enough) QR");
+//     }
+//     toggle2 = !toggle2;
+//   }
+//   else{
+//     if (toggle3) {
+//       textdisplay(ptext);
+//     }
+//     else {
+//       textdisplay("Very long text that is readable but not very nice on the display to read");
+//     }
+//     toggle3 = !toggle3;
+//   }
+//   toggle = !toggle; // toggle
+// }
 
-void generateQRCode(const char* text){
-  // Create a QR code object
-  QRCode qrcode;
+// void generateQRCode(const char* text) {
+//   // Create a QR code object
+//   QRCode qrcode;
   
-  // Define the size of the QR code (1-40, higher means bigger size), this value is the QR code version
-  uint8_t qrcodeData[qrcode_getBufferSize(3)];
-  qrcode_initText(&qrcode, qrcodeData, 3, 0, text);
+//   // Define the size of the QR code (1-40, higher means bigger size), this value is the QR code version
+//   uint8_t qrcodeData[qrcode_getBufferSize(3)];
+//   qrcode_initText(&qrcode, qrcodeData, 3, 0, text);
 
-  // Clear the display
-  display.clearDisplay();
+//   // Clear the display
+//   display.clearDisplay();
 
-  Serial.print(F("QR info: "));
-  Serial.println(text);
+//   Serial.print(F("QR info: "));
+//   Serial.println(text);
 
-  // Calculate the scale factor
-  int scale = min(SCREEN_WIDTH / qrcode.size, SCREEN_HEIGHT / qrcode.size);
+//   // Calculate the scale factor
+//   int scale = min(SCREEN_WIDTH / qrcode.size, SCREEN_HEIGHT / qrcode.size);
   
-  // Calculate horizontal shift
-  int shiftX = (SCREEN_WIDTH - qrcode.size*scale)/2;
+//   // Calculate horizontal shift
+//   int shiftX = (SCREEN_WIDTH - qrcode.size*scale)/2;
   
-  // Calculate vertical shift
-  int shiftY = (SCREEN_HEIGHT - qrcode.size*scale)/2;
+//   // Calculate vertical shift
+//   int shiftY = (SCREEN_HEIGHT - qrcode.size*scale)/2;
 
-  // Draw the QR code on the display
-  for (uint8_t y = 0; y < qrcode.size; y++) {
-    for (uint8_t x = 0; x < qrcode.size; x++) {
-      if (qrcode_getModule(&qrcode, x, y)) {
-        display.fillRect(shiftX + x*scale, shiftY + y*scale, scale, scale, WHITE);
-      }
-    }
-  }
+//   // Draw the QR code on the display
+//   for (uint8_t y = 0; y < qrcode.size; y++) {
+//     for (uint8_t x = 0; x < qrcode.size; x++) {
+//       if (qrcode_getModule(&qrcode, x, y)) {
+//         display.fillRect(shiftX + x*scale, shiftY + y*scale, scale, scale, WHITE);
+//       }
+//     }
+//   }
 
-  // Update the display
-  display.display();
-}
+//   // Update the display
+//   display.display();
+// }
 
-void textdisplay(const char* text){
-  // Clear the display
-  display.clearDisplay();
+// void textdisplay(const char* text) {
+//   // Clear the display
+//   display.clearDisplay();
 
-  Serial.print(F("textdisplay: "));
-  Serial.println(text);
+//   Serial.print(F("textdisplay: "));
+//   Serial.println(text);
 
-  //display.setCursor(0, LinesYPos[0]);
-  display.setCursor(0, 16);
-  display.print(text);
+//   //display.setCursor(0, LinesYPos[0]);
+//   display.setCursor(0, 16);
+//   display.print(text);
 
-  // Update the display
-  display.display();
-}
+//   // Update the display
+//   display.display();
+// }

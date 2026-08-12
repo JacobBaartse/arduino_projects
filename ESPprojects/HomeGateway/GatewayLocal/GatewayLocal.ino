@@ -56,7 +56,7 @@ const String endsection = "</body></html>";
 const String GWhtml = "<a href=\"/GW\">L1</a>";
 const String BChtml = "<a href=\"/BC\">L2</a>";
 
-String makewebpagehtml(){ // to be enhanced, array processing
+String makewebpagehtml() { // to be enhanced, array processing
   String htmlpage = startsection;
   htmlpage += F("Local AP trial<BR><BR>");
   htmlpage += F("For now 2 links which can be clicked");
@@ -108,13 +108,13 @@ void handleLink1(bool local=false) {
   bool remote = (storeData[0] & 1) > 0;
   // Serial.print(F("1 "));
   // Serial.println(storeData[0], HEX);
-  if (remote){
+  if (remote) {
     Serial.println(F("remote 1 "));
   }
-  if (local){
+  if (local) {
     Serial.println(F("local 1 "));
   }
-  if (local || remote){
+  if (local || remote) {
     //Serial.println(F("handle link 1"));
 
     storeData[0] = storeData[0] & 0xfffffffe;
@@ -127,13 +127,13 @@ void handleLink2(bool local=false) {
   bool remote = (storeData[0] & 2) > 0;
   // Serial.print(F("2 "));
   // Serial.println(storeData[0], HEX);
-  if (remote){
+  if (remote) {
     Serial.println(F("remote 2 "));
   }
-  if (local){
+  if (local) {
     Serial.println(F("local 2 "));
   }
-  if (local || remote){
+  if (local || remote) {
     //Serial.println(F("handle link 2"));
 
     // this should not be a roadcast address, also the device should be checked for connectivity first
@@ -287,7 +287,7 @@ void loop() {
   runningtime = millis();
 
   action = timepassing(runningtime, 30000);
-  if (action){
+  if (action) {
     esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
 
     // and something on the serial port to the GatewayInternet

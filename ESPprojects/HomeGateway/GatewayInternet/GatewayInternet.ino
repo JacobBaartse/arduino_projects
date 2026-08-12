@@ -19,7 +19,7 @@ const String endsection = "</body></html>";
 const String GWhtml = "<a href=\"/GW\">Link item 1</a>";
 const String BChtml = "<a href=\"/BC\">Second 2 link</a>";
 
-String makewebpagehtml(){ // to be enhanced, array processing
+String makewebpagehtml() { // to be enhanced, array processing
   String htmlpage = startsection;
   htmlpage += F("Internet gateway trial<BR><BR>");
   htmlpage += F("For now 2 items/links which can be clicked");
