@@ -2,7 +2,7 @@
 bool devicepaired = false;
 char reftext[11] = "client_SD1";
 
-enum MessageType { PAIRING, DATA, ACK, TEXT };
+enum MessageType { PAIRING, DATA, ACK, TEXT, HBEAT };
 MessageType messageType;
 
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
@@ -110,11 +110,11 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   uint8_t type = incomingData[0];       // first message byte is the type of message 
   switch (type) {
   case DATA:                           // the message is data type
-    Serial.println("DATA");
+    Serial.println(F("DATA"));
 
     break;
   case PAIRING:                         // the message is a pairing request 
-    Serial.println("PAIRING");
+    Serial.println(F("PAIRING"));
 
     memcpy(&pairingData, incomingData, sizeof(pairingData));
     // Serial.println(pairingData.msgType);
@@ -152,11 +152,11 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
 
     break;
   case ACK:                             // the message is an acknowledge message 
-    Serial.println("ACK");
+    Serial.println(F("ACK"));
 
     break; 
   case TEXT:                           // the message is text type
-    Serial.println("TEXT");
+    Serial.println(F("TEXT"));
 
     memcpy(&textingData, incomingData, sizeof(textingData));
     Serial.print(textingData.line);
@@ -188,6 +188,9 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     textingData.texting[0] = '\0';
     sendonesp((uint8_t *)&textingData, sizeof(textingData));
 
+    break;
+  case HBEAT:                      // the message is heartbeat
+    Serial.println(F("HBEAT"));
     break;
   default:
     Serial.print("Unknown message type: ");

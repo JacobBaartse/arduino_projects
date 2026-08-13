@@ -287,8 +287,10 @@ void loop() {
   runningtime = millis();
 
   action = timepassing(runningtime, 30000);
-  if (action) {
-    esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
+  if (action) { 
+    beating(); // send heart beats
+
+    //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
 
     // and something on the serial port to the GatewayInternet
   }

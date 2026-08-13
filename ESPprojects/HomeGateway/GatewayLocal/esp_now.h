@@ -1,7 +1,7 @@
 
 //bool devicepaired = false;
 
-enum MessageType { PAIRING, DATA, ACK, TEXT };
+enum MessageType { PAIRING, DATA, ACK, TEXT, HBEAT };
 MessageType messageType;
 
 uint8_t connectedclients[20][6] = { // 20 clients can be connected using ESP-NOW
@@ -91,6 +91,14 @@ typedef struct struct_string { // structure for text
 } struct_string;
 
 struct_string textingData;
+
+typedef struct struct_heartbeat { // structure for text
+  uint8_t msgType;
+  uint8_t id;
+  unsigned long timestamp;
+} struct_heartbeat;
+
+struct_heartbeat heartbeatData;
 
 uint8_t textackcount = 0;
 char forminput[101] = {'\0'};
@@ -470,6 +478,8 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.println("TEXT");
     textackcount += 1;
     break;
+  case HBEAT:                      // the message is heartbeat
+    break;
   default:
     Serial.print("ERROR: Unknown message type: ");
     Serial.println(type);
@@ -507,4 +517,43 @@ void randomstringvalue(int numBytes) {
     }
   }
   //rmsg[numBytes] = '\0'; // bytes are cleared at the start
+}
+
+int nextheartbeatclient(int tindex) {
+  int foundcount = 0;
+  if (tindex > 20) { // 99 means MAC not found
+    tindex = 0;
+  }
+  else tindex++;
+  for ( int row = 0; row < 20; row++ ){
+    foundcount = 0; 
+    for ( int id = 0; id < 6; id++ ){
+      if (connectedclients[tindex][id] == 0xFF){
+        foundcount += 1;
+      }
+    }
+    if (foundcount < 6){
+      break; // found the index
+    }
+    tindex = ++tindex % 20;
+  }
+
+  return tindex;
+}
+
+void beating() { // send heartbeat
+  static uint8_t hbcounter = 0;
+  static int findex = 99;
+  uint8_t clientMAC[6];
+
+  findex = nextheartbeatclient(findex);
+  Serial.print(F("heartbeatclient at index: "));
+  Serial.println(findex);
+  for ( int id = 0; id < 6; id++ ){
+    clientMAC[id] = connectedclients[findex][id];
+  }
+  heartbeatData.msgType = HBEAT;
+  heartbeatData.id = hbcounter++;
+  heartbeatData.timestamp = millis();
+  sendonesp(clientMAC, (uint8_t *)&heartbeatData, sizeof(heartbeatData));
 }
