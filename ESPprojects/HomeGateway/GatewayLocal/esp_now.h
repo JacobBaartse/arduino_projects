@@ -516,7 +516,7 @@ void randomstringvalue(int numBytes) {
       }
     }
   }
-  //rmsg[numBytes] = '\0'; // bytes are cleared at the start
+  // rmsg[numBytes] = '\0'; // bytes are cleared at the start
 }
 
 int nextheartbeatclient(int tindex) {
@@ -556,4 +556,17 @@ void beating() { // send heartbeat
   heartbeatData.id = hbcounter++;
   heartbeatData.timestamp = millis();
   sendonesp(clientMAC, (uint8_t *)&heartbeatData, sizeof(heartbeatData));
+}
+
+void send_display_line(uint8_t *clientMAC, uint8_t linenum, const char* lineText) {
+  static uint8_t tcounter = 0;
+  textingData.msgType = TEXT;
+  textingData.id = tcounter++;
+  textingData.line = linenum;
+
+  Serial.println(lineText);
+  // memset(&rmsg, 0, sizeof(rmsg));
+  // strcpy(lineText, textingData.texting);
+  memcpy(&textingData.texting, lineText, sizeof(textingData.texting));
+  sendonesp(clientMAC, (uint8_t *)&textingData, sizeof(textingData));
 }

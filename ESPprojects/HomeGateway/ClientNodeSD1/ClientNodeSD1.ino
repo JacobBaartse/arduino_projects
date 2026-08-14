@@ -192,30 +192,36 @@ void loop() {
 
   runningtime = millis();
 
-  action = timepassing(runningtime, 9000);
+  action = timepassing(runningtime, 60000); // every minute
   if (action) {
 
-    sprintf(qstr, "%s %05d", "George", runningtime);
-    DisplayProgress(qstr);
+    // sprintf(qstr, "%s %05d", "George", runningtime);
+    // DisplayProgress(qstr);
 
     if (devicepaired) {
       //sendonesp((uint8_t *)msg, sizeof(msg));
       //esp_now_send(Server_Address, (uint8_t *)msg, sizeof(msg));
+
+      pairingheartbeat--;
+      devicepaired = pairingheartbeat > 0;
     }
-    else{
+    if (!devicepaired) {
       sendpairingsequence(0);
     }
   }
 
   //handle_button(false, runningtime);
 
-  if (upddisplay > 0) {
-    if (++upddisplay > 100){
-      updateDisplay();
-    }
+  if (upddisplay > 10) {
+    updateDisplay();
+    upddisplay = 0;
+  }
+  else {
+    // generateQRCode("wifi: ESP_NOW_CH_4 192.169.4.1"); // connect to local AP
+    // upddisplay = 1000;
   }
 
-  heartbeat(runningtime, false);
+  // heartbeat(runningtime, false); // not needed, heartbeat comes from ESP-NOW server
   
 }
 

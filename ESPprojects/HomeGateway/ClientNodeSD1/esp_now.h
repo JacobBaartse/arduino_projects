@@ -1,5 +1,6 @@
 
 bool devicepaired = false;
+uint8_t pairingheartbeat = 0;
 char reftext[11] = "client_SD1";
 
 enum MessageType { PAIRING, DATA, ACK, TEXT, HBEAT };
@@ -191,6 +192,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     break;
   case HBEAT:                      // the message is heartbeat
     Serial.println(F("HBEAT"));
+    pairingheartbeat = 30; // minutes, countdown
     break;
   default:
     Serial.print("Unknown message type: ");

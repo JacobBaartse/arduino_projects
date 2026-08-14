@@ -12,14 +12,14 @@ char reftext[11] = "client_SD";
 const int led = LED_BUILTIN;
 //const int buttonPin = D3; 
 
-char Lines[4][101] = {
-  "Welcome Leo",
-  "Demo {small disp.}", 
-  "Whats up?",
-  "Hello World"
-};  
-uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
-uint8_t upddisplay = 200;
+// char Lines[4][101] = {
+//   "Welcome Leo",
+//   "Demo {small disp.}", 
+//   "Whats up?",
+//   "Hello World"
+// };  
+// uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
+// uint8_t upddisplay = 200;
 
 // uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
 // uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
@@ -120,6 +120,10 @@ void handleLink1(bool local=false) {
     storeData[0] = storeData[0] & 0xfffffffe;
     // Serial.print(F("L1 "));
     // Serial.println(storeData[0], HEX);
+
+    send_display_line(BC1_Address, 1, "eerste klik");
+    //randomstringvalue(22);
+    //send_display_line(BC1_Address, 1, rmsg);
   }
 }
 
@@ -142,6 +146,10 @@ void handleLink2(bool local=false) {
     storeData[0] = storeData[0] & 0xfffffffd;
     // Serial.print(F("L2 "));
     // Serial.println(storeData[0], HEX);
+
+    //send_display_line(BC1_Address, 2, "klik op nummer twee");
+    randomstringvalue(11);
+    send_display_line(BC1_Address, 2, rmsg);
   }
 }
 
@@ -288,7 +296,7 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action) { 
-    beating(); // send heart beats
+    beating(); // send heart beats to clients
 
     //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
 

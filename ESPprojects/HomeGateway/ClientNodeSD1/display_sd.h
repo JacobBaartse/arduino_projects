@@ -49,13 +49,13 @@ DisplayState setDisplay(DisplayState statustoset) {
 // }
 
 char Lines[4][101] = {
-  "Welcome Leo",
-  "Demo {small disp.}", 
-  "Whats up?",
-  "Hello World"
+  "0", // "Welcome Leo",
+  "  1", // "Demo {small disp.}", 
+  "    2", // "Whats up?",
+  "      3", //"Hello World"
 };  
 uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
-uint8_t upddisplay = 200;
+uint8_t upddisplay = 200; // loop amount for text to be visible, TBD
 
 void updateDisplay() {
   //bool fresh = true;
