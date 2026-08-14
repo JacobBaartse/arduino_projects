@@ -69,20 +69,20 @@ void sendonesp(u8 *data, int len) {
   esp_now_send(Server_Address, data, len);
 }
 
-// function to check the heartbeat of the server
-void heartbeat(unsigned long curtime, bool message) {
-  static unsigned long htime = 0;
-  if (message) {
-    htime = curtime;
-  }
-  else {
-    if (devicepaired) {
-      if (htime + 60000 < curtime){ // if not received a message for over 60 seconds, consider pairing dropped
-        devicepaired = false;
-      }
-    }
-  }
-}
+// // function to check the heartbeat of the server
+// void heartbeat(unsigned long curtime, bool message) {
+//   static unsigned long htime = 0;
+//   if (message) {
+//     htime = curtime;
+//   }
+//   else {
+//     if (devicepaired) {
+//       if (htime + 60000 < curtime){ // if not received a message for over 60 seconds, consider pairing dropped
+//         devicepaired = false;
+//       }
+//     }
+//   }
+// }
 
 // Callback when data is received
 void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
@@ -104,14 +104,16 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   Serial.print(" at: ");
   unsigned long messagetime = millis();
   Serial.println(messagetime);
-  heartbeat(messagetime, true);
+  // heartbeat(messagetime, true);
   // String datahere(data);
   // Serial.println(datahere);
 
-  uint8_t type = incomingData[0];       // first message byte is the type of message 
+  uint8_t type = incomingData[0];      // first message byte is the type of message 
   switch (type) {
   case DATA:                           // the message is data type
     Serial.println(F("DATA"));
+
+    Serial.println("processing TBD");
 
     break;
   case PAIRING:                         // the message is a pairing request 

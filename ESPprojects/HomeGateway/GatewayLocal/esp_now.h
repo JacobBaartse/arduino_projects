@@ -393,6 +393,9 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   switch (type) {
   case DATA:                           // the message is data type
     Serial.println("DATA");
+
+    Serial.println("processing TBD");
+
     // memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
     // // create a JSON document with received data and send it by event to the web page
     // root["id"] = incomingReadings.id;
@@ -431,7 +434,6 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
           }
         }
         deviceidx = getindexMAC(mac); // add to connected clients list
-
         for ( int id = 0; id < 11; id++ ) {
           referencestring[deviceidx][id] = pairingData.textref[id];
         }        
@@ -479,6 +481,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     textackcount += 1;
     break;
   case HBEAT:                      // the message is heartbeat
+    Serial.println("HBEAT message unexpected to gateway");
     break;
   default:
     Serial.print("ERROR: Unknown message type: ");
@@ -529,7 +532,7 @@ int nextheartbeatclient(int tindex) {
     foundcount = 0; 
     for ( int id = 0; id < 6; id++ ){
       if (connectedclients[tindex][id] == 0xFF){
-        foundcount += 1;
+        ++foundcount;
       }
     }
     if (foundcount < 6){
@@ -537,7 +540,12 @@ int nextheartbeatclient(int tindex) {
     }
     tindex = ++tindex % 20;
   }
-
+  if (foundcount == 6) { // not found a valid client
+    tindex = 99; 
+  }
+  // Serial.print(foundcount);
+  // Serial.print(" bytes found at index: ");
+  // Serial.println(tindex);
   return tindex;
 }
 
@@ -547,15 +555,20 @@ void beating() { // send heartbeat
   uint8_t clientMAC[6];
 
   findex = nextheartbeatclient(findex);
-  Serial.print(F("heartbeatclient at index: "));
-  Serial.println(findex);
-  for ( int id = 0; id < 6; id++ ){
-    clientMAC[id] = connectedclients[findex][id];
+  if (findex < 20) {
+    Serial.print(F("heartbeatclient at index: "));
+    Serial.println(findex);
+    for ( int id = 0; id < 6; id++ ){
+      clientMAC[id] = connectedclients[findex][id];
+    }
+    heartbeatData.msgType = HBEAT;
+    heartbeatData.id = hbcounter++;
+    heartbeatData.timestamp = millis();
+    sendonesp(clientMAC, (uint8_t *)&heartbeatData, sizeof(heartbeatData));
   }
-  heartbeatData.msgType = HBEAT;
-  heartbeatData.id = hbcounter++;
-  heartbeatData.timestamp = millis();
-  sendonesp(clientMAC, (uint8_t *)&heartbeatData, sizeof(heartbeatData));
+  else {
+    Serial.println(F("No clients found to send heartbeat"));
+  }
 }
 
 void send_display_line(uint8_t *clientMAC, uint8_t linenum, const char* lineText) {
@@ -564,7 +577,9 @@ void send_display_line(uint8_t *clientMAC, uint8_t linenum, const char* lineText
   textingData.id = tcounter++;
   textingData.line = linenum;
 
-  Serial.println(lineText);
+  Serial.print(F(" "));
+  Serial.print(lineText);
+  Serial.println(F(" "));
   // memset(&rmsg, 0, sizeof(rmsg));
   // strcpy(lineText, textingData.texting);
   memcpy(&textingData.texting, lineText, sizeof(textingData.texting));

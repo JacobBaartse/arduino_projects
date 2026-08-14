@@ -104,6 +104,16 @@ void handleRoot() {
 
 const char webmsg[] = "webcontrol message";
 
+uint8_t linkcount = 0;
+void handleLinkClear() {
+  if (linkcount > 0) {
+    send_display_line(BC1_Address, 0, "-0-");
+    send_display_line(BC1_Address, 1, "-1-");
+    send_display_line(BC1_Address, 2, "-2-");
+    send_display_line(BC1_Address, 3, "-3-");
+  }
+}
+
 void handleLink1(bool local=false) {
   bool remote = (storeData[0] & 1) > 0;
   // Serial.print(F("1 "));
@@ -124,6 +134,7 @@ void handleLink1(bool local=false) {
     send_display_line(BC1_Address, 1, "eerste klik");
     //randomstringvalue(22);
     //send_display_line(BC1_Address, 1, rmsg);
+    linkcount++;
   }
 }
 
@@ -147,9 +158,10 @@ void handleLink2(bool local=false) {
     // Serial.print(F("L2 "));
     // Serial.println(storeData[0], HEX);
 
-    //send_display_line(BC1_Address, 2, "klik op nummer twee");
-    randomstringvalue(11);
-    send_display_line(BC1_Address, 2, rmsg);
+    send_display_line(BC1_Address, 2, "klikt num twee");
+    // randomstringvalue(11);
+    // send_display_line(BC1_Address, 2, rmsg);
+    linkcount++;
   }
 }
 
@@ -256,37 +268,6 @@ bool action = false;
 bool newdata = false;
 uint32_t remStoredData = 0xffffffff;
 
-// bool buttonpressed = false;
-
-// void handle_button(bool pressed, unsigned long timing) {
-//   static unsigned long btime = 0;
-//   static bool buttonstate = false;
-
-//   if(buttonstate){
-//     int butstate = digitalRead(buttonPin); // check current status of the button
-//     if (butstate == LOW) {  // button still pressed within the time period
-//       btime = timing;
-//       // Serial.println(F("Button press extension"));
-//       return;
-//     }
-//     if (btime + 2000 < timing){
-//       buttonpressed = false;
-//       buttonstate = false;
-//       Serial.print(F("Button can be pressed again "));
-//       Serial.println(millis());
-//     }
-//   }
-//   if (pressed) {
-//     btime = timing;
-//     buttonstate = true;
-//     buttonpressed = true;
-//     Serial.print(F("Button press: "));
-//     Serial.println(millis());
-//     esp_now_send(BC1_Address, (uint8_t *)buttonmsg, sizeof(buttonmsg));
-//     return;
-//   }
-// }
-
 // --------------------
 // Main Loop
 // --------------------
@@ -296,6 +277,9 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action) { 
+
+    handleLinkClear();
+
     beating(); // send heart beats to clients
 
     //esp_now_send(BC1_Address, (uint8_t *)msg, sizeof(msg));
