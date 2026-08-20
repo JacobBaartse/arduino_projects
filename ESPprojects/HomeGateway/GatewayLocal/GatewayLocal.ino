@@ -10,16 +10,7 @@ extern "C" {
 char reftext[11] = "client_SD";
 
 const int led = LED_BUILTIN;
-//const int buttonPin = D3; 
 
-// char Lines[4][101] = {
-//   "Welcome Leo",
-//   "Demo {small disp.}", 
-//   "Whats up?",
-//   "Hello World"
-// };  
-// uint8_t LinesYPos[4] = { 16, 32, 48, 64 };
-// uint8_t upddisplay = 200;
 
 // uint8_t GW1_Address[] = { 0x48, 0x3F, 0xDA, 0x69, 0xCB, 0x61};
 // uint8_t BC1_Address[] = { 0x68, 0xC6, 0x3A, 0xFC, 0x23, 0x76};
@@ -208,7 +199,6 @@ void handleNotFound() {
 // Setup
 // --------------------
 void setup() {
-  //pinMode(buttonPin, INPUT_PULLUP);
   pinMode(led, OUTPUT);
   digitalWrite(led, 0); // turn onboard LED on
   Serial.begin(115200);
@@ -230,11 +220,11 @@ void setup() {
 
   Serial.print(F("AP: "));
   Serial.println(WiFi.softAPIP());
-  Serial.println("");  
+  Serial.println(F(" "));  
 
   // ESP-NOW init
   if (esp_now_init() != 0) {
-    Serial.println("ESP-NOW init failed");
+    Serial.println(F("ESP-NOW init failed"));
     return;
   }
 
@@ -242,7 +232,7 @@ void setup() {
   esp_now_register_recv_cb(onDataRecv);
   esp_now_register_send_cb(onDataSent);
 
-  // Add broadcast peer (improves reliability)
+  // Add the broadcast peer (improves reliability)
   esp_now_add_peer(BC1_Address, ESP_NOW_ROLE_COMBO, 4, NULL, 0);
 
   server.on("/", handleRoot);
@@ -251,12 +241,10 @@ void setup() {
   server.onNotFound(handleNotFound);
 
   server.begin();
-  Serial.println("HTTP server started");
+  Serial.println(F("HTTP server started"));
 
   Serial.print(F("ESP-NOW channel 4, "));
   Serial.println(F("ESP-NOW Gateway Ready"));
-
-  //attachInterrupt(digitalPinToInterrupt(buttonPin), buttonPress, FALLING); // trigger when button pressed
 
   digitalWrite(led, 1); // turn onboard LED off
 }
@@ -288,8 +276,6 @@ void loop() {
   }
 
   server.handleClient();
-
-  //handle_button(false, runningtime);
 
   newdata = readserialdata();
   if (newdata){
@@ -334,9 +320,3 @@ void loop() {
   }
 
 }
-
-// ICACHE_RAM_ATTR void buttonPress(){
-//   // Serial.print(F("Button press: "));
-//   // Serial.println(millis());
-//   handle_button(true, millis());
-// }

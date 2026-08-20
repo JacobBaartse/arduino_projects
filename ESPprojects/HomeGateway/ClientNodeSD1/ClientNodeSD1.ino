@@ -117,7 +117,7 @@ void setup() {
   wifi_promiscuous_enable(0);
 
   if (esp_now_init() != 0) {
-    Serial.println("ESP-NOW init failed");
+    Serial.println(F("ESP-NOW init failed"));
     return;
   }
 
