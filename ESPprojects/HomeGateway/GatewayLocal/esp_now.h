@@ -1,7 +1,7 @@
 
 //bool devicepaired = false;
 
-enum MessageType { PAIRING, DATA, ACK, TEXT, HBEAT };
+enum MessageType { PAIRING, DATA, ACK, TEXT, HBEAT, QR };
 MessageType messageType;
 
 uint8_t connectedclients[20][6] = { // 20 clients can be connected using ESP-NOW
@@ -480,6 +480,10 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.println("TEXT");
     textackcount += 1;
     break;
+  case QR:                      // the message is QR text
+    Serial.println("QR");
+    textackcount += 1;
+    break;
   case HBEAT:                      // the message is heartbeat
     Serial.println("HBEAT message unexpected to gateway");
     break;
@@ -578,10 +582,33 @@ void send_display_line(uint8_t *clientMAC, uint8_t linenum, const char* lineText
   textingData.line = linenum;
 
   Serial.print(F(" "));
+  Serial.print(linenum);
+  Serial.print(F(" "));
   Serial.print(lineText);
   Serial.println(F(" "));
   // memset(&rmsg, 0, sizeof(rmsg));
   // strcpy(lineText, textingData.texting);
   memcpy(&textingData.texting, lineText, sizeof(textingData.texting));
+  sendonesp(clientMAC, (uint8_t *)&textingData, sizeof(textingData));
+}
+
+void send_next_display_line(uint8_t *clientMAC, const char* lineText) {
+  static uint8_t lineval = 0;
+  send_display_line(clientMAC, lineval, lineText);
+  lineval = ++lineval % 4; // there are 4 lines on the display
+}
+
+void send_QR_display(uint8_t *clientMAC, const char* QRText) {
+  static uint8_t tcounter = 0;
+  textingData.msgType = QR;
+  textingData.id = tcounter++;
+  textingData.line = 0;
+
+  Serial.print(F(" "));
+  Serial.print(QRText);
+  Serial.println(F(" "));
+  // memset(&rmsg, 0, sizeof(rmsg));
+  // strcpy(QRText, textingData.texting);
+  memcpy(&textingData.texting, QRText, sizeof(textingData.texting));
   sendonesp(clientMAC, (uint8_t *)&textingData, sizeof(textingData));
 }

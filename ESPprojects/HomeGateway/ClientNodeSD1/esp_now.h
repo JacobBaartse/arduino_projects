@@ -3,7 +3,7 @@ bool devicepaired = false;
 uint8_t pairingheartbeat = 0;
 char reftext[11] = "client_SD1";
 
-enum MessageType { PAIRING, DATA, ACK, TEXT, HBEAT };
+enum MessageType { PAIRING, DATA, ACK, TEXT, HBEAT, QR };
 MessageType messageType;
 
 uint8_t Server_Address[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // this is at startup the broadcast address
@@ -89,6 +89,7 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
   static unsigned long rcount = 0;
   static uint8_t runningline = 0;
   bool resppairing = true;
+  bool useQR = false;
 
   rcount += 1;  
   Serial.print("ESP-NOW Received ");
@@ -158,9 +159,15 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
     Serial.println(F("ACK"));
 
     break; 
+  case QR:                             // the message is type QR
   case TEXT:                           // the message is text type
-    Serial.println(F("TEXT"));
-
+    useQR = type == QR;
+    if (useQR) {
+      Serial.println(F("QR"));
+    }
+    else {
+      Serial.println(F("TEXT"));
+    }
     memcpy(&textingData, incomingData, sizeof(textingData));
     Serial.print(textingData.line);
     Serial.print(F(" "));
@@ -186,6 +193,14 @@ void onDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len) {
       runningline = 0; // reset static running line (if received from webserver form input)
     }
     
+    if (useQR) {
+      upddisplay = 0; // do not update display in the main loop
+      //generateQRCode(textingData.texting);
+      //generateQRCode(Lines[textingData.line]);  
+      //generateQRCode("wifi: ESP_NOW_CH_4 192.169.4.1");  
+      //generateQRCode("QR code");  
+    }
+
     // reply with 'ack'
     textingData.texting[100] = '\0';
     textingData.texting[0] = '\0';

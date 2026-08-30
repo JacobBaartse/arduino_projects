@@ -212,9 +212,9 @@ void loop() {
 
   //handle_button(false, runningtime);
 
-  if (upddisplay > 10) {
+  if (upddisplay > 0) {
     updateDisplay();
-    upddisplay = 0;
+    //upddisplay = 0;
   }
   else {
     // generateQRCode("wifi: ESP_NOW_CH_4 192.169.4.1"); // connect to local AP

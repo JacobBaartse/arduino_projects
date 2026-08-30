@@ -98,10 +98,14 @@ const char webmsg[] = "webcontrol message";
 uint8_t linkcount = 0;
 void handleLinkClear() {
   if (linkcount > 0) {
-    send_display_line(BC1_Address, 0, "-0-");
-    send_display_line(BC1_Address, 1, "-1-");
-    send_display_line(BC1_Address, 2, "-2-");
-    send_display_line(BC1_Address, 3, "-3-");
+    //send_display_line(BC1_Address, 0, "-");
+    //send_display_line(BC1_Address, 1, "-");
+    //send_display_line(BC1_Address, 2, "-");
+    //send_display_line(BC1_Address, 3, "-");
+    for (int i=0; i<4; i++) { // clear 4 lines     
+      send_next_display_line(BC1_Address, "-");
+    }
+    linkcount = 0; // do not send messages if not necessary
   }
 }
 
@@ -122,7 +126,8 @@ void handleLink1(bool local=false) {
     // Serial.print(F("L1 "));
     // Serial.println(storeData[0], HEX);
 
-    send_display_line(BC1_Address, 1, "eerste klik");
+    // send_display_line(BC1_Address, 1, "eerste klik");
+    send_next_display_line(BC1_Address, "eerste klik");
     //randomstringvalue(22);
     //send_display_line(BC1_Address, 1, rmsg);
     linkcount++;
@@ -149,7 +154,9 @@ void handleLink2(bool local=false) {
     // Serial.print(F("L2 "));
     // Serial.println(storeData[0], HEX);
 
-    send_display_line(BC1_Address, 2, "klikt num twee");
+    // send_display_line(BC1_Address, 2, "klikt num twee");
+    //send_next_display_line(BC1_Address, "klikt num twee");
+    send_QR_display(BC1_Address, "klikt num twee");
     // randomstringvalue(11);
     // send_display_line(BC1_Address, 2, rmsg);
     linkcount++;
@@ -265,7 +272,6 @@ void loop() {
 
   action = timepassing(runningtime, 30000);
   if (action) { 
-
     handleLinkClear();
 
     beating(); // send heart beats to clients
@@ -288,7 +294,8 @@ void loop() {
         Serial.println(storeData[ai], HEX);
         storeData[ai] = 0;
       }      
-      //ESP.restart(); // do not restart this board, endless loop will happen for serial1 and serial2
+      Serial.println("All data cleared");
+      // ESP.restart(); // do not restart this board, endless loop will happen for serial1 and serial2
 
       resetclear = false;
     }

@@ -73,7 +73,8 @@ void updateDisplay() {
   }
   display.display();
   //Serial.println("updateDisplay 3 ");
-  upddisplay = 0;
+  if (upddisplay > 4) upddisplay = 4;
+  upddisplay--; // max 4 times for the 4 lines 
   // display_oled(false, 0, 32, Lines[1]); 
   // display_oled(false, 0, 48, Lines[2]);  
   // display_oled(false, 0, 64, Lines[3]); 
