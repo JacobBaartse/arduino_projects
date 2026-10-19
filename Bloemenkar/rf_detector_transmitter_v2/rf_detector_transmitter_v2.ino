@@ -165,7 +165,7 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
     if ((unsigned long)(currentDetectMillis - activationTime) < 10000){ // 10 seconds
       objectdistance = measureDistance(currentDetectMillis);
       if (objectdistance < 0xff00){ // measured distance result available
-        alarming = objectdistance < 10; // 300; // smaller than 300 cm
+        alarming = objectdistance < 20; // 300; // smaller than 300 cm
         //alarming = objectdistance < distance_threshold; // smaller than 300 cm
       }
     }
@@ -173,6 +173,9 @@ bool trackSensorsIO(unsigned long currentDetectMillis){
       activePIR = curPIR == HIGH;
       if (activePIR){ // PIR detection activated (again) (basically it remains active)
         activationTime = currentDetectMillis;
+      }
+      else {
+        Serial.println(F("activePIR = false"));
       }
     }
   }
