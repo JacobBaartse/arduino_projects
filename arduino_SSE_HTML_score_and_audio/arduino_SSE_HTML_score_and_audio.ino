@@ -1,6 +1,7 @@
-
 #include "WiFiS3.h"
 #include "arduino_secrets.h"
+#include "mp3names.h"
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
@@ -10,6 +11,8 @@ WiFiServer server(80);
 const int BUTTON_PIN = 2;     // Fysieke knop op de Arduino
 int lastButtonState = HIGH;   // Voorgaande status van de knop
 int status = WL_IDLE_STATUS;
+
+int mp3_number = 0;
 
 // We houden bij of er een browser actief luistert naar events
 WiFiClient eventClient;
@@ -29,6 +32,8 @@ void printWifiStatus() {
   Serial.print("signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
+  Serial.print("open Chrome of Firefox en ga naar ");
+  Serial.println(ip);
 }
 
 void setup() {
@@ -65,10 +70,11 @@ void loop() {
       eventClient.println("Cache-Control: no-cache");
       eventClient.println("Connection: keep-alive");
       eventClient.println();
-      Serial.println("events requrested");
+      Serial.println("events requested");
     }
     // Als de browser de gewone webpagina opvraagt
     else {
+      Serial.println("fresh web page");
       sendWebPage(client);
     }
   }
@@ -80,14 +86,21 @@ void loop() {
 
     // Als de browser verbonden is, sturen we het 'alarm' commando
     if (eventClient && eventClient.connected()) {
-      eventClient.println("data: speel_alarm\n");
+      eventClient.print("data: speel_geluid_");
+      eventClient.print(mp3_number);
+      eventClient.println("\n");
       Serial.println("Dynamisch geluidssignaal verzonden naar browser!");
+      mp3_number += 1;
+      if (mp3_number == mp3_array_size)
+      {
+        mp3_number = 0;
+      }
     }
 
         // Als de browser verbonden is, sturen we het 'alarm' commando
     if (eventClient && eventClient.connected()) {
       delay(3000);
-      eventClient.println("data: stop_alarm\n");
+      eventClient.println("data: stop_geluid\n");
       Serial.println("Dynamisch geluidssignaal stoppen!");
     }
   }
@@ -108,12 +121,27 @@ void sendWebPage(WiFiClient client) {
   client.println("var audio = new Audio('https://nonexist.mp3');");
   client.println("source.onmessage = function(event) {");
 //  client.println("x.innerHTML += event.data + \"<br>\";");
-  client.println("  if (event.data === 'speel_alarm') {");
-  // Link naar een online geluidsfragment (bijv. een korte bliep of alarm)
-  client.println("    audio = new Audio('https://familiebaartse.pythonanywhere.com/static/pinbal.mp3');");
-  client.println("    audio.play();");
-  client.println("  }");
-  client.println("  if (event.data === 'stop_alarm') {");
+  // client.println("  if (event.data === 'speel_geluid') {");
+  // // Link naar een online geluidsfragment (bijv. een korte bliep of alarm)
+  // client.print("    audio = new Audio('https://familiebaartse.pythonanywhere.com/static//");
+  // client.print(mp3_list[mp3_number].name);
+  // client.println(".mp3');");
+  // client.println("    audio.play();");
+  // client.println("  }");
+
+  for (int i=0; i< mp3_array_size; i++ ){
+    client.print("  if (event.data === 'speel_geluid_");
+    client.print(i);
+    client.println("') {");
+    client.print("    audio = new Audio('https://familiebaartse.pythonanywhere.com/static//");
+    client.print(mp3_list[i].name);
+    client.println(".mp3');");    
+    client.println("    audio.play();");
+    client.println("  }");  
+  }
+
+
+  client.println("  if (event.data === 'stop_geluid') {");
   // Link naar een online geluidsfragment (bijv. een korte bliep of alarm)
   client.println("    audio.pause();");
   client.println("  }");
@@ -121,7 +149,8 @@ void sendWebPage(WiFiClient client) {
 
   client.println("</script></head><body>");
   client.println("<h1>Wachten op signaal van de Arduino...</h1>");
-  client.println("<p>Druk op de fysieke knop op de Arduino om een geluid te horen.</p>");
+  client.println("<p>Klik op deze pagina om auto play mogelijk te maken.</p>");
+  client.println("<p>Druk op de fysieke knop op de Arduino om een geluid te horen. (pin 2 to ground)</p>");
   client.println("</body></html>");
   client.println();
   client.stop();
