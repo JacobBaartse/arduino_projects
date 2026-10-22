@@ -89,7 +89,9 @@ String currentUrl =
 bool shouldChangeUrl = false;
 bool displayAvailable = false;
 
-
+const unsigned long SCREEN_TIMEOUT = 10000; // 10 seconden
+unsigned long lastButtonActivity = 0;
+bool screenIsOn = true;
 
 int currentVolume = 100;
 
@@ -192,6 +194,18 @@ void updateDisplay() {
     display.display();
 }
 
+void handleDisplayTimeout() {
+    if (screenIsOn &&
+        millis() - lastButtonActivity >= SCREEN_TIMEOUT) {
+
+        display.clearDisplay();
+        display.display();
+        // display.clearDisplay();
+
+        screenIsOn = false;
+    }
+}
+
 // =====================================
 // Volgende zender selecteren
 // =====================================
@@ -227,7 +241,14 @@ void handleButton() {
 
             // INPUT_PULLUP: LOW = ingedrukt
             if (stableButtonState == LOW) {
-                nextStation();
+                lastButtonActivity = millis();
+
+                if (!screenIsOn) {
+                    screenIsOn = true;
+                    updateDisplay();
+                } else {
+                    nextStation();
+                }
             }
         }
     }
@@ -468,6 +489,7 @@ void setup() {
     audio.connectToHost(currentUrl.c_str());
 
     updateDisplay();
+    lastButtonActivity = millis();
 
     // =================================
     // Webserver: hoofdpagina
@@ -561,17 +583,19 @@ void setup() {
 // =====================================
 void loop() {
     handleButton();
+    handleDisplayTimeout();
 
     if (shouldChangeUrl) {
+        shouldChangeUrl = false;
+
         Serial.print("Omschakelen naar: ");
         Serial.println(currentUrl);
 
         audio.stopSong();
         audio.connectToHost(currentUrl.c_str());
 
-        shouldChangeUrl = false;
+        updateDisplay();
     }
 
     audio.loop();
-    //delay(1);
 }
