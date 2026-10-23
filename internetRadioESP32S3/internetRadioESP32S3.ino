@@ -12,6 +12,15 @@
 
 #include "arduino_secrets.h"
 
+
+// installed libraries:
+// Async TCP             3.5.0     https://github.com/ESP32Async/AsyncTCP
+// ESP async WebServer   3.12.1    https://github.com/ESP32Async/ESPAsyncWebServer
+// ESP32_VS1053_Stream   3.0.14    https://github.com/CelliesProjects/ESP32_VS1053_Stream
+// Adafruit GFX Library  1.13.0    https://github.com/adafruit/Adafruit-GFX-Library
+// Adafruit SH110X       2.1.15    https://github.com/adafruit/Adafruit_SH110X
+
+
 // =====================================
 // VS1053 aansluitingen
 // =====================================
@@ -74,6 +83,30 @@ RadioStation stations[] = {
     {
         "One Christian Radio",
         "http://radio.wanderingsheep.net:33001/onechristianradio"
+    },
+    {
+        "Moody Radio",
+        "https://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio"
+    },
+    {
+        "538 Radio",
+        "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3"
+    },
+    {
+        "538 Classic",
+        "https://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3"
+    },
+    {
+        "Q music",
+        "https://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3"
+    },
+    {
+        "npo radio 1",
+        "https://icecast.omroep.nl/radio1-bb-mp3"
+    },
+    {
+        "bright fm",
+        "http://str1.hollanddata.eu:8000/;"
     }
 };
 
@@ -380,6 +413,34 @@ Golden Praise
 <option value="http://radio.wanderingsheep.net:33001/onechristianradio">
 One Christian Radio
 </option>
+
+<option value="https://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio">
+Moody Radio
+</option>
+
+<option value="https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3">
+538 Radio
+</option>
+
+<option value="https://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3">
+538 Classic
+</option>
+
+<option value="https://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3">
+Q music
+</option>
+
+<option value="https://icecast.omroep.nl/radio1-bb-mp3">
+npo radio 1
+</option>
+
+<option value="http://str1.hollanddata.eu:8000/;">
+bright fm
+</option>
+
+
+
+
 
 </select>
 
