@@ -66,7 +66,7 @@ struct RadioStation {
 RadioStation stations[] = {
     {
         "GOD Radio",
-        "https://stream.wildfm.nl/GOD_Radio"
+        "http://stream.wildfm.nl/GOD_Radio"
     },
     {
         "NPO Radio 2",
@@ -86,23 +86,35 @@ RadioStation stations[] = {
     },
     {
         "Moody Radio",
-        "https://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio"
+        "http://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio"
+    },
+    {
+        "loving grace radio",
+        "http://us2.internet-radio.com/proxy/lovinggraceradio?mp=/stream"
+    },
+    {
+        "one crhistian radio",
+        "http://radio.wanderingsheep.net:33001/onechristianradio"
+    },
+    {
+        "Hope Alive",
+        "http://radio.wanderingsheep.net:8012/hopealive"
     },
     {
         "538 Radio",
-        "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3"
+        "http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3"
     },
     {
         "538 Classic",
-        "https://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3"
+        "http://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3"
     },
     {
         "Q music",
-        "https://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3"
+        "http://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3"
     },
     {
         "npo radio 1",
-        "https://icecast.omroep.nl/radio1-bb-mp3"
+        "http://icecast.omroep.nl/radio1-bb-mp3"
     },
     {
         "bright fm",
@@ -382,7 +394,7 @@ input[type=submit] {
 </label>
 
 <input type="text" id="url" name="url"
- placeholder="https://..." >
+ placeholder="http://..." >
 
 <label for="preset">
 <strong>Of kies een preset:</strong>
@@ -394,7 +406,7 @@ input[type=submit] {
 
 <option value="">-- Kies een zender --</option>
 
-<option value="https://stream.wildfm.nl/GOD_Radio">
+<option value="http://stream.wildfm.nl/GOD_Radio">
 GOD Radio
 </option>
 
@@ -406,7 +418,7 @@ NPO Radio 2
 Groot Nieuws Radio
 </option>
 
-<option value="https://radio.wanderingsheep.net/listen/golden_praise/goldenpraise">
+<option value="http://radio.wanderingsheep.net/listen/golden_praise/goldenpraise">
 Golden Praise
 </option>
 
@@ -414,23 +426,35 @@ Golden Praise
 One Christian Radio
 </option>
 
-<option value="https://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio">
+<option value="http://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio">
 Moody Radio
 </option>
 
-<option value="https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3">
+<option value="http://us2.internet-radio.com/proxy/lovinggraceradio?mp=/stream">
+loving grace radio
+</option>
+
+<option value="http://radio.wanderingsheep.net:33001/onechristianradio">
+one crhistian radio
+</option>
+
+<option value="http://radio.wanderingsheep.net:8012/hopealive">
+Hope Alive
+</option>
+
+<option value="http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3">
 538 Radio
 </option>
 
-<option value="https://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3">
+<option value="http://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3">
 538 Classic
 </option>
 
-<option value="https://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3">
+<option value="http://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3">
 Q music
 </option>
 
-<option value="https://icecast.omroep.nl/radio1-bb-mp3">
+<option value="http://icecast.omroep.nl/radio1-bb-mp3">
 npo radio 1
 </option>
 
