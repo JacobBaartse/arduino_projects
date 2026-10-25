@@ -666,6 +666,9 @@ void setup() {
 // =====================================
 // Loop
 // =====================================
+unsigned long lastBufferCheck = 0;
+
+
 void loop() {
     handleButton();
     handleDisplayTimeout();
@@ -683,4 +686,18 @@ void loop() {
     }
 
     audio.loop();
+
+        // Print de bufferstatus elke 5000 milliseconden  to check if the psram is actvely used.
+        // adjust psram buffer in Documents\Arduino\libraries\ESP32_VS1053_Stream\src\ESP32_VS1053_Stream.h
+        // into #define VS1053_PSRAM_BUFFER_SIZE (512 * 1024)
+        // if you have psram, activate psram in arduino ide  Tools/PSRAM
+    // if (millis() - lastBufferCheck > 5000) {
+    //     size_t used = 0;
+    //     size_t capacity = 0;
+        
+    //     audio.bufferStatus(used, capacity); // Vraagt de status op bij de library
+        
+    //     Serial.printf("Buffer gevuld: %d van %d bytes\n", used, capacity);
+    //     lastBufferCheck = millis();
+    // }
 }
