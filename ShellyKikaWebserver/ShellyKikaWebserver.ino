@@ -2,7 +2,11 @@
 #include "shelly_info.h"
 
 void setup() {
-  // put your setup code here, to run once:
+    Serial.begin(9600);
+    delay(1000);
+    Serial.println();
+    Serial.println("Starting Shelly KIKA webserver");
+    Serial.flush();
 
 }
 
