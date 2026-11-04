@@ -64,62 +64,20 @@ struct RadioStation {
 };
 
 RadioStation stations[] = {
-    {
-        "GOD Radio",
-        "http://stream.wildfm.nl/GOD_Radio"
-    },
-    {
-        "NPO Radio 2",
-        "http://icecast.omroep.nl/radio2-bb-mp3"
-    },
-    {
-        "Groot Nieuws Radio",
-        "http://playerservices.streamtheworld.com/api/livestream-redirect/GNR.mp3"
-    },
-    {
-        "Golden Praise",
-        "http://radio.wanderingsheep.net/listen/golden_praise/goldenpraise"
-    },
-    {
-        "One Christian Radio",
-        "http://radio.wanderingsheep.net:33001/onechristianradio"
-    },
-    {
-        "Moody Radio",
-        "http://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio"
-    },
-    {
-        "loving grace radio",
-        "http://us2.internet-radio.com/proxy/lovinggraceradio?mp=/stream"
-    },
-    {
-        "one crhistian radio",
-        "http://radio.wanderingsheep.net:33001/onechristianradio"
-    },
-    {
-        "Hope Alive",
-        "http://radio.wanderingsheep.net:8012/hopealive"
-    },
-    {
-        "538 Radio",
-        "http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3"
-    },
-    {
-        "538 Classic",
-        "http://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3"
-    },
-    {
-        "Q music",
-        "http://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3"
-    },
-    {
-        "npo radio 1",
-        "http://icecast.omroep.nl/radio1-bb-mp3"
-    },
-    {
-        "bright fm",
-        "http://str1.hollanddata.eu:8000/;"
-    }
+    { "GOD Radio", "http://stream.wildfm.nl/GOD_Radio" },
+    { "NPO Radio 2", "http://icecast.omroep.nl/radio2-bb-mp3" },
+    { "Groot Nieuws Radio", "http://playerservices.streamtheworld.com/api/livestream-redirect/GNR.mp3" },
+    { "Golden Praise", "http://radio.wanderingsheep.net/listen/golden_praise/goldenpraise" },
+    { "One Christian Radio", "http://radio.wanderingsheep.net:33001/onechristianradio" },
+    { "Moody Radio", "http://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio" },
+    { "loving grace radio", "http://us2.internet-radio.com/proxy/lovinggraceradio?mp=/stream" },
+    { "one crhistian radio", "http://radio.wanderingsheep.net:33001/onechristianradio" },
+    { "Hope Alive", "http://radio.wanderingsheep.net:8012/hopealive" },
+    { "538 Radio", "http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3" },
+    { "538 Classic", "http://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3" },
+    { "Q music", "http://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3" },
+    { "npo radio 1", "http://icecast.omroep.nl/radio1-bb-mp3" },
+    { "bright fm", "http://str1.hollanddata.eu:8000/;" }
 };
 
 const int stationCount =
@@ -138,7 +96,7 @@ const unsigned long SCREEN_TIMEOUT = 10000; // 10 seconden
 unsigned long lastButtonActivity = 0;
 bool screenIsOn = true;
 
-int currentVolume = 100;
+int currentVolume = 80;
 
 // =====================================
 // Knop: debounce
@@ -194,6 +152,8 @@ int findStationByUrl(const String& url) {
 // OLED display bijwerken
 // =====================================
 void updateDisplay() {
+    screenIsOn = true;
+    lastButtonActivity = millis();
     if (!displayAvailable) {
         return;
     }
@@ -308,194 +268,85 @@ const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
- content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ESP32-S3 Web Radio</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f9; color: #333; padding: 20px; margin: 0; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+        h1 { color: #007bff; font-size: 24px; margin-bottom: 25px; }
+        .section { margin: 20px 0; padding: 18px; background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; text-align: left; }
+        label { display: block; margin-bottom: 8px; color: #4a5568; }
+        input[type=text], select { width: 100%; padding: 12px; margin: 8px 0 16px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 16px; background: white; }
+        input[type=submit] { width: 100%; background: #007bff; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.2s; }
+        input[type=submit]:hover { background: #0056b3; }
+        
+        /* Plus en Min volume controller styling */
+        .volume-control { display: flex; align-items: center; justify-content: space-between; background: white; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; margin-top: 5px; }
+        .vol-btn { display: block; width: 60px; height: 50px; background: #f1f5f9; color: #334155; text-decoration: none; text-align: center; line-height: 50px; font-size: 24px; font-weight: bold; transition: background 0.15s; user-select: none; }
+        .vol-btn:hover { background: #e2e8f0; color: #000; }
+        .vol-btn:active { background: #cbd5e1; }
+        .vol-display { flex-grow: 1; text-align: center; font-size: 18px; font-weight: bold; color: #1e293b; }
 
-<title>ESP32-S3 Web Radio</title>
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background: #f4f4f9;
-    color: #333;
-    padding: 20px;
-}
-
-.container {
-    max-width: 500px;
-    margin: auto;
-    background: white;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0,0,0,.1);
-}
-
-h1 {
-    color: #007bff;
-    font-size: 24px;
-}
-
-.section {
-    margin: 20px 0;
-    padding: 15px;
-    background: #f8f9fa;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    text-align: left;
-}
-
-input[type=text],
-input[type=number],
-select {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-    font-size: 16px;
-}
-
-input[type=submit] {
-    width: 100%;
-    background: #007bff;
-    color: white;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.status {
-    background: #e9ecef;
-    padding: 12px;
-    border-radius: 5px;
-    margin-top: 20px;
-    font-size: 14px;
-    overflow-wrap: anywhere;
-}
-</style>
+        .status { background: #e2e8f0; padding: 15px; border-radius: 8px; margin-top: 25px; font-size: 14px; text-align: left; line-height: 1.5; }
+        .status-val { font-family: monospace; background: rgba(255,255,255,0.5); padding: 2px 6px; border-radius: 4px; overflow-wrap: anywhere; display: inline-block; margin-top: 4px; }
+    </style>
 </head>
-
 <body>
-<div class="container">
+    <div class="container">
+        <h1>ESP32-S3 Web Radio</h1>
+        
+        <!-- Zender selecteren -->
+        <div class="section">
+            <form action="/set-url" method="GET">
+                <label for="url"><strong>Stream-URL invoeren:</strong></label>
+                <input type="text" id="url" name="url" placeholder="http://...">
+                
+                <label for="preset"><strong>Of kies een preset:</strong></label>
+                <select id="preset" name="preset" onchange="if(this.value) document.getElementById('url').value=this.value;">
+                    <option value="">-- Kies een zender --</option>
+                    <option value="http://stream.wildfm.nl/GOD_Radio">GOD Radio</option>
+                    <option value="http://icecast.omroep.nl/radio2-bb-mp3">NPO Radio 2</option>
+                    <option value="http://playerservices.streamtheworld.com/api/livestream-redirect/GNR.mp3">Groot Nieuws Radio</option>
+                    <option value="http://radio.wanderingsheep.net/listen/golden_praise/goldenpraise">Golden Praise</option>
+                    <option value="http://radio.wanderingsheep.net:33001/onechristianradio">One Christian Radio</option>
+                    <option value="http://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio">Moody Radio</option>
+                    <option value="http://us2.internet-radio.com/proxy/lovinggraceradio?mp=/stream">loving grace radio</option>
+                    <option value="http://radio.wanderingsheep.net:33001/onechristianradio">one crhistian radio</option>
+                    <option value="http://radio.wanderingsheep.net:8012/hopealive">Hope Alive</option>
+                    <option value="http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3">538 Radio</option>
+                    <option value="http://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3"">538 Classic</option>
+                    <option value="http://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3">Q music</option>
+                    <option value="http://icecast.omroep.nl/radio1-bb-mp3">npo radio 1</option>
+                    <option value="http://str1.hollanddata.eu:8000/;">bright fm</option>
+                </select>
+                <input type="submit" value="Zender wijzigen">
+            </form>
+        </div>
 
-<h1>ESP32-S3 Web Radio</h1>
+        <!-- Volume regeling met + en - knoppen -->
+        <div class="section">
+            <label><strong>Volume aanpassen:</strong></label>
+            <div class="volume-control">
+                <!-- Genereert een link naar /set-volume?val=<huidig_volume - 1> -->
+                <a href="/set-volume?val=%VOL_MINUS_1%" class="vol-btn">&minus;</a>
+                <div class="vol-display">%VOL%%</div>
+                <!-- Genereert een link naar /set-volume?val=<huidig_volume + 1> -->
+                <a href="/set-volume?val=%VOL_PLUS_1%" class="vol-btn">&plus;</a>
+            </div>
+        </div>
 
-<div class="section">
-<form action="/set-url" method="GET">
-
-<label for="url">
-<strong>Stream-URL invoeren:</strong>
-</label>
-
-<input type="text" id="url" name="url"
- placeholder="http://..." >
-
-<label for="preset">
-<strong>Of kies een preset:</strong>
-</label>
-
-<select id="preset" name="preset"
- onchange="if(this.value)
- document.getElementById('url').value=this.value;">
-
-<option value="">-- Kies een zender --</option>
-
-<option value="http://stream.wildfm.nl/GOD_Radio">
-GOD Radio
-</option>
-
-<option value="http://icecast.omroep.nl/radio2-bb-mp3">
-NPO Radio 2
-</option>
-
-<option value="http://playerservices.streamtheworld.com/api/livestream-redirect/GNR.mp3">
-Groot Nieuws Radio
-</option>
-
-<option value="http://radio.wanderingsheep.net/listen/golden_praise/goldenpraise">
-Golden Praise
-</option>
-
-<option value="http://radio.wanderingsheep.net:33001/onechristianradio">
-One Christian Radio
-</option>
-
-<option value="http://14123.live.streamtheworld.com/MB2.mp3?dist=moodyRadio">
-Moody Radio
-</option>
-
-<option value="http://us2.internet-radio.com/proxy/lovinggraceradio?mp=/stream">
-loving grace radio
-</option>
-
-<option value="http://radio.wanderingsheep.net:33001/onechristianradio">
-one crhistian radio
-</option>
-
-<option value="http://radio.wanderingsheep.net:8012/hopealive">
-Hope Alive
-</option>
-
-<option value="http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3">
-538 Radio
-</option>
-
-<option value="http://playerservices.streamtheworld.com/api/livestream-redirect/TLPSTR08.mp3">
-538 Classic
-</option>
-
-<option value="http://audio-streaming.qmusic.nl/Qmusic_nl_live.mp3">
-Q music
-</option>
-
-<option value="http://icecast.omroep.nl/radio1-bb-mp3">
-npo radio 1
-</option>
-
-<option value="http://str1.hollanddata.eu:8000/;">
-bright fm
-</option>
-
-
-
-
-
-</select>
-
-<input type="submit" value="Zender wijzigen">
-</form>
-</div>
-
-<div class="section">
-<form action="/set-volume" method="GET">
-
-<label for="vol-input">
-<strong>Volume (0 - 100):</strong>
-</label>
-
-<input type="number" id="vol-input"
- name="val" min="0" max="100" value="%VOL%">
-
-<input type="submit" value="Volume toepassen">
-</form>
-</div>
-
-<div class="status">
-<strong>Huidig volume:</strong> %VOL%%<br><br>
-<strong>Actieve stream:</strong><br>
-%URL%
-</div>
-
-</div>
+        <!-- Status informatie -->
+        <div class="status">
+            <strong>Huidig volume:</strong> %VOL%%<br><br>
+            <strong>Actieve stream:</strong><br>
+            <span class="status-val">%URL%</span>
+        </div>
+    </div>
 </body>
 </html>
 )rawliteral";
+
 
 // =====================================
 // Setup
@@ -579,16 +430,26 @@ void setup() {
     // =================================
     // Webserver: hoofdpagina
     // =================================
-    server.on("/", HTTP_GET,
-        [](AsyncWebServerRequest* request) {
-            String html = FPSTR(index_html);
+server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+    String html = FPSTR(index_html);
+    
+    // Bereken de nieuwe volumestappen voor de knoppen
+    int volMinus = currentVolume - 1;
+    int volPlus = currentVolume + 1;
+    
+    // Begrens de waarden netjes tussen 0 en 100
+    if (volMinus < 0) volMinus = 0;
+    if (volPlus > 100) volPlus = 100;
+    
+    // Vervang de placeholders in de HTML met de juiste waarden
+    html.replace("%VOL%", String(currentVolume));
+    html.replace("%VOL_MINUS_1%", String(volMinus));
+    html.replace("%VOL_PLUS_1%", String(volPlus));
+    html.replace("%URL%", currentUrl);
+    
+    request->send(200, "text/html", html);
+});
 
-            html.replace("%VOL%", String(currentVolume));
-            html.replace("%URL%", currentUrl);
-
-            request->send(200, "text/html", html);
-        }
-    );
 
     // =================================
     // Webserver: URL wijzigen
