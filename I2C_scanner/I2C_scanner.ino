@@ -13,7 +13,8 @@
 #define WIRE Wire
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
+  delay(2000);
   Serial.println(__FILE__);
   Serial.print(F("creation/build time: "));
   Serial.println(__TIMESTAMP__);
