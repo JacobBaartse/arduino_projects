@@ -8,7 +8,7 @@ Use ESP32 small board as WEB server with a KIKA receiver
 
 
 
-Use KIKA remote controls and phone/tablet to control the switching/dimming
+Use KIKA remote controls and phone/tablet browser to control the switching/dimming
 
 https://www.praxis.nl/smart-home-domotica/slimme-elektra/slimme-afstandsbedieningen/klikaanklikuit-afstandsbediening-ayct-103b-4-kanalen-zwart/10536622
 
