@@ -30,6 +30,25 @@ You are now in the web interface of your device.
 Needs to be checked if the Shelly can be configured to the local ESP wifi network and accepting REST commands
 
 
+-------
+
+1. Lokale API (Direct op het apparaat / Lokaal Netwerk)
+
+Elke Shelly-sensor of -switch heeft een eigen lokale webserver op zijn IP-adres in je thuisnetwerk.
+• Gen 1 apparaten (HTTP GET / JSON):
+	• Status opvragen: http://<shelly-ip>/status
+	• Relay aanzetten: http://<shelly-ip>/relay/0?turn=on
+	• Relay uanzetten: http://<shelly-ip>/relay/0?turn=off
+
+• Gen 2 / Gen 3 / Plus / Pro apparaten (RPC over HTTP):
+	• Schakelaar aanzetten via RPC: http://<shelly-ip>/rpc/Switch.Set?id=0&on=true
+	• Status opvragen via RPC: http://<shelly-ip>/rpc/Shelly.GetStatus
+
+-------
+
+
+https://shelly-api-docs.shelly.cloud/#shelly-family-overview
+
 
 
 **/
