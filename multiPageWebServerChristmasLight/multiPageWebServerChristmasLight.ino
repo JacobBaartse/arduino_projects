@@ -5,6 +5,8 @@
 #include "temperature.h"
 #include "light.h"
 #include "lamp.h"
+#include "radio.h"
+#include "iframes.h"
 #include "RTC.h"
 #include "clock.h"
 #include "error_404.h"
@@ -32,6 +34,8 @@ DHT dht22(DHT22_PIN, DHT22);
 #define PAGE_TEMPERATURE 1
 #define PAGE_LIGHT 2
 #define PAGE_LAMP 3
+#define PAGE_RADIO 4
+#define PAGE_IFRAMES 5
 
 #define GREEN_LED_PIN 6
 #define RED_LED_PIN 4
@@ -273,6 +277,13 @@ void webserver(){
       if (HTTP_req.indexOf("GET /lamp?0aan") > -1) light(true, 0);
       if (HTTP_req.indexOf("GET /lamp?0uit") > -1) light(false, 0);
 
+      if (HTTP_req.indexOf("GET /radio?0aan") > -1) light(true, 0);
+      if (HTTP_req.indexOf("GET /radio?0uit") > -1) light(false, 0);
+      if (HTTP_req.indexOf("GET /radio") > -1 )                                   page_id = PAGE_RADIO;
+
+      if (HTTP_req.indexOf("GET /iframes") > -1 )                                 page_id = PAGE_IFRAMES;
+
+
       if (HTTP_req.indexOf("GET /lamp?D") > -1) all_lights(true);
       if (HTTP_req.indexOf("GET /lamp?E") > -1) all_lights(false);
 
@@ -312,6 +323,12 @@ void webserver(){
         html = String(HTML_CONTENT_LAMP);
         lamp_state = String(" "+lamp_state1 + " " + lamp_state2 + " " + lamp_state3 + " </br>"+ lamp_state4 + " " + lamp_state5 + " " + lamp_state6 + " </br>"+ lamp_state7 + " " + lamp_state8 + " " + lamp_state9 + " </br>"+ lamp_state0);
         html.replace("LAMP_STATE_MARKER", lamp_state);  // replace the marker by a real value
+        break;
+      case PAGE_IFRAMES:
+        html = String(HTML_CONTENT_IFRAMES);
+        break;
+      case PAGE_RADIO:
+        html = String(HTML_CONTENT_RADIO);
         break;
       case PAGE_ERROR_404:
         html = String(HTML_CONTENT_404);
@@ -418,7 +435,7 @@ void all_lights(bool turn_on){
 void businessLogic(){
   update_clock();
   bool low_light = false;
-  if (analogRead(lightSensorPin) < 38) low_light = true;
+  if (analogRead(lightSensorPin) < 35) low_light = true;
   bool eavening = false;
   if (Hour>15 && Hour<23) eavening = true;
   if (Hour==22 && Minutes >=30) eavening = false;
