@@ -230,6 +230,18 @@ void nextStation() {
     updateDisplay();
 }
 
+void prevStation() {
+  selectedStation--;
+  if (selectedStation < 0) {
+    selectedStation = stationCount - 1;
+  }
+  currentUrl = stations[selectedStation].url;
+  shouldChangeUrl = true;
+  Serial.print("Geselecteerde zender: ");
+  Serial.println(stations[selectedStation].name);
+  updateDisplay();
+}
+
 // =====================================
 // Drukknop uitlezen met debounce
 // =====================================
@@ -343,6 +355,22 @@ const char index_html[] PROGMEM = R"rawliteral(
             <span class="status-val">%URL%</span>
         </div>
     </div>
+</body>
+</html>
+)rawliteral";
+
+const char simple_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html>
+<body>
+  <div>
+    <a href="/ch-down">Kanaal -</a>
+    <a href="/ch-up">Kanaal +</a>
+  </div>
+  <div>
+    <a href="/vol-down">Volume -</a>
+    <a href="/vol-up">Volume +</a>
+  </div>
 </body>
 </html>
 )rawliteral";
@@ -518,6 +546,37 @@ server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
             request->redirect("/");
         }
     );
+  // =================================
+  // Webserver: simpele afstandsbediening
+  // =================================
+  server.on("/simple", HTTP_GET, [](AsyncWebServerRequest* request) {
+    String html = FPSTR(simple_html);
+    request->send(200, "text/html", html);
+  });
+
+  server.on("/ch-up", HTTP_GET, [](AsyncWebServerRequest* request) {
+    nextStation();
+    request->redirect("/simple");
+  });
+
+  server.on("/ch-down", HTTP_GET, [](AsyncWebServerRequest* request) {
+    prevStation();
+    request->redirect("/simple");
+  });
+
+  server.on("/vol-up", HTTP_GET, [](AsyncWebServerRequest* request) {
+    currentVolume = min(100, currentVolume + 1); // Verhoogt met 5% per klik
+    audio.setVolume(currentVolume);
+    updateDisplay();
+    request->redirect("/simple");
+  });
+
+  server.on("/vol-down", HTTP_GET, [](AsyncWebServerRequest* request) {
+    currentVolume = max(0, currentVolume - 1); // Verlaagt met 5% per klik
+    audio.setVolume(currentVolume);
+    updateDisplay();
+    request->redirect("/simple");
+  });
 
     server.begin();
 
