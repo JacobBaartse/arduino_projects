@@ -5,7 +5,6 @@
 #include "temperature.h"
 #include "light.h"
 #include "lamp.h"
-#include "radio.h"
 #include "iframes.h"
 #include "RTC.h"
 #include "clock.h"
@@ -15,6 +14,7 @@
 #include <Adafruit_GFX.h>
 #include "FreeSerif12pt7b_special.h"  //https://tchapi.github.io/Adafruit-GFX-Font-Customiser/
 #include "IR_receiver.h"
+#include "radio.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -45,7 +45,7 @@ DHT dht22(DHT22_PIN, DHT22);
 
 const int PAGE_ERROR_404 = -1;
 const int PAGE_ERROR_405 = -2;
-const bool debug = true;
+const bool debug = false;
 
 const int lightSensorPin = A0;   // select the input pin of the light sensor.
 int sensorValue = 0;  // variable to store the value coming from the sensor
@@ -129,7 +129,7 @@ void update_display(){
     if ((millis_now -last_update_time) > 1000){ // only clear the screen once a second
       last_update_time = millis_now;
       if (debug) Serial.println("clear display");
-      display.clearDisplay();   
+      display.clearDisplay();
       display.setCursor(0,0);
       display.print("  "); // always send some data to the screen to keep it alive.
       display.display();
@@ -501,6 +501,10 @@ void businessLogic(){
       else if (ir_value == 0x87) toggle_light(8);
       else if (ir_value == 0x88) toggle_light(9);
       else if (ir_value == 0x89) toggle_light(0);
+      else if (ir_value == 0x90) radio_channel_plus();
+      else if (ir_value == 0x91) radio_channel_min();
+      else if (ir_value == 0x92) radio_volume_plus();
+      else if (ir_value == 0x93) radio_volume_min();
       else light(true, 1);
   }
 }

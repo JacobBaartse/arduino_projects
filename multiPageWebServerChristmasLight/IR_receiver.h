@@ -99,7 +99,7 @@ int one_loop_irreceiver() {
   int ret_value = 0;
   unsigned long ir_command = getIrCode();
   if (ir_command>0)  {
-    if ((millis() - last_recieved_time) > 1000){
+    if ((millis() - last_recieved_time) > 700){
       prev_ir_command = 0;
       ir_command_count = 0;
     }
